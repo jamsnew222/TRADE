@@ -22,7 +22,6 @@ export default function Home() {
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
-  const [mounted, setMounted] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [darkMode, setDarkMode] = useState(false);
@@ -33,19 +32,22 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<'grid' | 'path'>('path');
 
   useEffect(() => {
-    setMounted(true);
-    const progressData = loadProgress();
-    setProgress(progressData);
-    setAchievements(loadAchievements());
-    
-    // Check for system dark mode preference
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setDarkMode(true);
-    }
+    try {
+      const progressData = loadProgress();
+      setProgress(progressData);
+      setAchievements(loadAchievements());
 
-    // Show style selector if no trading style selected
-    if (!progressData.tradingStyle) {
-      setShowStyleSelector(true);
+      // Check for system dark mode preference
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        setDarkMode(true);
+      }
+
+      // Show style selector if no trading style selected
+      if (!progressData.tradingStyle) {
+        setShowStyleSelector(true);
+      }
+    } catch (error) {
+      console.error('Error loading initial data:', error);
     }
   }, []);
 
@@ -66,19 +68,11 @@ export default function Home() {
     setProgress(updatedProgress);
   };
 
-  const filteredLessons = selectedCategory === 'All' 
-    ? lessons 
+  const filteredLessons = selectedCategory === 'All'
+    ? lessons
     : lessons.filter(lesson => lesson.category === selectedCategory);
 
   const availableLessons = progress ? getRecommendedLessons(lessons, progress) : [];
-
-  if (!mounted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
-        <div className="text-2xl font-semibold text-gray-600">Loading...</div>
-      </div>
-    );
-  }
 
   if (activeLesson) {
     return (
