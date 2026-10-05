@@ -1,0 +1,19 @@
+{
+  "name": "TradeQuest - Learn Trading",
+  "short_name": "TradeQuest",
+  "description": "Learn stock trading through interactive lessons and gamified learning",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#22c55e",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["education", "finance"]
+}

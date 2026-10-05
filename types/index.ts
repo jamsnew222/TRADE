@@ -1,4 +1,4 @@
-export type LessonType = 'quiz' | 'matching' | 'fill-blank' | 'multiple-choice' | 'interactive' | 'true-false' | 'multiple-select' | 'ordering' | 'word-bank';
+export type LessonType = 'quiz' | 'matching' | 'fill-blank' | 'multiple-choice' | 'interactive' | 'true-false' | 'multiple-select' | 'ordering' | 'word-bank' | 'flashcard' | 'drag-drop' | 'timeline' | 'scenario';
 
 export type TradingStyle = 'day-trading' | 'swing-trading' | 'long-term-investing' | 'balanced';
 
@@ -35,6 +35,10 @@ export interface Lesson {
       scenario: string;
       steps: string[];
     };
+    flashcards?: FlashcardQuestion[];
+    dragDrop?: DragDropQuestion;
+    timeline?: TimelineQuestion;
+    scenario?: ScenarioQuestion[];
   };
   prerequisites?: string[];
 }
@@ -121,6 +125,47 @@ export interface WordBankQuestion {
   sentence: string;
   words: string[];
   correctWords: string[];
+  explanation: string;
+}
+
+export interface FlashcardQuestion {
+  id: string;
+  front: string;
+  back: string;
+  hint?: string;
+  explanation?: string;
+}
+
+export interface DragDropQuestion {
+  id: string;
+  instruction: string;
+  items: Array<{
+    id: string;
+    content: string;
+    category: string;
+  }>;
+  categories: string[];
+  explanation: string;
+}
+
+export interface TimelineQuestion {
+  id: string;
+  instruction: string;
+  events: Array<{
+    id: string;
+    description: string;
+    date: string;
+  }>;
+  correctOrder: string[];
+  explanation: string;
+}
+
+export interface ScenarioQuestion {
+  id: string;
+  scenario: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
   explanation: string;
 }
 

@@ -17,12 +17,20 @@ export default function LessonCard({ lesson, isLocked, isCompleted, onStart }: L
     advanced: 'bg-red-100 text-red-800'
   };
 
-  const typeIcons = {
+  const typeIcons: Record<string, string> = {
     quiz: '❓',
     matching: '🔗',
     'fill-blank': '✏️',
     'multiple-choice': '📝',
-    interactive: '🎮'
+    'true-false': '✅',
+    'multiple-select': '☑️',
+    'ordering': '🔢',
+    'word-bank': '📝',
+    interactive: '🎮',
+    flashcard: '🎴',
+    'drag-drop': '🎯',
+    timeline: '📅',
+    scenario: '🎬'
   };
 
   return (

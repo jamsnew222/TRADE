@@ -1003,7 +1003,7 @@ export const lessons: Lesson[] = [
     type: 'quiz',
     difficulty: 'beginner',
     category: 'Basics',
-    xpReward: 10,
+    xpReward: 30,
     content: {
       explanation: 'Stock markets have specific trading hours. The NYSE and NASDAQ are open Monday through Friday from 9:30 AM to 4:00 PM Eastern Time. Pre-market and after-hours trading allow trading outside these hours but with less liquidity and wider spreads.',
       quiz: [
@@ -1020,6 +1020,31 @@ export const lessons: Lesson[] = [
           options: ['Higher liquidity', 'Lower volatility', 'Less liquidity and wider spreads', 'Same as regular hours'],
           correctAnswer: 2,
           explanation: 'Pre-market trading typically has less liquidity and wider spreads compared to regular trading hours due to fewer participants.'
+        },
+        {
+          id: 'q3',
+          question: 'True or False: Stock markets are open on weekends.',
+          options: ['True', 'False'],
+          correctAnswer: 1,
+          explanation: 'False. Major stock markets like the NYSE and NASDAQ are closed on weekends (Saturday and Sunday).',
+          type: 'true-false'
+        },
+        {
+          id: 'q4',
+          question: 'True or False: After-hours trading has the same liquidity as regular hours.',
+          options: ['True', 'False'],
+          correctAnswer: 1,
+          explanation: 'False. After-hours trading has significantly less liquidity than regular trading hours, which can lead to larger price movements and wider spreads.',
+          type: 'true-false'
+        },
+        {
+          id: 'q5',
+          question: 'Which are characteristics of extended hours trading? (Select all that apply)',
+          options: ['Less liquidity', 'Wider spreads', 'Higher volatility', 'More participants'],
+          correctAnswer: 0,
+          explanation: 'Extended hours trading (pre-market and after-hours) has less liquidity, wider spreads, and higher volatility. It has fewer participants than regular hours.',
+          type: 'multiple-select',
+          correctAnswers: [0, 1, 2]
         }
       ]
     }
@@ -1028,34 +1053,66 @@ export const lessons: Lesson[] = [
     id: 'market-participants',
     title: 'Market Participants',
     description: 'Learn who trades in the markets and why',
-    type: 'matching',
+    type: 'quiz',
     difficulty: 'beginner',
     category: 'Basics',
-    xpReward: 15,
+    xpReward: 30,
     content: {
-      matching: {
-        id: 'match4',
-        instruction: 'Match the market participant with their role',
-        pairs: [
-          { left: 'Retail Investors', right: 'Individual traders investing personal money' },
-          { left: 'Institutional Investors', right: 'Large organizations like pension funds and mutual funds' },
-          { left: 'Market Makers', right: 'Provide liquidity by buying and selling continuously' },
-          { left: 'High-frequency Traders', right: 'Use algorithms to trade rapidly in milliseconds' }
-        ]
-      }
+      explanation: 'Market participants include retail investors (individuals), institutional investors (pension funds, mutual funds), market makers (provide liquidity), and high-frequency traders (algorithmic trading). Each group plays a different role in market function and liquidity.',
+      quiz: [
+        {
+          id: 'q1',
+          question: 'What is the primary role of market makers?',
+          options: ['Invest for long-term growth', 'Provide liquidity by continuously buying and selling', 'Regulate the market', 'Set stock prices'],
+          correctAnswer: 1,
+          explanation: 'Market makers provide liquidity by continuously offering to buy and sell securities, ensuring there are always buyers and sellers in the market.'
+        },
+        {
+          id: 'q2',
+          question: 'Which of these is an example of an institutional investor?',
+          options: ['Individual trader', 'Pension fund', 'Market maker', 'Day trader'],
+          correctAnswer: 1,
+          explanation: 'Institutional investors include pension funds, mutual funds, insurance companies, and other large organizations that invest on behalf of others.'
+        },
+        {
+          id: 'q3',
+          question: 'True or False: Retail investors trade with their personal money.',
+          options: ['True', 'False'],
+          correctAnswer: 0,
+          explanation: 'True. Retail investors are individual traders who invest their personal money, as opposed to institutional investors who manage money for others.',
+          type: 'true-false'
+        },
+        {
+          id: 'q4',
+          question: 'True or False: High-frequency traders use algorithms to execute trades.',
+          options: ['True', 'False'],
+          correctAnswer: 0,
+          explanation: 'True. High-frequency traders use sophisticated algorithms and high-speed data connections to execute trades in milliseconds or microseconds.',
+          type: 'true-false'
+        },
+        {
+          id: 'q5',
+          question: 'Which are types of market participants? (Select all that apply)',
+          options: ['Retail investors', 'Institutional investors', 'Market makers', 'Market regulators'],
+          correctAnswer: 0,
+          explanation: 'Market participants include retail investors, institutional investors, and market makers. Market regulators are government entities that oversee markets, not market participants.',
+          type: 'multiple-select',
+          correctAnswers: [0, 1, 2]
+        }
+      ]
     }
   },
   {
     id: 'types-of-securities',
     title: 'Types of Securities',
     description: 'Understanding different investment vehicles',
-    type: 'multiple-choice',
+    type: 'quiz',
     difficulty: 'beginner',
     category: 'Basics',
-    xpReward: 15,
+    xpReward: 30,
     content: {
       explanation: 'Securities are tradable financial instruments. Common types include stocks (equity), bonds (debt), ETFs (baskets of securities), mutual funds (pooled investments), and options (derivatives). Each serves different investment purposes and risk profiles.',
-      multipleChoice: [
+      quiz: [
         {
           id: 'q1',
           question: 'What type of security represents ownership in a company?',
@@ -1069,6 +1126,31 @@ export const lessons: Lesson[] = [
           options: ['Ownership stake', 'Debt instrument with fixed payments', 'Basket of securities', 'Right to buy/sell'],
           correctAnswer: 1,
           explanation: 'Bonds are debt securities where investors lend money to issuers in exchange for periodic interest payments and return of principal.'
+        },
+        {
+          id: 'q3',
+          question: 'True or False: ETFs trade like individual stocks on exchanges.',
+          options: ['True', 'False'],
+          correctAnswer: 0,
+          explanation: 'True. ETFs (Exchange-Traded Funds) trade on stock exchanges just like individual stocks, with prices changing throughout the trading day.',
+          type: 'true-false'
+        },
+        {
+          id: 'q4',
+          question: 'True or False: Mutual funds are traded throughout the day like stocks.',
+          options: ['True', 'False'],
+          correctAnswer: 1,
+          explanation: 'False. Mutual funds are priced only once per day at the end of trading, unlike ETFs which trade continuously throughout the day.',
+          type: 'true-false'
+        },
+        {
+          id: 'q5',
+          question: 'Which are types of securities? (Select all that apply)',
+          options: ['Stocks', 'Bonds', 'ETFs', 'Real estate'],
+          correctAnswer: 0,
+          explanation: 'Stocks, bonds, and ETFs are all types of securities traded on financial markets. Real estate is an asset class but not typically considered a traded security in the same way.',
+          type: 'multiple-select',
+          correctAnswers: [0, 1, 2]
         }
       ]
     }
@@ -1080,7 +1162,7 @@ export const lessons: Lesson[] = [
     type: 'quiz',
     difficulty: 'beginner',
     category: 'Basics',
-    xpReward: 15,
+    xpReward: 30,
     content: {
       explanation: 'Stock charts display price movements over time. The most common is a candlestick chart showing open, high, low, and close prices. Green candles indicate price increases, while red candles show decreases. Timeframes can range from minutes to years.',
       quiz: [
@@ -1097,6 +1179,31 @@ export const lessons: Lesson[] = [
           options: ['Only closing price', 'Open, high, low, and close prices', 'Only volume', 'Company earnings'],
           correctAnswer: 1,
           explanation: 'Candlesticks show four key price points: open, high, low, and close, providing a complete picture of price movement.'
+        },
+        {
+          id: 'q3',
+          question: 'True or False: Red candlesticks indicate price increases.',
+          options: ['True', 'False'],
+          correctAnswer: 1,
+          explanation: 'False. Red candlesticks indicate that the closing price was lower than the opening price, showing a price decrease.',
+          type: 'true-false'
+        },
+        {
+          id: 'q4',
+          question: 'True or False: Candlestick charts can show different timeframes.',
+          options: ['True', 'False'],
+          correctAnswer: 0,
+          explanation: 'True. Candlestick charts can display various timeframes from minutes to years, allowing analysis of different trading periods.',
+          type: 'true-false'
+        },
+        {
+          id: 'q5',
+          question: 'Which are key elements of a candlestick? (Select all that apply)',
+          options: ['Open price', 'High price', 'Low price', 'Close price'],
+          correctAnswer: 0,
+          explanation: 'Candlesticks show open, high, low, and close prices - these four elements provide a complete picture of price movement.',
+          type: 'multiple-select',
+          correctAnswers: [0, 1, 2, 3]
         }
       ]
     }
@@ -2239,6 +2346,142 @@ export const lessons: Lesson[] = [
         options: ['It guarantees future profits', 'Past performance doesn\'t guarantee future results', 'It only works for stocks', 'It requires no data'],
         correctAnswer: 1,
         explanation: 'A major limitation of backtesting is that past performance doesn\'t guarantee future results, and historical conditions may not repeat.'
+      }
+    ]
+  }
+},
+{
+  id: 'trading-process-ordering',
+  title: 'Trading Process Steps',
+  description: 'Learn the correct order of steps in trading',
+  type: 'ordering',
+  difficulty: 'beginner',
+  category: 'Basics',
+  xpReward: 35,
+  content: {
+    explanation: 'When trading stocks, there\'s a specific process you should follow to make informed decisions and manage risk effectively. Understanding this sequence helps you trade more systematically.',
+    ordering: [
+      {
+        id: 'order1',
+        instruction: 'Order the trading steps from first to last:',
+        items: ['Place the order', 'Research the stock', 'Review your trade', 'Set a budget', 'Monitor the position'],
+        correctOrder: [1, 0, 3, 4, 2],
+        explanation: 'The correct sequence is: 1) Research the stock, 2) Set a budget, 3) Place the order, 4) Monitor the position, 5) Review your trade.'
+      }
+    ]
+  }
+},
+{
+  id: 'market-participants-wordbank',
+  title: 'Market Participants',
+  description: 'Identify different types of market participants',
+  type: 'word-bank',
+  difficulty: 'beginner',
+  category: 'Basics',
+  xpReward: 30,
+  content: {
+    explanation: 'The stock market has many different types of participants, each with different goals and strategies. Understanding who is trading helps you understand market dynamics.',
+    wordBank: [
+      {
+        id: 'wb1',
+        instruction: 'Select the correct words to complete the sentences:',
+        sentence: 'Institutional investors like _____ and _____ trade large volumes. _____ trade on behalf of clients. _____ buy and sell for personal accounts.',
+        words: ['hedge funds', 'retail investors', 'mutual funds', 'brokers', 'banks', 'day traders'],
+        correctWords: ['hedge funds', 'mutual funds', 'brokers', 'retail investors'],
+        explanation: 'Institutional investors like hedge funds and mutual funds trade large volumes. Brokers trade on behalf of clients. Retail investors buy and sell for personal accounts.'
+      }
+    ]
+  }
+},
+{
+  id: 'stock-terms-flashcards',
+  title: 'Stock Terms Flashcards',
+  description: 'Learn key stock trading terminology',
+  type: 'flashcard',
+  difficulty: 'beginner',
+  category: 'Basics',
+  xpReward: 40,
+  content: {
+    explanation: 'Flashcards are a great way to memorize important trading terms. Click each card to reveal the definition and test your knowledge.',
+    flashcards: [
+      {
+        id: 'fc1',
+        front: 'What is a "bull market"?',
+        back: 'A bull market is a period of rising stock prices, typically accompanied by optimism and investor confidence.',
+        hint: 'Think of a bull charging forward with its horns up',
+        explanation: 'Bull markets are characterized by sustained price increases and are generally associated with strong economic conditions.'
+      },
+      {
+        id: 'fc2',
+        front: 'What is a "bear market"?',
+        back: 'A bear market is a period of falling stock prices, typically defined as a decline of 20% or more from recent highs.',
+        hint: 'Think of a bear swiping its paws downward',
+        explanation: 'Bear markets are often accompanied by pessimism and can last for extended periods.'
+      },
+      {
+        id: 'fc3',
+        front: 'What is "volatility"?',
+        back: 'Volatility measures how much and how quickly stock prices change. High volatility means large price swings, while low volatility means prices are relatively stable.',
+        hint: 'Related to how "jumpy" the market is',
+        explanation: 'Volatility is a key risk factor - higher volatility means higher potential returns but also higher risk.'
+      },
+      {
+        id: 'fc4',
+        front: 'What is "liquidity"?',
+        back: 'Liquidity refers to how easily you can buy or sell a stock without affecting its price. High liquidity means many buyers and sellers are active.',
+        hint: 'Think of how "liquid" or easy it is to convert to cash',
+        explanation: 'Stocks with high liquidity are easier to trade and typically have narrower bid-ask spreads.'
+      },
+      {
+        id: 'fc5',
+        front: 'What is a "dividend"?',
+        back: 'A dividend is a portion of a company\'s profits distributed to shareholders, usually on a quarterly basis.',
+        hint: 'Think of it as a "reward" for owning the stock',
+        explanation: 'Dividends provide regular income to investors and are often paid by established, profitable companies.'
+      }
+    ]
+  }
+},
+{
+  id: 'order-types-matching',
+  title: 'Order Types Matching',
+  description: 'Match order types with their descriptions',
+  type: 'matching',
+  difficulty: 'intermediate',
+  category: 'Orders',
+  xpReward: 35,
+  content: {
+    explanation: 'Different order types serve different purposes. Matching them with their descriptions helps you choose the right one for your trading strategy.',
+    matching: {
+      id: 'match1',
+      instruction: 'Match each order type with its description:',
+      pairs: [
+        { left: 'Market Order', right: 'Executes immediately at current price' },
+        { left: 'Limit Order', right: 'Executes only at specified price or better' },
+        { left: 'Stop Order', right: 'Becomes a market order when price reaches stop price' },
+        { left: 'Stop-Limit Order', right: 'Becomes a limit order when price reaches stop price' }
+      ]
+    }
+  }
+},
+{
+  id: 'risk-management-wordbank',
+  title: 'Risk Management Terms',
+  description: 'Complete sentences about risk management',
+  type: 'word-bank',
+  difficulty: 'intermediate',
+  category: 'Risk Management',
+  xpReward: 35,
+  content: {
+    explanation: 'Risk management is crucial for long-term trading success. These terms describe key concepts every trader should know.',
+    wordBank: [
+      {
+        id: 'wb2',
+        instruction: 'Select the correct words to complete the sentences:',
+        sentence: 'Never risk more than _____ of your account on a single trade. Use _____ to limit potential losses. A _____ ratio of 2:1 means your potential profit is twice your risk. Proper _____ helps preserve capital during losing streaks.',
+        words: ['1-2%', 'position sizing', 'stop-loss', 'risk-to-reward', 'leverage', 'diversification'],
+        correctWords: ['1-2%', 'stop-loss', 'risk-to-reward', 'position sizing'],
+        explanation: 'Never risk more than 1-2% of your account on a single trade. Use stop-loss to limit potential losses. A risk-to-reward ratio of 2:1 means your potential profit is twice your risk. Proper position sizing helps preserve capital during losing streaks.'
       }
     ]
   }

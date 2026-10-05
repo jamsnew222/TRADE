@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#22c55e" rx="64"/>
+  <text x="256" y="280" font-family="Arial, sans-serif" font-size="180" font-weight="bold" fill="white" text-anchor="middle">TQ</text>
+  <path d="M140 400 L256 340 L372 400" stroke="white" stroke-width="10" fill="none" stroke-linecap="round"/>
+  <circle cx="256" cy="340" r="25" fill="white"/>
+  <path d="M256 300 L256 340" stroke="white" stroke-width="10" stroke-linecap="round"/>
+</svg>
