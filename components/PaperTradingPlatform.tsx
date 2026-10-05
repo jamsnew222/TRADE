@@ -1,9 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getStockData, simulatePriceChange } from '@/lib/stock-data';
-import { StockData, PaperPortfolio, PaperTrade } from '@/types';
-import { X, TrendingUp, TrendingDown, Plus, Search, Clock, BarChart3, History, Settings, RefreshCw } from 'lucide-react';
+import { StockData, PaperPortfolio, PaperTrade, Currency, Exchange } from '@/types';
+import {
+  fetchAllStockQuotes,
+  fetchStockQuote,
+  convertCurrency,
+  formatPrice,
+  getCurrencySymbol,
+  getAvailableExchanges,
+  getAvailableCurrencies
+} from '@/lib/realtime-stock-data';
+import { X, TrendingUp, TrendingDown, Plus, Search, Clock, BarChart3, History, Settings, RefreshCw, Globe, DollarSign, Building2 } from 'lucide-react';
 
 interface PaperTradingPlatformProps {
   onClose: () => void;
@@ -15,6 +23,7 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
   const [portfolio, setPortfolio] = useState<PaperPortfolio>({
     cash: 100000,
     initialCash: 100000,
+    baseCurrency: 'USD',
     positions: [],
     trades: [],
     watchlist: ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA'],
@@ -25,26 +34,57 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
   const [quantity, setQuantity] = useState('');
   const [activeTab, setActiveTab] = useState<'trade' | 'portfolio' | 'watchlist' | 'history'>('trade');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedExchange, setSelectedExchange] = useState<Exchange>('NASDAQ');
+  const [selectedCurrency, setSelectedCurrency] = useState<Currency>('USD');
+  const [isLoading, setIsLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const availableExchanges = getAvailableExchanges();
+  const availableCurrencies = getAvailableCurrencies();
 
   useEffect(() => {
     loadStocks();
-  }, []);
+    const interval = setInterval(loadStocks, 30000);
+    return () => clearInterval(interval);
+  }, [selectedExchange, selectedCurrency]);
 
   const loadStocks = async () => {
-    const data = await getStockData();
-    setStocks(data);
-    if (data.length > 0) {
-      setSelectedStock(data[0]);
+    setIsLoading(true);
+    try {
+      const data = await fetchAllStockQuotes();
+
+      const filteredData = data.filter(stock => {
+        const exchangeMatch = selectedExchange === 'NASDAQ' || stock.exchange === selectedExchange;
+        const currencyMatch = selectedCurrency === 'USD' || stock.currency === selectedCurrency;
+        return exchangeMatch && currencyMatch;
+      });
+
+      setStocks(filteredData);
+      setLastUpdated(new Date());
+
+      if (filteredData.length > 0 && !selectedStock) {
+        setSelectedStock(filteredData[0]);
+      }
+    } catch (error) {
+      console.error('Error loading stocks:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const executeTrade = () => {
+  const executeTrade = async () => {
     if (!selectedStock || !quantity) return;
 
     const qty = parseInt(quantity);
     if (isNaN(qty) || qty <= 0) return;
 
-    const totalCost = qty * selectedStock.price;
+    const stockPriceInBaseCurrency = await convertCurrency(
+      selectedStock.price,
+      selectedStock.currency,
+      portfolio.baseCurrency
+    );
+
+    const totalCost = qty * stockPriceInBaseCurrency;
 
     if (tradeType === 'buy') {
       if (totalCost > portfolio.cash) {
@@ -68,7 +108,8 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
         newPositions = [...portfolio.positions, {
           symbol: selectedStock.symbol,
           shares: qty,
-          averageCost: selectedStock.price
+          averageCost: stockPriceInBaseCurrency,
+          currency: selectedStock.currency
         }];
       }
 
@@ -77,7 +118,8 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
         symbol: selectedStock.symbol,
         type: 'buy',
         quantity: qty,
-        price: selectedStock.price,
+        price: stockPriceInBaseCurrency,
+        currency: portfolio.baseCurrency,
         timestamp: new Date().toISOString()
       };
 
@@ -108,7 +150,8 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
         symbol: selectedStock.symbol,
         type: 'sell',
         quantity: qty,
-        price: selectedStock.price,
+        price: stockPriceInBaseCurrency,
+        currency: portfolio.baseCurrency,
         timestamp: new Date().toISOString()
       };
 
@@ -123,23 +166,27 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
     setQuantity('');
   };
 
-  const simulateMarket = () => {
-    setStocks(prev => prev.map(stock => simulatePriceChange(stock, 0.02)));
-  };
-
-  const calculatePortfolioValue = () => {
+  const calculatePortfolioValue = async () => {
     let holdingsValue = 0;
-    portfolio.positions.forEach(holding => {
+
+    for (const holding of portfolio.positions) {
       const stock = stocks.find(s => s.symbol === holding.symbol);
       if (stock) {
-        holdingsValue += holding.shares * stock.price;
+        const valueInStockCurrency = holding.shares * stock.price;
+        const valueInBaseCurrency = await convertCurrency(
+          valueInStockCurrency,
+          stock.currency,
+          portfolio.baseCurrency
+        );
+        holdingsValue += valueInBaseCurrency;
       }
-    });
+    }
+
     return portfolio.cash + holdingsValue;
   };
 
-  const calculateTotalReturn = () => {
-    const currentValue = calculatePortfolioValue();
+  const calculateTotalReturn = async () => {
+    const currentValue = await calculatePortfolioValue();
     const totalReturn = currentValue - portfolio.initialCash;
     const returnPercent = (totalReturn / portfolio.initialCash) * 100;
     return { totalReturn, returnPercent };
@@ -155,12 +202,26 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
     setPortfolio({ ...portfolio, watchlist: portfolio.watchlist.filter(s => s !== symbol) });
   };
 
-  const filteredStocks = stocks.filter(stock => 
+  const filteredStocks = stocks.filter(stock =>
     stock.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
     stock.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const { totalReturn, returnPercent } = calculateTotalReturn();
+  const [totalReturn, setTotalReturn] = useState(0);
+  const [returnPercent, setReturnPercent] = useState(0);
+  const [portfolioValue, setPortfolioValue] = useState(0);
+
+  useEffect(() => {
+    const updateCalculations = async () => {
+      const value = await calculatePortfolioValue();
+      const returns = await calculateTotalReturn();
+      setPortfolioValue(value);
+      setTotalReturn(returns.totalReturn);
+      setReturnPercent(returns.returnPercent);
+    };
+
+    updateCalculations();
+  }, [stocks, portfolio]);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -172,26 +233,78 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
               <BarChart3 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Paper Trading Platform</h2>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Practice trading with virtual money</p>
+              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Real-Time Paper Trading</h2>
+              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                Practice with {getCurrencySymbol(portfolio.baseCurrency)}{portfolio.cash.toLocaleString()} virtual money
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {lastUpdated && (
+              <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                Updated: {lastUpdated.toLocaleTimeString()}
+              </span>
+            )}
             <button
-              onClick={simulateMarket}
+              onClick={loadStocks}
+              disabled={isLoading}
               className={`flex items-center gap-1 px-3 py-2 rounded-lg transition-colors ${
                 darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              } disabled:opacity-50`}
             >
-              <RefreshCw className="w-4 h-4" />
-              Simulate Market
+              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
             </button>
-            <button 
+            <button
               onClick={onClose}
               className={`p-2 hover:bg-gray-100 rounded-full transition-colors ${darkMode ? 'hover:bg-gray-700' : ''}`}
             >
               <X className={`w-5 h-5 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
             </button>
+          </div>
+        </div>
+
+        {/* Exchange and Currency Selection */}
+        <div className={`p-4 border-b ${darkMode ? 'border-gray-700' : ''}`}>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                <Building2 className="w-4 h-4 inline mr-1" />
+                Exchange
+              </label>
+              <select
+                value={selectedExchange}
+                onChange={(e) => setSelectedExchange(e.target.value as Exchange)}
+                className={`w-full px-4 py-2 rounded-lg border-2 ${
+                  darkMode
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'bg-white border-gray-200 text-gray-900'
+                }`}
+              >
+                {availableExchanges.map(exchange => (
+                  <option key={exchange} value={exchange}>{exchange}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                <DollarSign className="w-4 h-4 inline mr-1" />
+                Currency
+              </label>
+              <select
+                value={selectedCurrency}
+                onChange={(e) => setSelectedCurrency(e.target.value as Currency)}
+                className={`w-full px-4 py-2 rounded-lg border-2 ${
+                  darkMode
+                    ? 'bg-gray-700 border-gray-600 text-white'
+                    : 'bg-white border-gray-200 text-gray-900'
+                }`}
+              >
+                {availableCurrencies.map(currency => (
+                  <option key={currency} value={currency}>{currency}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -201,19 +314,19 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
             <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
               <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Portfolio Value</p>
               <p className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                ${calculatePortfolioValue().toFixed(2)}
+                {formatPrice(portfolioValue, portfolio.baseCurrency)}
               </p>
             </div>
             <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
               <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Cash Available</p>
               <p className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                ${portfolio.cash.toFixed(2)}
+                {formatPrice(portfolio.cash, portfolio.baseCurrency)}
               </p>
             </div>
             <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
               <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Return</p>
               <p className={`text-xl font-bold ${totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {totalReturn >= 0 ? '+' : ''}${totalReturn.toFixed(2)}
+                {totalReturn >= 0 ? '+' : ''}{formatPrice(totalReturn, portfolio.baseCurrency)}
               </p>
             </div>
             <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
@@ -253,7 +366,7 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
         </div>
 
         {/* Content */}
-        <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(95vh - 250px)' }}>
+        <div className="p-4 overflow-y-auto" style={{ maxHeight: 'calc(95vh - 300px)' }}>
           {activeTab === 'trade' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Stock Selection */}
@@ -267,47 +380,64 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className={`w-full pl-10 pr-4 py-2 rounded-lg border-2 ${
-                        darkMode 
-                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500' 
+                        darkMode
+                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500'
                           : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
                       }`}
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  {filteredStocks.map(stock => (
-                    <button
-                      key={stock.symbol}
-                      onClick={() => setSelectedStock(stock)}
-                      className={`w-full p-3 rounded-lg border-2 text-left transition-all ${
-                        selectedStock?.symbol === stock.symbol
-                          ? 'border-green-500 bg-green-50'
-                          : darkMode
-                            ? 'border-gray-700 bg-gray-700 hover:border-green-400'
-                            : 'border-gray-200 bg-white hover:border-green-400'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stock.symbol}</p>
-                          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{stock.name}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>${stock.price.toFixed(2)}</p>
-                          <div className={`flex items-center gap-1 text-sm ${
-                            stock.change >= 0 ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {stock.change >= 0 ? (
-                              <TrendingUp className="w-3 h-3" />
-                            ) : (
-                              <TrendingDown className="w-3 h-3" />
-                            )}
-                            {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                  {isLoading ? (
+                    <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Loading stocks...
+                    </div>
+                  ) : filteredStocks.length === 0 ? (
+                    <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      No stocks found
+                    </div>
+                  ) : (
+                    filteredStocks.map(stock => (
+                      <button
+                        key={stock.symbol}
+                        onClick={() => setSelectedStock(stock)}
+                        className={`w-full p-3 rounded-lg border-2 text-left transition-all ${
+                          selectedStock?.symbol === stock.symbol
+                            ? 'border-green-500 bg-green-50'
+                            : darkMode
+                              ? 'border-gray-700 bg-gray-700 hover:border-green-400'
+                              : 'border-gray-200 bg-white hover:border-green-400'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                              {stock.symbol}
+                              <span className={`text-xs ml-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {stock.exchange}
+                              </span>
+                            </p>
+                            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{stock.name}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                              {formatPrice(stock.price, stock.currency)}
+                            </p>
+                            <div className={`flex items-center gap-1 text-sm ${
+                              stock.change >= 0 ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {stock.change >= 0 ? (
+                                <TrendingUp className="w-3 h-3" />
+                              ) : (
+                                <TrendingDown className="w-3 h-3" />
+                              )}
+                              {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    ))
+                  )}
                 </div>
               </div>
 
@@ -316,11 +446,16 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
                 <div className={`p-4 rounded-xl border-2 ${darkMode ? 'border-gray-700 bg-gray-700' : 'border-gray-200 bg-white'}`}>
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{selectedStock.symbol}</h3>
+                      <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {selectedStock.symbol}
+                        <span className={`text-sm ml-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          {selectedStock.exchange}
+                        </span>
+                      </h3>
                       <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{selectedStock.name}</p>
                     </div>
                     <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                      ${selectedStock.price.toFixed(2)}
+                      {formatPrice(selectedStock.price, selectedStock.currency)}
                     </p>
                   </div>
 
@@ -361,8 +496,8 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
                       onChange={(e) => setQuantity(e.target.value)}
                       placeholder="Enter quantity"
                       className={`w-full px-4 py-2 rounded-lg border-2 ${
-                        darkMode 
-                          ? 'bg-gray-600 border-gray-600 text-white placeholder-gray-400' 
+                        darkMode
+                          ? 'bg-gray-600 border-gray-600 text-white placeholder-gray-400'
                           : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
                       }`}
                     />
@@ -372,7 +507,7 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
                     <div className="flex justify-between text-sm">
                       <span className={darkMode ? 'text-gray-300' : 'text-gray-700'}>Estimated Total</span>
                       <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                        ${quantity ? (parseInt(quantity) * selectedStock.price).toFixed(2) : '0.00'}
+                        {quantity ? formatPrice(parseInt(quantity) * selectedStock.price, selectedStock.currency) : formatPrice(0, selectedStock.currency)}
                       </span>
                     </div>
                   </div>
@@ -414,12 +549,21 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
                         const profitLoss = (stock.price - position.averageCost) * position.shares;
                         return (
                           <tr key={position.symbol} className={darkMode ? 'border-t border-gray-700' : 'border-t border-gray-200'}>
-                            <td className={`p-3 font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{position.symbol}</td>
+                            <td className={`p-3 font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                              {position.symbol}
+                              <span className={`text-xs ml-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {position.currency}
+                              </span>
+                            </td>
                             <td className={`p-3 text-right ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{position.shares}</td>
-                            <td className={`p-3 text-right ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>${position.averageCost.toFixed(2)}</td>
-                            <td className={`p-3 text-right ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>${stock.price.toFixed(2)}</td>
+                            <td className={`p-3 text-right ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {formatPrice(position.averageCost, portfolio.baseCurrency)}
+                            </td>
+                            <td className={`p-3 text-right ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                              {formatPrice(stock.price, stock.currency)}
+                            </td>
                             <td className={`p-3 text-right font-medium ${profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {profitLoss >= 0 ? '+' : ''}${profitLoss.toFixed(2)}
+                              {profitLoss >= 0 ? '+' : ''}{formatPrice(profitLoss, portfolio.baseCurrency)}
                             </td>
                           </tr>
                         );
@@ -441,15 +585,17 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
                   return (
                     <div key={symbol} className={`p-4 rounded-xl border-2 ${darkMode ? 'border-gray-700 bg-gray-700' : 'border-gray-200 bg-white'}`}>
                       <div className="flex items-center justify-between mb-2">
-                        <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{symbol}</span>
+                        <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{stock.symbol}</p>
                         <button
                           onClick={() => removeFromWatchlist(symbol)}
-                          className={`text-red-500 hover:text-red-700 ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-red-50'} p-1 rounded`}
+                          className={`p-1 rounded ${darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'}`}
                         >
-                          <X className="w-4 h-4" />
+                          <X className={`w-4 h-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
                         </button>
                       </div>
-                      <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>${stock.price.toFixed(2)}</p>
+                      <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {formatPrice(stock.price, stock.currency)}
+                      </p>
                       <div className={`flex items-center gap-1 text-sm ${
                         stock.change >= 0 ? 'text-green-600' : 'text-red-600'
                       }`}>
@@ -464,16 +610,6 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
                   );
                 })}
               </div>
-              <button
-                onClick={() => {
-                  const symbol = prompt('Enter stock symbol to add to watchlist:');
-                  if (symbol) addToWatchlist(symbol.toUpperCase());
-                }}
-                className="mt-4 flex items-center justify-center gap-2 w-full py-3 border-2 border-dashed rounded-lg text-gray-500 hover:border-green-500 hover:text-green-600 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Add to Watchlist
-              </button>
             </div>
           )}
 
@@ -482,7 +618,7 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
               <h3 className={`text-xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Trade History</h3>
               {portfolio.trades.length === 0 ? (
                 <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  No trades yet. Start trading to see your history!
+                  No trades yet.
                 </div>
               ) : (
                 <div className={`rounded-xl border-2 overflow-hidden ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
@@ -494,29 +630,25 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
                         <th className={`text-left p-3 text-sm font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Type</th>
                         <th className={`text-right p-3 text-sm font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Quantity</th>
                         <th className={`text-right p-3 text-sm font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Price</th>
-                        <th className={`text-right p-3 text-sm font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>Total</th>
                       </tr>
                     </thead>
                     <tbody>
                       {portfolio.trades.map(trade => (
                         <tr key={trade.id} className={darkMode ? 'border-t border-gray-700' : 'border-t border-gray-200'}>
-                          <td className={`p-3 text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          <td className={`p-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                             {new Date(trade.timestamp).toLocaleDateString()}
                           </td>
                           <td className={`p-3 font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>{trade.symbol}</td>
-                          <td className={`p-3`}>
+                          <td className={`p-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                             <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              trade.type === 'buy' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-red-100 text-red-800'
+                              trade.type === 'buy' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                             }`}>
                               {trade.type.toUpperCase()}
                             </span>
                           </td>
                           <td className={`p-3 text-right ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{trade.quantity}</td>
-                          <td className={`p-3 text-right ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>${trade.price.toFixed(2)}</td>
-                          <td className={`p-3 text-right font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                            ${(trade.quantity * trade.price).toFixed(2)}
+                          <td className={`p-3 text-right ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {formatPrice(trade.price, trade.currency)}
                           </td>
                         </tr>
                       ))}

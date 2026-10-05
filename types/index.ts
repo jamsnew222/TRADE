@@ -2,6 +2,10 @@ export type LessonType = 'quiz' | 'matching' | 'fill-blank' | 'multiple-choice' 
 
 export type TradingStyle = 'day-trading' | 'swing-trading' | 'long-term-investing' | 'balanced';
 
+export type Currency = 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD' | 'AUD' | 'CHF' | 'CNY' | 'INR' | 'BTC' | 'ETH';
+
+export type Exchange = 'NYSE' | 'NASDAQ' | 'LSE' | 'TSE' | 'HKEX' | 'SSE' | 'NSE' | 'ASX' | 'TSX' | 'B3';
+
 export interface UserProgress {
   completedLessons: string[];
   currentStreak: number;
@@ -175,6 +179,14 @@ export interface StockData {
   price: number;
   change: number;
   changePercent: number;
+  currency: Currency;
+  exchange: Exchange;
+  volume?: number;
+  marketCap?: number;
+  high?: number;
+  low?: number;
+  open?: number;
+  previousClose?: number;
 }
 
 export interface TradingStyleInfo {
@@ -212,16 +224,26 @@ export interface PaperTrade {
   type: 'buy' | 'sell';
   quantity: number;
   price: number;
+  currency: Currency;
   timestamp: string;
+}
+
+export interface ExchangeRate {
+  from: Currency;
+  to: Currency;
+  rate: number;
+  lastUpdated: string;
 }
 
 export interface PaperPortfolio {
   cash: number;
   initialCash: number;
+  baseCurrency: Currency;
   positions: Array<{
     symbol: string;
     shares: number;
     averageCost: number;
+    currency: Currency;
   }>;
   trades: PaperTrade[];
   watchlist: string[];

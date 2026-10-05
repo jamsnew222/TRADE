@@ -1,4 +1,4 @@
-import { StockData } from '@/types';
+import { StockData, Currency, Exchange } from '@/types';
 
 // Educational stock data (static examples)
 const educationalStocks: StockData[] = [
@@ -7,21 +7,27 @@ const educationalStocks: StockData[] = [
     name: 'Demo Corporation',
     price: 150.00,
     change: 2.50,
-    changePercent: 1.69
+    changePercent: 1.69,
+    currency: 'USD',
+    exchange: 'NASDAQ'
   },
   {
     symbol: 'TECH',
     name: 'Tech Innovators Inc',
     price: 320.50,
     change: -5.20,
-    changePercent: -1.60
+    changePercent: -1.60,
+    currency: 'USD',
+    exchange: 'NYSE'
   },
   {
     symbol: 'GROW',
     name: 'Growth Enterprises',
     price: 85.75,
     change: 3.25,
-    changePercent: 3.94
+    changePercent: 3.94,
+    currency: 'USD',
+    exchange: 'NASDAQ'
   }
 ];
 
@@ -59,11 +65,13 @@ export const simulatePriceChange = (stock: StockData, volatility: number = 0.02)
   const changePercent = (Math.random() - 0.5) * 2 * volatility * 100;
   const changeAmount = stock.price * (changePercent / 100);
   const newPrice = stock.price + changeAmount;
-  
+
   return {
     ...stock,
     price: Math.max(0.01, newPrice), // Ensure price doesn't go negative
     change: changeAmount,
-    changePercent: changePercent
+    changePercent: changePercent,
+    currency: stock.currency,
+    exchange: stock.exchange
   };
 };
