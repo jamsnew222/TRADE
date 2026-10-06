@@ -2487,87 +2487,253 @@ export const lessons: Lesson[] = [
   }
 },
 {
-  id: 'risk-management-ordering',
-  title: 'Risk Management Steps',
-  description: 'Learn the correct order of risk management steps',
-  type: 'ordering',
+  id: 'risk-management-mixed',
+  title: 'Risk Management Fundamentals',
+  description: 'Master risk management with mixed question types',
+  type: 'multiple-choice',
   difficulty: 'beginner',
   category: 'Risk Management',
-  xpReward: 35,
-  content: {
-    explanation: 'Proper risk management is crucial for long-term trading success. Following these steps in order helps protect your capital and minimize losses.',
-    ordering: [
-      {
-        id: 'risk1',
-        instruction: 'Order the risk management steps from first to last:',
-        items: ['Set stop-loss levels', 'Determine position size', 'Calculate risk per trade', 'Analyze market conditions', 'Execute the trade'],
-        correctOrder: [3, 1, 2, 0, 4],
-        explanation: 'The correct sequence is: 1) Analyze market conditions, 2) Determine position size, 3) Calculate risk per trade, 4) Set stop-loss levels, 5) Execute the trade.'
-      }
-    ]
-  }
-},
-{
-  id: 'analysis-ordering',
-  title: 'Technical Analysis Process',
-  description: 'Order the steps for technical analysis',
-  type: 'ordering',
-  difficulty: 'intermediate',
-  category: 'Technical Analysis',
   xpReward: 40,
   content: {
-    explanation: 'Technical analysis involves a systematic approach to analyzing price charts and indicators. Following the right process helps make better trading decisions.',
-    ordering: [
+    explanation: 'Proper risk management is crucial for long-term trading success. It involves position sizing, stop-losses, and understanding risk-reward ratios.',
+    multipleChoice: [
       {
-        id: 'ta1',
-        instruction: 'Order the technical analysis steps:',
-        items: ['Identify the trend', 'Wait for confirmation signal', 'Check volume', 'Set entry and exit points', 'Execute trade'],
-        correctOrder: [0, 2, 1, 3, 4],
-        explanation: 'Always identify the trend first, then check volume for confirmation, wait for signal confirmation, set your entry/exit points, and finally execute the trade.'
+        id: 'rm1',
+        question: 'What percentage of your account should you risk on a single trade?',
+        options: ['10-20%', '1-2%', '5-10%', '25-30%'],
+        correctAnswer: 1,
+        explanation: 'Most successful traders risk only 1-2% of their account on any single trade to protect against significant losses.'
+      },
+      {
+        id: 'rm2',
+        question: 'True or False: You should always use a stop-loss to limit potential losses.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'Stop-losses are essential risk management tools that automatically exit losing positions at a predetermined price.',
+        type: 'true-false'
+      },
+      {
+        id: 'rm3',
+        question: 'What is a good risk-to-reward ratio?',
+        options: ['1:1', '1:2', '2:1', '5:1'],
+        correctAnswer: 2,
+        explanation: 'A 2:1 risk-to-reward ratio means your potential profit is twice your potential loss, which is a good target for traders.'
+      },
+      {
+        id: 'rm4',
+        question: 'Which of these are key risk management principles? (Select all that apply)',
+        options: ['Always risking 50% per trade', 'Using position sizing', 'Setting stop-losses', 'Diversifying investments'],
+        correctAnswer: 0,
+        explanation: 'Position sizing, stop-losses, and diversification are key risk management principles. Never risk large percentages on single trades.',
+        type: 'multiple-select',
+        correctAnswers: [1, 2, 3]
+      },
+      {
+        id: 'rm5',
+        question: 'True or False: Leverage increases your risk exponentially.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'Leverage amplifies both gains and losses, making it a powerful but dangerous tool that requires careful risk management.',
+        type: 'true-false'
       }
     ]
   }
 },
 {
-  id: 'fundamental-analysis-wordbank',
-  title: 'Fundamental Analysis Terms',
-  description: 'Complete sentences about fundamental analysis',
-  type: 'word-bank',
+  id: 'technical-analysis-mixed',
+  title: 'Technical Analysis Mastery',
+  description: 'Master technical analysis with mixed question types',
+  type: 'multiple-choice',
+  difficulty: 'intermediate',
+  category: 'Technical Analysis',
+  xpReward: 45,
+  content: {
+    explanation: 'Technical analysis involves analyzing price charts and indicators to make trading decisions. It requires understanding trends, support/resistance, and various indicators.',
+    multipleChoice: [
+      {
+        id: 'ta1',
+        question: 'What is the first step in technical analysis?',
+        options: ['Set entry points', 'Identify the trend', 'Check volume', 'Execute trade'],
+        correctAnswer: 1,
+        explanation: 'Always identify the trend first. Trading with the trend significantly increases your probability of success.'
+      },
+      {
+        id: 'ta2',
+        question: 'True or False: Volume should increase when price breaks through resistance.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'High volume on breakouts confirms the move. Low volume breakouts are more likely to fail.',
+        type: 'true-false'
+      },
+      {
+        id: 'ta3',
+        question: 'What happens when price breaks through support?',
+        options: ['It becomes resistance', 'It becomes stronger support', 'The trend reverses', 'Nothing changes'],
+        correctAnswer: 0,
+        explanation: 'Broken support often becomes resistance. Traders who bought at support now look to sell at breakeven.'
+      },
+      {
+        id: 'ta4',
+        question: 'Which indicators are commonly used in technical analysis? (Select all that apply)',
+        options: ['Moving averages', 'RSI', 'MACD', 'All of the above'],
+        correctAnswer: 3,
+        explanation: 'Moving averages, RSI, MACD, and many other indicators are commonly used to analyze price action and identify trading opportunities.',
+        type: 'multiple-select',
+        correctAnswers: [0, 1, 2, 3]
+      },
+      {
+        id: 'ta5',
+        question: 'True or False: A moving average smooths out price action to show the trend.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'Moving averages smooth out price fluctuations, making it easier to identify the underlying trend direction.',
+        type: 'true-false'
+      }
+    ]
+  }
+},
+{
+  id: 'fundamental-analysis-mixed',
+  title: 'Fundamental Analysis Essentials',
+  description: 'Master fundamental analysis with mixed question types',
+  type: 'multiple-choice',
+  difficulty: 'intermediate',
+  category: 'Fundamental Analysis',
+  xpReward: 40,
+  content: {
+    explanation: 'Fundamental analysis involves evaluating a company\'s financial health and intrinsic value. It\'s essential for long-term investing decisions.',
+    multipleChoice: [
+      {
+        id: 'fa1',
+        question: 'What does P/E ratio stand for?',
+        options: ['Price to Earnings', 'Profit to Equity', 'Past Earnings', 'Performance Evaluation'],
+        correctAnswer: 0,
+        explanation: 'P/E ratio (Price to Earnings) shows how much investors are willing to pay for each dollar of earnings.'
+      },
+      {
+        id: 'fa2',
+        question: 'True or False: Market cap represents the total value of a company.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'Market capitalization (market cap) is the total value of a company\'s outstanding shares, calculated as share price × total shares.',
+        type: 'true-false'
+      },
+      {
+        id: 'fa3',
+        question: 'What does EPS stand for?',
+        options: ['Earnings Per Share', 'Economic Profit Share', 'Equity Per Share', 'Enterprise Profit Share'],
+        correctAnswer: 0,
+        explanation: 'EPS (Earnings Per Share) shows how much profit the company generates for each outstanding share of stock.'
+      },
+      {
+        id: 'fa4',
+        question: 'Which of these are important fundamental metrics? (Select all that apply)',
+        options: ['P/E ratio', 'ROE', 'Debt-to-equity ratio', 'All of the above'],
+        correctAnswer: 3,
+        explanation: 'P/E ratio, ROE (Return on Equity), and debt-to-equity ratio are all important fundamental metrics for evaluating a company.',
+        type: 'multiple-select',
+        correctAnswers: [0, 1, 2, 3]
+      },
+      {
+        id: 'fa5',
+        question: 'True or False: High ROE indicates good management efficiency.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'ROE (Return on Equity) measures how efficiently management uses shareholders\' equity to generate profits. Higher is generally better.',
+        type: 'true-false'
+      }
+    ]
+  }
+},
+{
+  id: 'fill-blank-earnings',
+  title: 'Understanding Earnings Reports',
+  description: 'Complete the earnings report terminology',
+  type: 'fill-blank',
   difficulty: 'intermediate',
   category: 'Fundamental Analysis',
   xpReward: 35,
   content: {
-    explanation: 'Fundamental analysis involves evaluating a company\'s financial health and intrinsic value. These terms are essential for understanding company performance.',
-    wordBank: [
-      {
-        id: 'fa1',
-        instruction: 'Select the correct words to complete the sentences:',
-        sentence: '_____ measures a company\'s profitability. _____ represents the total value of a company. _____ shows how much profit each share earns. _____ indicates the stock price relative to earnings.',
-        words: ['P/E ratio', 'EPS', 'Market cap', 'Revenue', 'ROE', 'Dividend yield'],
-        correctWords: ['ROE', 'Market cap', 'EPS', 'P/E ratio'],
-        explanation: 'ROE measures profitability, Market cap is total company value, EPS shows profit per share, and P/E ratio shows price relative to earnings.'
-      }
-    ]
+    explanation: 'Earnings reports are quarterly announcements of a company\'s financial performance. Understanding the terminology is crucial for investors.',
+    fillBlank: {
+      id: 'earnings1',
+      sentence: 'Companies report their _____ quarterly to show their financial performance to investors and shareholders.',
+      correctAnswer: 'earnings',
+      hint: 'Think of the quarterly financial announcement'
+    }
   }
 },
 {
-  id: 'crypto-terms-wordbank',
-  title: 'Cryptocurrency Terms',
-  description: 'Learn key cryptocurrency terminology',
-  type: 'word-bank',
+  id: 'matching-chart-patterns',
+  title: 'Chart Patterns Matching',
+  description: 'Match chart patterns with their descriptions',
+  type: 'matching',
+  difficulty: 'intermediate',
+  category: 'Technical Analysis',
+  xpReward: 40,
+  content: {
+    explanation: 'Chart patterns are visual formations on price charts that can help predict future price movements. Learning to recognize them is a key technical analysis skill.',
+    matching: {
+      id: 'patterns1',
+      instruction: 'Match each chart pattern with its description:',
+      pairs: [
+        { left: 'Head and Shoulders', right: 'Reversal pattern with three peaks' },
+        { left: 'Double Top', right: 'Bearish reversal pattern with two peaks' },
+        { left: 'Triangle', right: 'Continuation pattern with converging lines' },
+        { left: 'Flag', right: 'Short-term continuation pattern' }
+      ]
+    }
+  }
+},
+{
+  id: 'crypto-mixed',
+  title: 'Cryptocurrency Fundamentals',
+  description: 'Master crypto trading with mixed question types',
+  type: 'multiple-choice',
   difficulty: 'beginner',
   category: 'Crypto',
-  xpReward: 35,
+  xpReward: 40,
   content: {
-    explanation: 'Cryptocurrency has its own terminology. Understanding these terms is essential for trading digital assets.',
-    wordBank: [
+    explanation: 'Cryptocurrency trading has unique concepts and terminology. Understanding these fundamentals is essential before trading digital assets.',
+    multipleChoice: [
       {
-        id: 'crypto1',
-        instruction: 'Select the correct words to complete the sentences:',
-        sentence: '_____ is the first and largest cryptocurrency. _____ is the second largest by market cap. _____ enables smart contracts. _____ is the process of validating transactions. _____ stores your crypto assets.',
-        words: ['Bitcoin', 'Ethereum', 'Mining', 'Wallet', 'Blockchain', 'DeFi'],
-        correctWords: ['Bitcoin', 'Ethereum', 'Mining', 'Wallet'],
-        explanation: 'Bitcoin is the largest cryptocurrency, Ethereum enables smart contracts, Mining validates transactions, and Wallets store your crypto.'
+        id: 'cr1',
+        question: 'What is the largest cryptocurrency by market cap?',
+        options: ['Ethereum', 'Bitcoin', 'Litecoin', 'Ripple'],
+        correctAnswer: 1,
+        explanation: 'Bitcoin (BTC) is the first and largest cryptocurrency by market capitalization, often called "digital gold".'
+      },
+      {
+        id: 'cr2',
+        question: 'True or False: Ethereum enables smart contracts.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'Ethereum was the first blockchain to support smart contracts, which are self-executing contracts with the terms directly written into code.',
+        type: 'true-false'
+      },
+      {
+        id: 'cr3',
+        question: 'What is "mining" in cryptocurrency?',
+        options: ['Creating new coins', 'Validating transactions', 'Both A and B', 'Neither'],
+        correctAnswer: 2,
+        explanation: 'Mining serves two purposes: validating transactions and securing the network, while also creating new coins as a reward.'
+      },
+      {
+        id: 'cr4',
+        question: 'Which of these are key features of cryptocurrencies? (Select all that apply)',
+        options: ['Decentralization', 'Blockchain technology', 'Government control', 'Limited supply (for most coins)'],
+        correctAnswer: 0,
+        explanation: 'Cryptocurrencies are decentralized, use blockchain technology, and most have limited supply. They are not controlled by governments.',
+        type: 'multiple-select',
+        correctAnswers: [0, 1, 3]
+      },
+      {
+        id: 'cr5',
+        question: 'True or False: DeFi stands for Decentralized Finance.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'DeFi (Decentralized Finance) refers to financial services built on blockchain that operate without traditional financial intermediaries.',
+        type: 'true-false'
       }
     ]
   }
@@ -2622,192 +2788,436 @@ export const lessons: Lesson[] = [
   }
 },
 {
-  id: 'options-basics-flashcards',
-  title: 'Options Trading Basics',
-  description: 'Learn fundamental options concepts',
-  type: 'flashcard',
+  id: 'options-mixed',
+  title: 'Options Trading Fundamentals',
+  description: 'Master options trading with mixed question types',
+  type: 'multiple-choice',
   difficulty: 'intermediate',
   category: 'Options',
-  xpReward: 45,
+  xpReward: 50,
   content: {
-    explanation: 'Options are financial derivatives that give you the right, but not the obligation, to buy or sell an asset at a predetermined price.',
-    flashcards: [
+    explanation: 'Options are financial derivatives that give you the right, but not the obligation, to buy or sell an asset at a predetermined price. They can be used for hedging, speculation, or income generation.',
+    multipleChoice: [
       {
         id: 'opt1',
-        front: 'What is a "call option"?',
-        back: 'A call option gives the holder the right to buy an asset at a specified price (strike price) within a specific time period.',
-        hint: 'Think of it as betting the price will go up',
-        explanation: 'Call options are used when you\'re bullish on an asset. You profit if the price rises above the strike price.'
+        question: 'What gives you the right to buy an asset at a specified price?',
+        options: ['Put option', 'Call option', 'Future', 'Forward'],
+        correctAnswer: 1,
+        explanation: 'A call option gives the holder the right to buy the underlying asset at the strike price within a specific time period.'
       },
       {
         id: 'opt2',
-        front: 'What is a "put option"?',
-        back: 'A put option gives the holder the right to sell an asset at a specified price (strike price) within a specific time period.',
-        hint: 'Think of it as betting the price will go down',
-        explanation: 'Put options are used when you\'re bearish on an asset. You profit if the price falls below the strike price.'
+        question: 'True or False: Options give you the obligation to buy or sell.',
+        options: ['True', 'False'],
+        correctAnswer: 1,
+        explanation: 'Options give you the RIGHT, but not the OBLIGATION to buy or sell. This is a key difference from futures contracts.',
+        type: 'true-false'
       },
       {
         id: 'opt3',
-        front: 'What is the "strike price"?',
-        back: 'The strike price is the predetermined price at which an option can be exercised to buy or sell the underlying asset.',
-        hint: 'Think of it as the target price for the option',
-        explanation: 'The strike price is set when the option is created and determines whether the option is in-the-money, at-the-money, or out-of-the-money.'
+        question: 'What happens to an option at expiration?',
+        options: ['It automatically exercises', 'It expires worthless if out-of-the-money', 'It doubles in value', 'Nothing happens'],
+        correctAnswer: 1,
+        explanation: 'Options expire worthless if they are out-of-the-money at expiration. In-the-money options may be exercised or sold.'
       },
       {
         id: 'opt4',
-        front: 'What is "expiration date"?',
-        back: 'The expiration date is the last day an option can be exercised. After this date, the option expires worthless.',
-        hint: 'Think of it as the deadline for the option',
-        explanation: 'Options have different expiration cycles, with weekly, monthly, and quarterly expirations being common.'
+        question: 'Which factors affect option pricing? (Select all that apply)',
+        options: ['Underlying price', 'Time to expiration', 'Volatility', 'All of the above'],
+        correctAnswer: 3,
+        explanation: 'Option pricing is affected by the underlying price, strike price, time to expiration, volatility, interest rates, and dividends.',
+        type: 'multiple-select',
+        correctAnswers: [0, 1, 2, 3]
       },
       {
         id: 'opt5',
-        front: 'What is "premium" in options?',
-        back: 'The premium is the price paid to purchase an option. It represents the maximum risk for the option buyer.',
-        hint: 'Think of it as the cost of buying the option',
-        explanation: 'The premium is determined by factors including the underlying price, strike price, time to expiration, volatility, and interest rates.'
+        question: 'True or False: The premium is the maximum risk for an option buyer.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'For option buyers, the premium paid is the maximum risk. For option sellers, the risk can be theoretically unlimited for naked positions.',
+        type: 'true-false'
       }
     ]
   }
 },
 {
-  id: 'forex-basics-flashcards',
-  title: 'Forex Trading Basics',
-  description: 'Learn fundamental forex concepts',
-  type: 'flashcard',
+  id: 'forex-mixed',
+  title: 'Forex Trading Fundamentals',
+  description: 'Master forex trading with mixed question types',
+  type: 'multiple-choice',
   difficulty: 'beginner',
   category: 'Forex',
   xpReward: 40,
   content: {
-    explanation: 'Forex (foreign exchange) is the largest financial market in the world, where currencies are traded 24/7.',
-    flashcards: [
+    explanation: 'Forex (foreign exchange) is the largest financial market in the world, with over $6 trillion traded daily. Understanding the basics is essential before trading currencies.',
+    multipleChoice: [
       {
         id: 'fx1',
-        front: 'What is a "currency pair"?',
-        back: 'A currency pair shows the value of one currency against another. For example, EUR/USD shows how many US dollars are needed to buy one Euro.',
-        hint: 'Think of it as comparing two currencies',
-        explanation: 'The first currency is the base currency, and the second is the quote currency. EUR/USD means Euros priced in US dollars.'
+        question: 'What does EUR/USD represent?',
+        options: ['How many Euros to buy a US dollar', 'How many US dollars to buy a Euro', 'The exchange rate between Europe and USD', 'The price of gold'],
+        correctAnswer: 1,
+        explanation: 'EUR/USD shows how many US dollars are needed to buy one Euro. EUR is the base currency, USD is the quote currency.'
       },
       {
         id: 'fx2',
-        front: 'What is a "pip"?',
-        back: 'A pip (percentage in point) is the smallest price move that a given exchange rate can make. Usually the fourth decimal place (0.0001).',
-        hint: 'Think of it as the smallest price change',
-        explanation: 'Pips are used to measure price movements and calculate profits/losses in forex trading.'
+        question: 'True or False: The forex market is open 24 hours a day.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'The forex market is open 24 hours a day, 5 days a week, due to different time zones across major financial centers.',
+        type: 'true-false'
       },
       {
         id: 'fx3',
-        front: 'What is "leverage" in forex?',
-        back: 'Leverage allows traders to control larger positions with a smaller amount of capital. For example, 100:1 leverage means $1 controls $100.',
-        hint: 'Think of it as trading with borrowed money',
-        explanation: 'Leverage amplifies both potential profits and losses, making forex trading high-risk but also potentially high-reward.'
+        question: 'What is a pip in forex trading?',
+        options: ['The smallest price move', 'A type of currency', 'A trading strategy', 'A fee charged by brokers'],
+        correctAnswer: 0,
+        explanation: 'A pip (percentage in point) is typically the fourth decimal place (0.0001) and represents the smallest price movement in most currency pairs.'
       },
       {
         id: 'fx4',
-        front: 'What is a "lot" in forex?',
-        back: 'A lot is a standardized quantity of currency. A standard lot is 100,000 units, a mini lot is 10,000, and a micro lot is 1,000.',
-        hint: 'Think of it as the unit size for forex trades',
-        explanation: 'Lot sizes determine the value of each pip movement and are essential for proper position sizing.'
+        question: 'Which of these are true about forex leverage? (Select all that apply)',
+        options: ['It amplifies profits', 'It amplifies losses', 'It\'s free to use', 'It increases risk significantly'],
+        correctAnswer: 0,
+        explanation: 'Leverage amplifies both profits and losses, and it significantly increases risk. It\'s not free - you pay interest on leveraged positions.',
+        type: 'multiple-select',
+        correctAnswers: [0, 1, 3]
       },
       {
         id: 'fx5',
-        front: 'What is "spread" in forex?',
-        back: 'The spread is the difference between the bid (buy) price and the ask (sell) price of a currency pair.',
-        hint: 'Think of it as the cost of trading',
-        explanation: 'The spread represents the broker\'s fee and is typically measured in pips. Lower spreads are better for traders.'
+        question: 'True or False: The spread is the difference between bid and ask prices.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'The spread is indeed the difference between the bid (buy) and ask (sell) prices, representing the broker\'s fee for the trade.',
+        type: 'true-false'
       }
     ]
   }
 },
 {
-  id: 'support-resistance-wordbank',
+  id: 'support-resistance-mixed',
   title: 'Support and Resistance',
-  description: 'Complete sentences about key chart levels',
-  type: 'word-bank',
+  description: 'Master key chart levels with mixed question types',
+  type: 'multiple-choice',
   difficulty: 'intermediate',
   category: 'Technical Analysis',
-  xpReward: 35,
+  xpReward: 40,
   content: {
-    explanation: 'Support and resistance are key concepts in technical analysis that help identify potential price levels where trends may reverse.',
-    wordBank: [
+    explanation: 'Support and resistance are key concepts in technical analysis that help identify potential price levels where trends may reverse or continue.',
+    multipleChoice: [
       {
         id: 'sr1',
-        instruction: 'Select the correct words to complete the sentences:',
-        sentence: '_____ is a price level where buying pressure is strong enough to prevent further price declines. _____ is where selling pressure prevents further price increases. _____ levels often become the opposite after being broken. _____ shows increasing interest in a stock.',
-        words: ['Volume', 'Support', 'Resistance', 'Trend line', 'Moving average', 'Breakout'],
-        correctWords: ['Support', 'Resistance', 'Support', 'Volume'],
-        explanation: 'Support prevents declines, resistance prevents advances, broken support becomes resistance, and volume shows interest.'
+        question: 'What is a support level?',
+        options: ['Where selling pressure prevents price increases', 'Where buying pressure prevents price declines', 'A trend line', 'A moving average'],
+        correctAnswer: 1,
+        explanation: 'Support is a price level where buying pressure is strong enough to prevent further price declines. It\'s like a floor for the price.'
+      },
+      {
+        id: 'sr2',
+        question: 'True or False: Broken support often becomes resistance.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'When support is broken, traders who bought at that level now look to sell at breakeven, creating selling pressure at that price level.',
+        type: 'true-false'
+      },
+      {
+        id: 'sr3',
+        question: 'What should happen when price breaks through resistance?',
+        options: ['It should reverse immediately', 'Volume should increase', 'Nothing changes', 'The market closes'],
+        correctAnswer: 1,
+        explanation: 'High volume on a breakout confirms the move. Low volume breakouts are more likely to fail and reverse.'
+      },
+      {
+        id: 'sr4',
+        question: 'Which of these are important for support/resistance levels? (Select all that apply)',
+        options: ['Volume analysis', 'Multiple touches', 'Time period', 'All of the above'],
+        correctAnswer: 3,
+        explanation: 'The more times a level is tested with high volume, the stronger it becomes. The time period and multiple touches all matter.',
+        type: 'multiple-select',
+        correctAnswers: [0, 1, 2, 3]
+      },
+      {
+        id: 'sr5',
+        question: 'True or False: Support and resistance levels are exact price points.',
+        options: ['True', 'False'],
+        correctAnswer: 1,
+        explanation: 'Support and resistance are zones or areas, not exact price points. Prices often bounce around these levels rather than at precise points.',
+        type: 'true-false'
       }
     ]
   }
 },
 {
-  id: 'trading-psychology-flashcards',
-  title: 'Trading Psychology',
-  description: 'Master the mental aspects of trading',
-  type: 'flashcard',
+  id: 'psychology-mixed',
+  title: 'Trading Psychology Mastery',
+  description: 'Master the mental game with mixed question types',
+  type: 'multiple-choice',
   difficulty: 'intermediate',
   category: 'Psychology',
-  xpReward: 40,
+  xpReward: 45,
   content: {
-    explanation: 'Trading psychology is crucial for success. Many traders fail not because of poor strategy, but because of emotional decisions.',
-    flashcards: [
+    explanation: 'Trading psychology is crucial for success. Many traders fail not because of poor strategy, but because of emotional decisions and lack of discipline.',
+    multipleChoice: [
       {
         id: 'tp1',
-        front: 'What is "FOMO" in trading?',
-        back: 'FOMO (Fear Of Missing Out) is the emotional urge to enter a trade because you see others profiting, often leading to poor decisions.',
-        hint: 'Think of the fear that everyone else is making money except you',
-        explanation: 'FOMO often leads to buying at the top of a trend and can result in significant losses.'
+        question: 'What is FOMO in trading?',
+        options: ['Fear Of Making Options', 'Fear Of Missing Out', 'Focus On Money Only', 'Final Order Move'],
+        correctAnswer: 1,
+        explanation: 'FOMO (Fear Of Missing Out) is the emotional urge to enter trades because you see others profiting, often leading to poor decisions at market tops.'
       },
       {
         id: 'tp2',
-        front: 'What is "revenge trading"?',
-        back: 'Revenge trading is the emotional response to losses where you immediately try to win back your money with larger, riskier trades.',
-        hint: 'Think of trying to get back at the market after a loss',
-        explanation: 'Revenge trading is dangerous and typically leads to compounding losses. Always take a break after a loss.'
+        question: 'True or False: Revenge trading after a loss is a good strategy.',
+        options: ['True', 'False'],
+        correctAnswer: 1,
+        explanation: 'Revenge trading is dangerous and typically leads to compounding losses. Always take a break after a significant loss.',
+        type: 'true-false'
       },
       {
         id: 'tp3',
-        front: 'What is "confirmation bias"?',
-        back: 'Confirmation bias is the tendency to seek information that confirms your existing beliefs while ignoring evidence that contradicts them.',
-        hint: 'Think of only seeing what you want to see',
-        explanation: 'Traders must remain objective and consider all information, not just what supports their current position.'
+        question: 'What percentage of your account should you risk per trade?',
+        options: ['10-20%', '1-2%', '5-10%', '25-30%'],
+        correctAnswer: 1,
+        explanation: 'Most successful traders risk only 1-2% per trade to survive losing streaks and protect their capital.'
       },
       {
         id: 'tp4',
-        front: 'What is "position sizing" in risk management?',
-        back: 'Position sizing is determining how much capital to risk on each trade, typically expressed as a percentage of your total account.',
-        hint: 'Think of how big your trade should be',
-        explanation: 'Proper position sizing (usually 1-2% per trade) ensures no single trade can significantly damage your account.'
+        question: 'Which of these are common psychological pitfalls? (Select all that apply)',
+        options: ['Following a trading plan', 'Letting emotions drive decisions', 'Seeking confirmation bias', 'Taking breaks after losses'],
+        correctAnswer: 0,
+        explanation: 'Emotional trading, confirmation bias, and not taking breaks are common pitfalls. Following a plan and taking breaks are good practices.',
+        type: 'multiple-select',
+        correctAnswers: [1, 2]
       },
       {
         id: 'tp5',
-        front: 'What is "discipline" in trading?',
-        back: 'Discipline is the ability to stick to your trading plan and rules, even when emotions are high or the market is volatile.',
-        hint: 'Think of following your rules consistently',
-        explanation: 'Discipline separates successful traders from gamblers. It requires controlling emotions and following a tested strategy.'
+        question: 'True or False: Discipline is more important than strategy in trading.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'A mediocre strategy with excellent discipline will outperform a great strategy with poor discipline. Discipline is essential.',
+        type: 'true-false'
       }
     ]
   }
 },
 {
-  id: 'moving-averages-wordbank',
-  title: 'Moving Averages',
-  description: 'Learn about popular technical indicators',
-  type: 'word-bank',
+  id: 'moving-averages-mixed',
+  title: 'Moving Averages Mastery',
+  description: 'Master moving averages with mixed question types',
+  type: 'multiple-choice',
   difficulty: 'intermediate',
   category: 'Technical Analysis',
-  xpReward: 35,
+  xpReward: 40,
   content: {
     explanation: 'Moving averages are one of the most widely used technical indicators for identifying trends and potential reversal points.',
-    wordBank: [
+    multipleChoice: [
       {
         id: 'ma1',
-        instruction: 'Select the correct words to complete the sentences:',
-        sentence: 'The _____ gives equal weight to all prices. The _____ gives more weight to recent prices. When price is above the _____, the trend is considered bullish. A _____ occurs when short-term crosses above long-term.',
-        words: ['Simple MA', 'Golden cross', 'Exponential MA', 'Moving average', 'Death cross', 'Support'],
-        correctWords: ['Simple MA', 'Exponential MA', 'Moving average', 'Golden cross'],
-        explanation: 'SMA uses equal weights, EMA weights recent prices more, price above MA is bullish, and golden cross is a bullish signal.'
+        question: 'What is the main difference between SMA and EMA?',
+        options: ['SMA is faster', 'EMA gives more weight to recent prices', 'They are identical', 'SMA is for stocks only'],
+        correctAnswer: 1,
+        explanation: 'EMA (Exponential Moving Average) gives more weight to recent prices, making it more responsive to new information than SMA (Simple Moving Average).'
+      },
+      {
+        id: 'ma2',
+        question: 'True or False: A golden cross is a bullish signal.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'A golden cross occurs when a short-term moving average crosses above a long-term moving average, signaling a potential bullish trend.',
+        type: 'true-false'
+      },
+      {
+        id: 'ma3',
+        question: 'What does it mean when price is above the 200-day moving average?',
+        options: ['The trend is bearish', 'The trend is bullish', 'The market is crashing', 'Nothing significant'],
+        correctAnswer: 1,
+        explanation: 'Price above the 200-day moving average is generally considered bullish, indicating the long-term trend is up.'
+      },
+      {
+        id: 'ma4',
+        question: 'Which moving averages are commonly used? (Select all that apply)',
+        options: ['50-day', '200-day', 'Both A and B', 'Neither'],
+        correctAnswer: 2,
+        explanation: 'The 50-day and 200-day moving averages are the most commonly used, with the 50-day being short-term and 200-day being long-term.',
+        type: 'multiple-select',
+        correctAnswers: [0, 1, 2]
+      },
+      {
+        id: 'ma5',
+        question: 'True or False: Moving averages lag behind price action.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'Moving averages are lagging indicators because they are based on past prices. They show what has happened, not what will happen.',
+        type: 'true-false'
+      }
+    ]
+  }
+},
+{
+  id: 'dividend-investing-mixed',
+  title: 'Dividend Investing Essentials',
+  description: 'Master dividend investing with mixed question types',
+  type: 'multiple-choice',
+  difficulty: 'beginner',
+  category: 'Basics',
+  xpReward: 35,
+  content: {
+    explanation: 'Dividend investing focuses on companies that pay regular dividends. It\'s a popular strategy for generating passive income.',
+    multipleChoice: [
+      {
+        id: 'div1',
+        question: 'What is a dividend?',
+        options: ['A stock split', 'A portion of company profits paid to shareholders', 'A type of bond', 'A trading fee'],
+        correctAnswer: 1,
+        explanation: 'Dividends are portions of a company\'s profits distributed to shareholders, usually on a quarterly basis, providing regular income.'
+      },
+      {
+        id: 'div2',
+        question: 'True or False: Dividend yield is calculated as annual dividend divided by stock price.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'Dividend yield = (Annual Dividend ÷ Stock Price) × 100. It shows the percentage return from dividends alone.',
+        type: 'true-false'
+      },
+      {
+        id: 'div3',
+        question: 'What is a payout ratio?',
+        options: ['The percentage of earnings paid as dividends', 'The stock price change', 'The trading volume', 'The number of shareholders'],
+        correctAnswer: 0,
+        explanation: 'Payout ratio is the percentage of earnings paid out as dividends. A sustainable payout ratio is typically below 70-80%.'
+      },
+      {
+        id: 'div4',
+        question: 'Which of these are good dividend investing principles? (Select all that apply)',
+        options: ['Only looking at high yield', 'Checking payout sustainability', 'Diversifying across sectors', 'Reinvesting dividends'],
+        correctAnswer: 0,
+        explanation: 'Good principles include checking payout sustainability, diversifying, and reinvesting dividends. Chasing high yield without checking sustainability is risky.',
+        type: 'multiple-select',
+        correctAnswers: [1, 2, 3]
+      },
+      {
+        id: 'div5',
+        question: 'True or False: Dividend aristocrats are companies that have increased dividends for 25+ consecutive years.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'Dividend aristocrats are S&P 500 companies that have increased their dividend payout for at least 25 consecutive years.',
+        type: 'true-false'
+      }
+    ]
+  }
+},
+{
+  id: 'market-orders-mixed',
+  title: 'Order Types and Execution',
+  description: 'Master order types with mixed question types',
+  type: 'multiple-choice',
+  difficulty: 'beginner',
+  category: 'Orders',
+  xpReward: 35,
+  content: {
+    explanation: 'Understanding different order types and how they execute is essential for effective trading and risk management.',
+    multipleChoice: [
+      {
+        id: 'oe1',
+        question: 'Which order type executes immediately at the current market price?',
+        options: ['Limit order', 'Market order', 'Stop order', 'GTC order'],
+        correctAnswer: 1,
+        explanation: 'Market orders execute immediately at the current available price, guaranteeing execution but not the exact price.'
+      },
+      {
+        id: 'oe2',
+        question: 'True or False: Limit orders guarantee execution.',
+        options: ['True', 'False'],
+        correctAnswer: 1,
+        explanation: 'Limit orders guarantee price but not execution. If the price never reaches your limit, the order may never execute.',
+        type: 'true-false'
+      },
+      {
+        id: 'oe3',
+        question: 'What does GTC stand for in orders?',
+        options: ['Good Till Cancelled', 'Good Till Close', 'General Trade Cancel', 'Government Trade Commission'],
+        correctAnswer: 0,
+        explanation: 'GTC (Good Till Cancelled) means the order remains active until you cancel it or it is filled.'
+      },
+      {
+        id: 'oe4',
+        question: 'Which of these are common order types? (Select all that apply)',
+        options: ['Market order', 'Limit order', 'Stop order', 'All of the above'],
+        correctAnswer: 3,
+        explanation: 'Market, limit, and stop orders are the three most common order types used by traders.',
+        type: 'multiple-select',
+        correctAnswers: [0, 1, 2, 3]
+      },
+      {
+        id: 'oe5',
+        question: 'True or False: Stop orders become market orders when triggered.',
+        options: ['True', 'False'],
+        correctAnswer: 0,
+        explanation: 'When a stop order is triggered, it becomes a market order and executes at the next available price, which may be different from the stop price.',
+        type: 'true-false'
+      }
+    ]
+  }
+},
+{
+  id: 'matching-chart-patterns',
+  title: 'Chart Patterns Matching',
+  description: 'Match chart patterns with their descriptions',
+  type: 'matching',
+  difficulty: 'intermediate',
+  category: 'Technical Analysis',
+  xpReward: 40,
+  content: {
+    explanation: 'Chart patterns are visual formations on price charts that can help predict future price movements. Learning to recognize them is a key technical analysis skill.',
+    matching: {
+      id: 'patterns1',
+      instruction: 'Match each chart pattern with its description:',
+      pairs: [
+        { left: 'Head and Shoulders', right: 'Reversal pattern with three peaks' },
+        { left: 'Double Top', right: 'Bearish reversal pattern with two peaks' },
+        { left: 'Triangle', right: 'Continuation pattern with converging lines' },
+        { left: 'Flag', right: 'Short-term continuation pattern' }
+      ]
+    }
+  }
+},
+{
+  id: 'risk-management-ordering',
+  title: 'Risk Management Steps',
+  description: 'Learn the correct order of risk management steps',
+  type: 'ordering',
+  difficulty: 'beginner',
+  category: 'Risk Management',
+  xpReward: 35,
+  content: {
+    explanation: 'Proper risk management is crucial for long-term trading success. Following these steps in order helps protect your capital and minimize losses.',
+    ordering: [
+      {
+        id: 'risk1',
+        instruction: 'Order the risk management steps from first to last:',
+        items: ['Set stop-loss levels', 'Determine position size', 'Calculate risk per trade', 'Analyze market conditions', 'Execute the trade'],
+        correctOrder: [3, 1, 2, 0, 4],
+        explanation: 'The correct sequence is: 1) Analyze market conditions, 2) Determine position size, 3) Calculate risk per trade, 4) Set stop-loss levels, 5) Execute the trade.'
+      }
+    ]
+  }
+},
+{
+  id: 'analysis-ordering',
+  title: 'Technical Analysis Process',
+  description: 'Order the steps for technical analysis',
+  type: 'ordering',
+  difficulty: 'intermediate',
+  category: 'Technical Analysis',
+  xpReward: 40,
+  content: {
+    explanation: 'Technical analysis involves a systematic approach to analyzing price charts and indicators. Following the right process helps make better trading decisions.',
+    ordering: [
+      {
+        id: 'ta1',
+        instruction: 'Order the technical analysis steps:',
+        items: ['Identify the trend', 'Wait for confirmation signal', 'Check volume', 'Set entry and exit points', 'Execute trade'],
+        correctOrder: [0, 2, 1, 3, 4],
+        explanation: 'Always identify the trend first, then check volume for confirmation, wait for signal confirmation, set your entry/exit points, and finally execute the trade.'
       }
     ]
   }
