@@ -2485,6 +2485,374 @@ export const lessons: Lesson[] = [
       }
     ]
   }
+},
+{
+  id: 'risk-management-ordering',
+  title: 'Risk Management Steps',
+  description: 'Learn the correct order of risk management steps',
+  type: 'ordering',
+  difficulty: 'beginner',
+  category: 'Risk Management',
+  xpReward: 35,
+  content: {
+    explanation: 'Proper risk management is crucial for long-term trading success. Following these steps in order helps protect your capital and minimize losses.',
+    ordering: [
+      {
+        id: 'risk1',
+        instruction: 'Order the risk management steps from first to last:',
+        items: ['Set stop-loss levels', 'Determine position size', 'Calculate risk per trade', 'Analyze market conditions', 'Execute the trade'],
+        correctOrder: [3, 1, 2, 0, 4],
+        explanation: 'The correct sequence is: 1) Analyze market conditions, 2) Determine position size, 3) Calculate risk per trade, 4) Set stop-loss levels, 5) Execute the trade.'
+      }
+    ]
+  }
+},
+{
+  id: 'analysis-ordering',
+  title: 'Technical Analysis Process',
+  description: 'Order the steps for technical analysis',
+  type: 'ordering',
+  difficulty: 'intermediate',
+  category: 'Technical Analysis',
+  xpReward: 40,
+  content: {
+    explanation: 'Technical analysis involves a systematic approach to analyzing price charts and indicators. Following the right process helps make better trading decisions.',
+    ordering: [
+      {
+        id: 'ta1',
+        instruction: 'Order the technical analysis steps:',
+        items: ['Identify the trend', 'Wait for confirmation signal', 'Check volume', 'Set entry and exit points', 'Execute trade'],
+        correctOrder: [0, 2, 1, 3, 4],
+        explanation: 'Always identify the trend first, then check volume for confirmation, wait for signal confirmation, set your entry/exit points, and finally execute the trade.'
+      }
+    ]
+  }
+},
+{
+  id: 'fundamental-analysis-wordbank',
+  title: 'Fundamental Analysis Terms',
+  description: 'Complete sentences about fundamental analysis',
+  type: 'word-bank',
+  difficulty: 'intermediate',
+  category: 'Fundamental Analysis',
+  xpReward: 35,
+  content: {
+    explanation: 'Fundamental analysis involves evaluating a company\'s financial health and intrinsic value. These terms are essential for understanding company performance.',
+    wordBank: [
+      {
+        id: 'fa1',
+        instruction: 'Select the correct words to complete the sentences:',
+        sentence: '_____ measures a company\'s profitability. _____ represents the total value of a company. _____ shows how much profit each share earns. _____ indicates the stock price relative to earnings.',
+        words: ['P/E ratio', 'EPS', 'Market cap', 'Revenue', 'ROE', 'Dividend yield'],
+        correctWords: ['ROE', 'Market cap', 'EPS', 'P/E ratio'],
+        explanation: 'ROE measures profitability, Market cap is total company value, EPS shows profit per share, and P/E ratio shows price relative to earnings.'
+      }
+    ]
+  }
+},
+{
+  id: 'crypto-terms-wordbank',
+  title: 'Cryptocurrency Terms',
+  description: 'Learn key cryptocurrency terminology',
+  type: 'word-bank',
+  difficulty: 'beginner',
+  category: 'Crypto',
+  xpReward: 35,
+  content: {
+    explanation: 'Cryptocurrency has its own terminology. Understanding these terms is essential for trading digital assets.',
+    wordBank: [
+      {
+        id: 'crypto1',
+        instruction: 'Select the correct words to complete the sentences:',
+        sentence: '_____ is the first and largest cryptocurrency. _____ is the second largest by market cap. _____ enables smart contracts. _____ is the process of validating transactions. _____ stores your crypto assets.',
+        words: ['Bitcoin', 'Ethereum', 'Mining', 'Wallet', 'Blockchain', 'DeFi'],
+        correctWords: ['Bitcoin', 'Ethereum', 'Mining', 'Wallet'],
+        explanation: 'Bitcoin is the largest cryptocurrency, Ethereum enables smart contracts, Mining validates transactions, and Wallets store your crypto.'
+      }
+    ]
+  }
+},
+{
+  id: 'crypto-flashcards',
+  title: 'Cryptocurrency Flashcards',
+  description: 'Learn key crypto trading concepts',
+  type: 'flashcard',
+  difficulty: 'beginner',
+  category: 'Crypto',
+  xpReward: 40,
+  content: {
+    explanation: 'Cryptocurrency trading has unique concepts. These flashcards will help you understand the fundamentals of crypto trading.',
+    flashcards: [
+      {
+        id: 'cfc1',
+        front: 'What is a "blockchain"?',
+        back: 'A blockchain is a decentralized, distributed ledger that records transactions across many computers so that the record cannot be altered retroactively.',
+        hint: 'Think of a chain of blocks containing transaction data',
+        explanation: 'Blockchain technology is the foundation of cryptocurrencies, providing security and transparency without a central authority.'
+      },
+      {
+        id: 'cfc2',
+        front: 'What is "mining" in cryptocurrency?',
+        back: 'Mining is the process of validating transactions and adding them to the blockchain. Miners use computational power to solve complex mathematical problems.',
+        hint: 'Think of it as the process of creating new coins',
+        explanation: 'Mining secures the network and creates new coins as a reward for miners who validate transactions.'
+      },
+      {
+        id: 'cfc3',
+        front: 'What is a "wallet" in crypto?',
+        back: 'A cryptocurrency wallet is a digital tool that allows you to store, send, and receive cryptocurrencies. It contains your private keys.',
+        hint: 'Think of it like a digital bank account for crypto',
+        explanation: 'Wallets come in different types: hardware wallets (most secure), software wallets, and paper wallets.'
+      },
+      {
+        id: 'cfc4',
+        front: 'What is "DeFi"?',
+        back: 'DeFi (Decentralized Finance) refers to financial services built on blockchain technology that operate without traditional financial intermediaries.',
+        hint: 'Think of traditional finance but decentralized',
+        explanation: 'DeFi includes lending, borrowing, trading, and other financial services that are accessible to anyone with an internet connection.'
+      },
+      {
+        id: 'cfc5',
+        front: 'What is "altcoin"?',
+        back: 'An altcoin is any cryptocurrency other than Bitcoin. Examples include Ethereum, Litecoin, and thousands of others.',
+        hint: 'Think of "alternative coin" to Bitcoin',
+        explanation: 'Altcoins often aim to improve upon Bitcoin\'s technology or serve different purposes in the crypto ecosystem.'
+      }
+    ]
+  }
+},
+{
+  id: 'options-basics-flashcards',
+  title: 'Options Trading Basics',
+  description: 'Learn fundamental options concepts',
+  type: 'flashcard',
+  difficulty: 'intermediate',
+  category: 'Options',
+  xpReward: 45,
+  content: {
+    explanation: 'Options are financial derivatives that give you the right, but not the obligation, to buy or sell an asset at a predetermined price.',
+    flashcards: [
+      {
+        id: 'opt1',
+        front: 'What is a "call option"?',
+        back: 'A call option gives the holder the right to buy an asset at a specified price (strike price) within a specific time period.',
+        hint: 'Think of it as betting the price will go up',
+        explanation: 'Call options are used when you\'re bullish on an asset. You profit if the price rises above the strike price.'
+      },
+      {
+        id: 'opt2',
+        front: 'What is a "put option"?',
+        back: 'A put option gives the holder the right to sell an asset at a specified price (strike price) within a specific time period.',
+        hint: 'Think of it as betting the price will go down',
+        explanation: 'Put options are used when you\'re bearish on an asset. You profit if the price falls below the strike price.'
+      },
+      {
+        id: 'opt3',
+        front: 'What is the "strike price"?',
+        back: 'The strike price is the predetermined price at which an option can be exercised to buy or sell the underlying asset.',
+        hint: 'Think of it as the target price for the option',
+        explanation: 'The strike price is set when the option is created and determines whether the option is in-the-money, at-the-money, or out-of-the-money.'
+      },
+      {
+        id: 'opt4',
+        front: 'What is "expiration date"?',
+        back: 'The expiration date is the last day an option can be exercised. After this date, the option expires worthless.',
+        hint: 'Think of it as the deadline for the option',
+        explanation: 'Options have different expiration cycles, with weekly, monthly, and quarterly expirations being common.'
+      },
+      {
+        id: 'opt5',
+        front: 'What is "premium" in options?',
+        back: 'The premium is the price paid to purchase an option. It represents the maximum risk for the option buyer.',
+        hint: 'Think of it as the cost of buying the option',
+        explanation: 'The premium is determined by factors including the underlying price, strike price, time to expiration, volatility, and interest rates.'
+      }
+    ]
+  }
+},
+{
+  id: 'forex-basics-flashcards',
+  title: 'Forex Trading Basics',
+  description: 'Learn fundamental forex concepts',
+  type: 'flashcard',
+  difficulty: 'beginner',
+  category: 'Forex',
+  xpReward: 40,
+  content: {
+    explanation: 'Forex (foreign exchange) is the largest financial market in the world, where currencies are traded 24/7.',
+    flashcards: [
+      {
+        id: 'fx1',
+        front: 'What is a "currency pair"?',
+        back: 'A currency pair shows the value of one currency against another. For example, EUR/USD shows how many US dollars are needed to buy one Euro.',
+        hint: 'Think of it as comparing two currencies',
+        explanation: 'The first currency is the base currency, and the second is the quote currency. EUR/USD means Euros priced in US dollars.'
+      },
+      {
+        id: 'fx2',
+        front: 'What is a "pip"?',
+        back: 'A pip (percentage in point) is the smallest price move that a given exchange rate can make. Usually the fourth decimal place (0.0001).',
+        hint: 'Think of it as the smallest price change',
+        explanation: 'Pips are used to measure price movements and calculate profits/losses in forex trading.'
+      },
+      {
+        id: 'fx3',
+        front: 'What is "leverage" in forex?',
+        back: 'Leverage allows traders to control larger positions with a smaller amount of capital. For example, 100:1 leverage means $1 controls $100.',
+        hint: 'Think of it as trading with borrowed money',
+        explanation: 'Leverage amplifies both potential profits and losses, making forex trading high-risk but also potentially high-reward.'
+      },
+      {
+        id: 'fx4',
+        front: 'What is a "lot" in forex?',
+        back: 'A lot is a standardized quantity of currency. A standard lot is 100,000 units, a mini lot is 10,000, and a micro lot is 1,000.',
+        hint: 'Think of it as the unit size for forex trades',
+        explanation: 'Lot sizes determine the value of each pip movement and are essential for proper position sizing.'
+      },
+      {
+        id: 'fx5',
+        front: 'What is "spread" in forex?',
+        back: 'The spread is the difference between the bid (buy) price and the ask (sell) price of a currency pair.',
+        hint: 'Think of it as the cost of trading',
+        explanation: 'The spread represents the broker\'s fee and is typically measured in pips. Lower spreads are better for traders.'
+      }
+    ]
+  }
+},
+{
+  id: 'support-resistance-wordbank',
+  title: 'Support and Resistance',
+  description: 'Complete sentences about key chart levels',
+  type: 'word-bank',
+  difficulty: 'intermediate',
+  category: 'Technical Analysis',
+  xpReward: 35,
+  content: {
+    explanation: 'Support and resistance are key concepts in technical analysis that help identify potential price levels where trends may reverse.',
+    wordBank: [
+      {
+        id: 'sr1',
+        instruction: 'Select the correct words to complete the sentences:',
+        sentence: '_____ is a price level where buying pressure is strong enough to prevent further price declines. _____ is where selling pressure prevents further price increases. _____ levels often become the opposite after being broken. _____ shows increasing interest in a stock.',
+        words: ['Volume', 'Support', 'Resistance', 'Trend line', 'Moving average', 'Breakout'],
+        correctWords: ['Support', 'Resistance', 'Support', 'Volume'],
+        explanation: 'Support prevents declines, resistance prevents advances, broken support becomes resistance, and volume shows interest.'
+      }
+    ]
+  }
+},
+{
+  id: 'trading-psychology-flashcards',
+  title: 'Trading Psychology',
+  description: 'Master the mental aspects of trading',
+  type: 'flashcard',
+  difficulty: 'intermediate',
+  category: 'Psychology',
+  xpReward: 40,
+  content: {
+    explanation: 'Trading psychology is crucial for success. Many traders fail not because of poor strategy, but because of emotional decisions.',
+    flashcards: [
+      {
+        id: 'tp1',
+        front: 'What is "FOMO" in trading?',
+        back: 'FOMO (Fear Of Missing Out) is the emotional urge to enter a trade because you see others profiting, often leading to poor decisions.',
+        hint: 'Think of the fear that everyone else is making money except you',
+        explanation: 'FOMO often leads to buying at the top of a trend and can result in significant losses.'
+      },
+      {
+        id: 'tp2',
+        front: 'What is "revenge trading"?',
+        back: 'Revenge trading is the emotional response to losses where you immediately try to win back your money with larger, riskier trades.',
+        hint: 'Think of trying to get back at the market after a loss',
+        explanation: 'Revenge trading is dangerous and typically leads to compounding losses. Always take a break after a loss.'
+      },
+      {
+        id: 'tp3',
+        front: 'What is "confirmation bias"?',
+        back: 'Confirmation bias is the tendency to seek information that confirms your existing beliefs while ignoring evidence that contradicts them.',
+        hint: 'Think of only seeing what you want to see',
+        explanation: 'Traders must remain objective and consider all information, not just what supports their current position.'
+      },
+      {
+        id: 'tp4',
+        front: 'What is "position sizing" in risk management?',
+        back: 'Position sizing is determining how much capital to risk on each trade, typically expressed as a percentage of your total account.',
+        hint: 'Think of how big your trade should be',
+        explanation: 'Proper position sizing (usually 1-2% per trade) ensures no single trade can significantly damage your account.'
+      },
+      {
+        id: 'tp5',
+        front: 'What is "discipline" in trading?',
+        back: 'Discipline is the ability to stick to your trading plan and rules, even when emotions are high or the market is volatile.',
+        hint: 'Think of following your rules consistently',
+        explanation: 'Discipline separates successful traders from gamblers. It requires controlling emotions and following a tested strategy.'
+      }
+    ]
+  }
+},
+{
+  id: 'moving-averages-wordbank',
+  title: 'Moving Averages',
+  description: 'Learn about popular technical indicators',
+  type: 'word-bank',
+  difficulty: 'intermediate',
+  category: 'Technical Analysis',
+  xpReward: 35,
+  content: {
+    explanation: 'Moving averages are one of the most widely used technical indicators for identifying trends and potential reversal points.',
+    wordBank: [
+      {
+        id: 'ma1',
+        instruction: 'Select the correct words to complete the sentences:',
+        sentence: 'The _____ gives equal weight to all prices. The _____ gives more weight to recent prices. When price is above the _____, the trend is considered bullish. A _____ occurs when short-term crosses above long-term.',
+        words: ['Simple MA', 'Golden cross', 'Exponential MA', 'Moving average', 'Death cross', 'Support'],
+        correctWords: ['Simple MA', 'Exponential MA', 'Moving average', 'Golden cross'],
+        explanation: 'SMA uses equal weights, EMA weights recent prices more, price above MA is bullish, and golden cross is a bullish signal.'
+      }
+    ]
+  }
+},
+{
+  id: 'dividend-investing-ordering',
+  title: 'Dividend Investing Steps',
+  description: 'Order the steps for dividend investing',
+  type: 'ordering',
+  difficulty: 'beginner',
+  category: 'Basics',
+  xpReward: 30,
+  content: {
+    explanation: 'Dividend investing focuses on companies that pay regular dividends. Following these steps helps build a dividend portfolio.',
+    ordering: [
+      {
+        id: 'div1',
+        instruction: 'Order the dividend investing steps:',
+        items: ['Research dividend history', 'Check payout ratio', 'Determine yield', 'Evaluate company fundamentals', 'Invest and reinvest dividends'],
+        correctOrder: [0, 3, 1, 2, 4],
+        explanation: 'Research dividend history first, evaluate fundamentals, check payout ratio, determine yield, then invest and reinvest dividends.'
+      }
+    ]
+  }
+},
+{
+  id: 'market-orders-ordering',
+  title: 'Order Execution Process',
+  description: 'Learn the order execution workflow',
+  type: 'ordering',
+  difficulty: 'beginner',
+  category: 'Orders',
+  xpReward: 30,
+  content: {
+    explanation: 'Understanding how orders are executed helps you trade more effectively and avoid common mistakes.',
+    ordering: [
+      {
+        id: 'oe1',
+        instruction: 'Order the order execution steps:',
+        items: ['Order is placed', 'Order is routed to exchange', 'Trade is matched', 'Execution is confirmed', 'Order is filled'],
+        correctOrder: [0, 1, 3, 2, 4],
+        explanation: 'Orders are placed, routed to exchange, matched with counterparty, executed, and then filled/confirmed.'
+      }
+    ]
+  }
 }
 ];
 
