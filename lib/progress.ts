@@ -1,4 +1,4 @@
-import { UserProgress, Lesson, TradingStyle } from '@/types';
+import { UserProgress, Lesson } from '@/types';
 import { tradingStyles } from '@/data/trading-styles';
 
 const STORAGE_KEY = 'trading-duolingo-progress';
@@ -58,7 +58,7 @@ export const loadProgress = (): UserProgress => {
 export const saveTradingStyle = (tradingStyle: string): void => {
   if (typeof window !== 'undefined') {
     const progress = loadProgress();
-    progress.tradingStyle = tradingStyle as any;
+    progress.tradingStyle = tradingStyle as 'day-trading' | 'swing-trading' | 'long-term-investing' | 'balanced';
     localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
   }
 };

@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint --ignore-path .gitignore"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
@@ -20,6 +20,7 @@
     "recharts": "^3.10.1"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.7",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

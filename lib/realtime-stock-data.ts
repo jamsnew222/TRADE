@@ -1,4 +1,4 @@
-import { StockData, Currency, Exchange, ExchangeRate } from '@/types';
+import { StockData, Currency, Exchange } from '@/types';
 
 // Finnhub API - Free tier available
 // Get your API key at https://finnhub.io/
@@ -89,7 +89,7 @@ const CURRENCY_SYMBOLS: Record<Currency, string> = {
 };
 
 // Exchange rate cache
-let exchangeRates: Record<string, number> = {};
+const exchangeRates: Record<string, number> = {};
 let ratesLastUpdated: number = 0;
 const RATES_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
@@ -193,7 +193,7 @@ export async function getExchangeRate(from: Currency, to: Currency): Promise<num
     const rate = data.rates[to] || 1;
 
     // Cache the rate
-    exchangeRates[cacheKey] = rate;
+    Object.assign(exchangeRates, { [cacheKey]: rate });
     ratesLastUpdated = now;
 
     return rate;

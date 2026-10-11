@@ -1,0 +1,16 @@
+# Generated files
+android/
+ios/
+out/
+.next/
+node_modules/
+
+# Scripts
+scripts/
+
+# Build artifacts
+*.min.js
+*.min.css
+
+# Assets
+public/icon-*.png

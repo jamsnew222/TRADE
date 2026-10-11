@@ -1,4 +1,4 @@
-import { StockData, Currency, Exchange } from '@/types';
+import { StockData } from '@/types';
 
 // Educational stock data (static examples)
 const educationalStocks: StockData[] = [
