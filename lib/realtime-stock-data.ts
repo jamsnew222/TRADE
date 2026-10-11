@@ -17,27 +17,60 @@ const STOCK_SYMBOLS = [
   { symbol: 'JPM', name: 'JPMorgan Chase & Co.', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
   { symbol: 'V', name: 'Visa Inc.', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
   { symbol: 'JNJ', name: 'Johnson & Johnson', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'WMT', name: 'Walmart Inc.', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'PG', name: 'Procter & Gamble', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'DIS', name: 'Walt Disney Co.', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'NFLX', name: 'Netflix Inc.', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'AMD', name: 'Advanced Micro Devices', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'INTC', name: 'Intel Corporation', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'CSCO', name: 'Cisco Systems', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'ORCL', name: 'Oracle Corporation', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'ADBE', name: 'Adobe Inc.', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'CRM', name: 'Salesforce Inc.', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
 
   // UK Stocks (LSE)
   { symbol: 'HSBA.L', name: 'HSBC Holdings', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
   { symbol: 'BP.L', name: 'BP plc', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
   { symbol: 'GSK.L', name: 'GSK plc', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
+  { symbol: 'BARC.L', name: 'Barclays PLC', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
+  { symbol: 'ULVR.L', name: 'Unilever PLC', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
+  { symbol: 'DGE.L', name: 'Diageo PLC', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
 
   // Japanese Stocks (TSE)
   { symbol: '7203.T', name: 'Toyota Motor Corp', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
   { symbol: '6758.T', name: 'Sony Group Corp', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
+  { symbol: '7201.T', name: 'Nissan Motor Co', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
+  { symbol: '8306.T', name: 'Mitsubishi UFJ Financial', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
+  { symbol: '4755.T', name: 'SoftBank Group Corp', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
 
   // Canadian Stocks (TSX)
   { symbol: 'RY.TO', name: 'Royal Bank of Canada', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
   { symbol: 'SHOP.TO', name: 'Shopify Inc.', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
+  { symbol: 'TD.TO', name: 'Toronto-Dominion Bank', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
+  { symbol: 'BMO.TO', name: 'Bank of Montreal', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
+  { symbol: 'CNQ.TO', name: 'Canadian Natural Resources', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
 
   // Australian Stocks (ASX)
   { symbol: 'CBA.AX', name: 'Commonwealth Bank', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
   { symbol: 'BHP.AX', name: 'BHP Group', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
+  { symbol: 'CSL.AX', name: 'CSL Ltd', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
+  { symbol: 'WBC.AX', name: 'Westpac Banking', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
+  { symbol: 'NAB.AX', name: 'National Australia Bank', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
 
   // European Stocks (various exchanges)
   { symbol: 'ASML.AS', name: 'ASML Holding', exchange: 'Euronext' as Exchange, currency: 'EUR' as Currency },
   { symbol: 'SAP.DE', name: 'SAP SE', exchange: 'XETRA' as Exchange, currency: 'EUR' as Currency },
+  { symbol: 'SIE.DE', name: 'Siemens AG', exchange: 'XETRA' as Exchange, currency: 'EUR' as Currency },
+  { symbol: 'BAYN.DE', name: 'Bayer AG', exchange: 'XETRA' as Exchange, currency: 'EUR' as Currency },
+  { symbol: 'VOW.DE', name: 'Volkswagen AG', exchange: 'XETRA' as Exchange, currency: 'EUR' as Currency },
+  { symbol: 'MC.PA', name: 'LVMH Moët Hennessy', exchange: 'Euronext' as Exchange, currency: 'EUR' as Currency },
+  { symbol: 'OR.PA', name: 'L\'Oréal SA', exchange: 'Euronext' as Exchange, currency: 'EUR' as Currency },
+  { symbol: 'SAN.PA', name: 'Sanofi SA', exchange: 'Euronext' as Exchange, currency: 'EUR' as Currency },
+
+  // Swiss Stocks (SIX)
+  { symbol: 'NESN.SW', name: 'Nestlé SA', exchange: 'SIX' as Exchange, currency: 'CHF' as Currency },
+  { symbol: 'ROG.SW', name: 'Roche Holding AG', exchange: 'SIX' as Exchange, currency: 'CHF' as Currency },
+  { symbol: 'UBSG.SW', name: 'UBS Group AG', exchange: 'SIX' as Exchange, currency: 'CHF' as Currency },
 ];
 
 // Currency symbols for display

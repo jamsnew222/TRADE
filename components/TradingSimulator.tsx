@@ -13,7 +13,8 @@ import {
   getAvailableCurrencies,
   getStocksByExchange
 } from '@/lib/realtime-stock-data';
-import { X, TrendingUp, TrendingDown, Wallet, RefreshCw, Globe, DollarSign, Building2 } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Wallet, RefreshCw, Globe, DollarSign, Building2, LineChart } from 'lucide-react';
+import StockChart from './StockChart';
 
 interface TradingSimulatorProps {
   onClose: () => void;
@@ -345,9 +346,9 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Stock List */}
-            <div>
+            <div className="lg:col-span-1">
               <h3 className={`font-semibold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                 Available Stocks ({stocks.length})
               </h3>
@@ -405,91 +406,99 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
               </div>
             </div>
 
-            {/* Trading Panel */}
-            <div>
-              <h3 className={`font-semibold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Trade</h3>
-              {selectedStock ? (
-                <div className={`p-4 rounded-xl border-2 ${darkMode ? 'border-gray-700 bg-gray-700' : 'border-gray-200 bg-white'}`}>
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                        {selectedStock.symbol}
-                        <span className={`text-xs ml-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                          {selectedStock.exchange}
-                        </span>
-                      </p>
-                      <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{selectedStock.name}</p>
-                    </div>
-                    <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {formatPrice(selectedStock.price, selectedStock.currency)}
-                    </p>
-                  </div>
-
-                  <div className="flex gap-2 mb-4">
-                    <button
-                      onClick={() => setTradeType('buy')}
-                      className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
-                        tradeType === 'buy'
-                          ? 'bg-green-500 text-white'
-                          : darkMode
-                            ? 'bg-gray-600 text-gray-300'
-                            : 'bg-gray-100 text-gray-700'
-                      }`}
-                    >
-                      Buy
-                    </button>
-                    <button
-                      onClick={() => setTradeType('sell')}
-                      className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
-                        tradeType === 'sell'
-                          ? 'bg-red-500 text-white'
-                          : darkMode
-                            ? 'bg-gray-600 text-gray-300'
-                            : 'bg-gray-100 text-gray-700'
-                      }`}
-                    >
-                      Sell
-                    </button>
-                  </div>
-
-                  <div className="mb-4">
-                    <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                      Number of Shares
-                    </label>
-                    <input
-                      type="number"
-                      value={tradeAmount}
-                      onChange={(e) => setTradeAmount(e.target.value)}
-                      placeholder="Enter amount"
-                      className={`w-full px-4 py-2 rounded-lg border-2 ${
-                        darkMode
-                          ? 'bg-gray-600 border-gray-600 text-white placeholder-gray-400'
-                          : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
-                      }`}
-                    />
-                  </div>
-
-                  <div className={`mb-4 p-3 rounded-lg ${darkMode ? 'bg-gray-600' : 'bg-gray-50'}`}>
-                    <div className="flex justify-between text-sm">
-                      <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Estimated Total</span>
-                      <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                        {tradeAmount ? formatPrice(parseInt(tradeAmount) * selectedStock.price, selectedStock.currency) : formatPrice(0, selectedStock.currency)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={executeTrade}
-                    className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold transition-colors"
-                  >
-                    {tradeType === 'buy' ? 'Buy Shares' : 'Sell Shares'}
-                  </button>
-                </div>
-              ) : (
-                <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Select a stock to trade
-                </div>
+            {/* Chart and Trading Panel */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Stock Chart */}
+              {selectedStock && (
+                <StockChart symbol={selectedStock.symbol} darkMode={darkMode} />
               )}
+
+              {/* Trading Panel */}
+              <div>
+                <h3 className={`font-semibold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Trade</h3>
+                {selectedStock ? (
+                  <div className={`p-4 rounded-xl border-2 ${darkMode ? 'border-gray-700 bg-gray-700' : 'border-gray-200 bg-white'}`}>
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                          {selectedStock.symbol}
+                          <span className={`text-xs ml-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            {selectedStock.exchange}
+                          </span>
+                        </p>
+                        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{selectedStock.name}</p>
+                      </div>
+                      <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        {formatPrice(selectedStock.price, selectedStock.currency)}
+                      </p>
+                    </div>
+
+                    <div className="flex gap-2 mb-4">
+                      <button
+                        onClick={() => setTradeType('buy')}
+                        className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
+                          tradeType === 'buy'
+                            ? 'bg-green-500 text-white'
+                            : darkMode
+                              ? 'bg-gray-600 text-gray-300'
+                              : 'bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        Buy
+                      </button>
+                      <button
+                        onClick={() => setTradeType('sell')}
+                        className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
+                          tradeType === 'sell'
+                            ? 'bg-red-500 text-white'
+                            : darkMode
+                              ? 'bg-gray-600 text-gray-300'
+                              : 'bg-gray-100 text-gray-700'
+                        }`}
+                      >
+                        Sell
+                      </button>
+                    </div>
+
+                    <div className="mb-4">
+                      <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        Number of Shares
+                      </label>
+                      <input
+                        type="number"
+                        value={tradeAmount}
+                        onChange={(e) => setTradeAmount(e.target.value)}
+                        placeholder="Enter amount"
+                        className={`w-full px-4 py-2 rounded-lg border-2 ${
+                          darkMode
+                            ? 'bg-gray-600 border-gray-600 text-white placeholder-gray-400'
+                            : 'bg-white border-gray-200 text-gray-900 placeholder-gray-500'
+                        }`}
+                      />
+                    </div>
+
+                    <div className={`mb-4 p-3 rounded-lg ${darkMode ? 'bg-gray-600' : 'bg-gray-50'}`}>
+                      <div className="flex justify-between text-sm">
+                        <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Estimated Total</span>
+                        <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                          {tradeAmount ? formatPrice(parseInt(tradeAmount) * selectedStock.price, selectedStock.currency) : formatPrice(0, selectedStock.currency)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={executeTrade}
+                      className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold transition-colors"
+                    >
+                      {tradeType === 'buy' ? 'Buy Shares' : 'Sell Shares'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Select a stock to trade
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -512,7 +521,8 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
                     {portfolio.holdings.map(holding => {
                       const stock = stocks.find(s => s.symbol === holding.symbol);
                       if (!stock) return null;
-                      const holdingPL = (stock.price - holding.averageCost) * holding.shares;
+                      const currentPriceInBase = (stock.price * holding.shares); // Simplified for demo
+                      const holdingPL = currentPriceInBase - (holding.averageCost * holding.shares);
                       return (
                         <tr key={holding.symbol} className={darkMode ? 'border-t border-gray-700' : 'border-t border-gray-200'}>
                           <td className={`p-3 font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
