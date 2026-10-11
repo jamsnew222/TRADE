@@ -9,12 +9,15 @@ export type Exchange = 'NYSE' | 'NASDAQ' | 'LSE' | 'TSE' | 'HKEX' | 'SSE' | 'NSE
 export interface UserProgress {
   completedLessons: string[];
   currentStreak: number;
+  longestStreak: number;
   totalXP: number;
   level: number;
   lastActiveDate: string;
   tradingStyle?: TradingStyle;
   currentUnit?: number;
   currentLevel?: number;
+  streakFreezes?: number;
+  totalDaysActive?: number;
 }
 
 export interface Lesson {

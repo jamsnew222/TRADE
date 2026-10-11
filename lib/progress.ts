@@ -16,23 +16,36 @@ export const loadProgress = (): UserProgress => {
     return {
       completedLessons: [],
       currentStreak: 0,
+      longestStreak: 0,
       totalXP: 0,
       level: 1,
-      lastActiveDate: new Date().toISOString()
+      lastActiveDate: new Date().toISOString(),
+      streakFreezes: 3,
+      totalDaysActive: 0
     };
   }
 
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
-    return JSON.parse(stored);
+    const parsed = JSON.parse(stored);
+    // Ensure new fields exist for existing data
+    return {
+      ...parsed,
+      longestStreak: parsed.longestStreak || 0,
+      streakFreezes: parsed.streakFreezes || 3,
+      totalDaysActive: parsed.totalDaysActive || 0
+    };
   }
 
   return {
     completedLessons: [],
     currentStreak: 0,
+    longestStreak: 0,
     totalXP: 0,
     level: 1,
-    lastActiveDate: new Date().toISOString()
+    lastActiveDate: new Date().toISOString(),
+    streakFreezes: 3,
+    totalDaysActive: 0
   };
 };
 
@@ -61,38 +74,82 @@ export const updateStreak = (progress: UserProgress): UserProgress => {
     return progress;
   } else if (yesterday.toDateString() === lastActive) {
     // Active yesterday, increment streak
+    const newStreak = progress.currentStreak + 1;
+    const newLongestStreak = Math.max(progress.longestStreak || 0, newStreak);
     return {
       ...progress,
-      currentStreak: progress.currentStreak + 1,
-      lastActiveDate: new Date().toISOString()
+      currentStreak: newStreak,
+      longestStreak: newLongestStreak,
+      lastActiveDate: new Date().toISOString(),
+      totalDaysActive: (progress.totalDaysActive || 0) + 1
     };
   } else {
     // Streak broken or first time
     return {
       ...progress,
       currentStreak: 1,
-      lastActiveDate: new Date().toISOString()
+      lastActiveDate: new Date().toISOString(),
+      totalDaysActive: (progress.totalDaysActive || 0) + 1
     };
   }
 };
 
+export const getStreakBonus = (streak: number): number => {
+  // Bonus XP for maintaining streaks
+  if (streak >= 30) return 50; // 30 day streak
+  if (streak >= 21) return 35; // 21 day streak
+  if (streak >= 14) return 25; // 14 day streak
+  if (streak >= 7) return 15;  // 7 day streak
+  if (streak >= 3) return 5; // 3 day streak
+  return 0;
+};
+
+export const useStreakFreeze = (progress: UserProgress): UserProgress => {
+  if (!progress.streakFreezes || progress.streakFreezes <= 0) {
+    return progress;
+  }
+
+  progress.streakFreezes -= 1;
+  // Reset streak to preserve it instead of breaking
+  const today = new Date().toDateString();
+  const lastActive = new Date(progress.lastActiveDate).toDateString();
+
+  // If missed a day, use a freeze
+  if (today !== lastActive) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (yesterday.toDateString() !== lastActive) {
+      // Missed more than one day, still use freeze but don't reset
+      progress.lastActiveDate = new Date().toISOString();
+    }
+  }
+
+  saveProgress(progress);
+  return progress;
+};
+
 export const completeLesson = (lessonId: string, xpReward: number): UserProgress => {
   const progress = loadProgress();
-  
+
   if (progress.completedLessons.includes(lessonId)) {
     return progress; // Already completed
   }
+
+  // Award streak freeze every 5 lessons completed
+  const lessonsCount = progress.completedLessons.length;
+  const newStreakFreezes = (lessonsCount + 1) % 5 === 0 ? (progress.streakFreezes || 0) + 1 : (progress.streakFreezes || 0);
 
   const updatedProgress = {
     ...progress,
     completedLessons: [...progress.completedLessons, lessonId],
     totalXP: progress.totalXP + xpReward,
-    level: calculateLevel(progress.totalXP + xpReward)
+    level: calculateLevel(progress.totalXP + xpReward),
+    streakFreezes: newStreakFreezes
   };
 
   const withStreak = updateStreak(updatedProgress);
   saveProgress(withStreak);
-  
+
   return withStreak;
 };
 

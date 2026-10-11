@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { Lesson, QuizQuestion, OrderingQuestion, WordBankQuestion, FlashcardQuestion, DragDropQuestion, TimelineQuestion, ScenarioQuestion } from '@/types';
-import { CheckCircle, XCircle, ArrowRight, RotateCcw, Sparkles, Target, Clock, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, FlipHorizontal } from 'lucide-react';
+import { CheckCircle, XCircle, ArrowRight, RotateCcw, Sparkles, Target, Clock, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, FlipHorizontal, Flame } from 'lucide-react';
+import { loadProgress, getStreakBonus } from '@/lib/progress';
 
 interface LessonViewProps {
   lesson: Lesson;
@@ -952,6 +953,9 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
 
   if (currentStep === 'complete') {
     const xpEarned = Math.round(lesson.xpReward * (correctAnswers / Math.max(1, totalQuestions || 1)));
+    const progress = loadProgress();
+    const streakBonus = getStreakBonus(progress.currentStreak);
+    const totalXP = xpEarned + streakBonus;
 
     return (
       <div className="max-w-2xl mx-auto animate-fade-in">
@@ -964,13 +968,25 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Lesson Complete!</h1>
             <p className="text-gray-600 mb-6">Great job completing {lesson.title}</p>
 
-            <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-2xl p-6 mb-6 border border-yellow-200">
+            <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-2xl p-6 mb-4 border border-yellow-200">
               <div className="flex items-center justify-center gap-2 text-yellow-600">
                 <span className="text-3xl">⭐</span>
                 <span className="text-3xl font-bold">{xpEarned}</span>
                 <span className="text-xl">XP earned</span>
               </div>
             </div>
+
+            {streakBonus > 0 && (
+              <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl p-4 mb-4 border border-orange-200">
+                <div className="flex items-center justify-center gap-2 text-orange-600">
+                  <Flame className="w-5 h-5" />
+                  <span className="font-semibold">Streak Bonus: +{streakBonus} XP</span>
+                </div>
+                <p className="text-sm text-orange-700 mt-1">
+                  {progress.currentStreak} day streak!
+                </p>
+              </div>
+            )}
 
             {totalQuestions > 0 && (
               <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-4 border border-blue-100">

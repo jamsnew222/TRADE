@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { lessons, categories } from '@/data/lessons';
 import { tradingStyles } from '@/data/trading-styles';
 import { learningPath } from '@/data/learning-path';
-import { loadProgress, completeLesson, getAvailableLessons, getRecommendedLessons, saveTradingStyle } from '@/lib/progress';
+import { loadProgress, completeLesson, getAvailableLessons, getRecommendedLessons, saveTradingStyle, getStreakBonus } from '@/lib/progress';
 import { checkAchievements, loadAchievements } from '@/lib/achievements';
 import { UserProgress, Lesson, Achievement, TradingStyle, Level } from '@/types';
 import ProgressCard from '@/components/ProgressCard';
@@ -53,7 +53,11 @@ export default function Home() {
 
   const handleLessonComplete = (xpEarned: number) => {
     if (activeLesson) {
-      const updatedProgress = completeLesson(activeLesson.id, xpEarned);
+      const progressData = loadProgress();
+      const streakBonus = getStreakBonus(progressData.currentStreak);
+      const totalXP = xpEarned + streakBonus;
+
+      const updatedProgress = completeLesson(activeLesson.id, totalXP);
       setProgress(updatedProgress);
       const updatedAchievements = checkAchievements(updatedProgress);
       setAchievements(updatedAchievements);
@@ -175,7 +179,7 @@ export default function Home() {
         {/* Progress Section */}
         {progress && (
           <div className="mb-8">
-            <ProgressCard progress={progress} />
+            <ProgressCard progress={progress} darkMode={darkMode} />
           </div>
         )}
 
