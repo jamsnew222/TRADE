@@ -18,6 +18,8 @@ export interface UserProgress {
   currentLevel?: number;
   streakFreezes?: number;
   totalDaysActive?: number;
+  isPremium?: boolean;
+  premiumExpiry?: string | null;
 }
 
 export interface Lesson {

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { lessons, categories } from '@/data/lessons';
 import { tradingStyles } from '@/data/trading-styles';
 import { learningPath } from '@/data/learning-path';
-import { loadProgress, completeLesson, getAvailableLessons, getRecommendedLessons, saveTradingStyle, getStreakBonus } from '@/lib/progress';
+import { loadProgress, completeLesson, getAvailableLessons, getRecommendedLessons, saveTradingStyle, getStreakBonus, activatePremium, checkPremiumStatus } from '@/lib/progress';
 import { checkAchievements, loadAchievements } from '@/lib/achievements';
 import { UserProgress, Lesson, Achievement, TradingStyle, Level } from '@/types';
 import ProgressCard from '@/components/ProgressCard';
@@ -16,7 +16,8 @@ import ReviewSystem from '@/components/ReviewSystem';
 import TradingStyleSelector from '@/components/TradingStyleSelector';
 import PaperTradingPlatform from '@/components/PaperTradingPlatform';
 import LearningPath from '@/components/LearningPath';
-import { TrendingUp, BookOpen, Trophy, Moon, Sun, Gamepad2, RotateCcw, User, BarChart3, Map } from 'lucide-react';
+import PremiumModal from '@/components/PremiumModal';
+import { TrendingUp, BookOpen, Trophy, Moon, Sun, Gamepad2, RotateCcw, User, BarChart3, Map, Crown } from 'lucide-react';
 
 export default function Home() {
   const [progress, setProgress] = useState<UserProgress | null>(null);
@@ -30,6 +31,7 @@ export default function Home() {
   const [showStyleSelector, setShowStyleSelector] = useState(false);
   const [showPaperTrading, setShowPaperTrading] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'path'>('path');
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   useEffect(() => {
     try {
@@ -71,6 +73,14 @@ export default function Home() {
     const updatedProgress = loadProgress();
     setProgress(updatedProgress);
   };
+
+  const handlePremiumSubscribe = (plan: 'monthly' | 'yearly') => {
+    const updatedProgress = activatePremium(plan);
+    setProgress(updatedProgress);
+    setShowPremiumModal(false);
+  };
+
+  const isPremiumUser = progress ? checkPremiumStatus(progress) : false;
 
   const filteredLessons = selectedCategory === 'All'
     ? lessons
@@ -161,6 +171,19 @@ export default function Home() {
               >
                 <Trophy className="w-4 h-4" />
                 <span className="text-sm font-medium">Achievements</span>
+              </button>
+              <button
+                onClick={() => setShowPremiumModal(true)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                  isPremiumUser
+                    ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white hover:from-yellow-500 hover:to-amber-600'
+                    : darkMode
+                      ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Crown className="w-4 h-4" />
+                <span className="text-sm font-medium">{isPremiumUser ? 'Premium' : 'Upgrade'}</span>
               </button>
               <button
                 onClick={() => setDarkMode(!darkMode)}
@@ -314,6 +337,14 @@ export default function Home() {
         isOpen={showStyleSelector}
         onClose={() => setShowStyleSelector(false)}
         onSelect={handleStyleSelect}
+        darkMode={darkMode}
+      />
+
+      {/* Premium Modal */}
+      <PremiumModal
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        onSubscribe={handlePremiumSubscribe}
         darkMode={darkMode}
       />
     </div>

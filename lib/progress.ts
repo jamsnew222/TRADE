@@ -21,7 +21,9 @@ export const loadProgress = (): UserProgress => {
       level: 1,
       lastActiveDate: new Date().toISOString(),
       streakFreezes: 3,
-      totalDaysActive: 0
+      totalDaysActive: 0,
+      isPremium: false,
+      premiumExpiry: null
     };
   }
 
@@ -33,7 +35,9 @@ export const loadProgress = (): UserProgress => {
       ...parsed,
       longestStreak: parsed.longestStreak || 0,
       streakFreezes: parsed.streakFreezes || 3,
-      totalDaysActive: parsed.totalDaysActive || 0
+      totalDaysActive: parsed.totalDaysActive || 0,
+      isPremium: parsed.isPremium || false,
+      premiumExpiry: parsed.premiumExpiry ?? null
     };
   }
 
@@ -45,7 +49,9 @@ export const loadProgress = (): UserProgress => {
     level: 1,
     lastActiveDate: new Date().toISOString(),
     streakFreezes: 3,
-    totalDaysActive: 0
+    totalDaysActive: 0,
+    isPremium: false,
+    premiumExpiry: null
   };
 };
 
@@ -105,6 +111,23 @@ export const getStreakBonus = (streak: number): number => {
 };
 
 export const useStreakFreeze = (progress: UserProgress): UserProgress => {
+  // Premium users have unlimited freezes
+  if (progress.isPremium) {
+    // Reset streak to preserve it instead of breaking
+    const today = new Date().toDateString();
+    const lastActive = new Date(progress.lastActiveDate).toDateString();
+
+    if (today !== lastActive) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      if (yesterday.toDateString() !== lastActive) {
+        progress.lastActiveDate = new Date().toISOString();
+      }
+    }
+    saveProgress(progress);
+    return progress;
+  }
+
   if (!progress.streakFreezes || progress.streakFreezes <= 0) {
     return progress;
   }
@@ -128,6 +151,59 @@ export const useStreakFreeze = (progress: UserProgress): UserProgress => {
   return progress;
 };
 
+export const activatePremium = (plan: 'monthly' | 'yearly'): UserProgress => {
+  const progress = loadProgress();
+  const now = new Date();
+  const expiryDate = plan === 'monthly'
+    ? new Date(now.setMonth(now.getMonth() + 1))
+    : new Date(now.setFullYear(now.getFullYear() + 1));
+
+  const updatedProgress = {
+    ...progress,
+    isPremium: true,
+    premiumExpiry: expiryDate.toISOString()
+  };
+
+  saveProgress(updatedProgress);
+  return updatedProgress;
+};
+
+export const checkPremiumStatus = (progress: UserProgress): boolean => {
+  if (!progress.isPremium) return false;
+
+  if (progress.premiumExpiry) {
+    const expiry = new Date(progress.premiumExpiry);
+    const now = new Date();
+    if (now > expiry) {
+      // Premium expired
+      const updatedProgress = {
+        ...progress,
+        isPremium: false,
+        premiumExpiry: null
+      };
+      saveProgress(updatedProgress);
+      return false;
+    }
+  }
+
+  return true;
+};
+
+export const cancelPremium = (): UserProgress => {
+  const progress = loadProgress();
+  const updatedProgress = {
+    ...progress,
+    isPremium: false,
+    premiumExpiry: null
+  };
+  saveProgress(updatedProgress);
+  return updatedProgress;
+};
+
+export const getPremiumMultiplier = (progress: UserProgress): number => {
+  return checkPremiumStatus(progress) ? 2 : 1;
+};
+
 export const completeLesson = (lessonId: string, xpReward: number): UserProgress => {
   const progress = loadProgress();
 
@@ -135,15 +211,21 @@ export const completeLesson = (lessonId: string, xpReward: number): UserProgress
     return progress; // Already completed
   }
 
-  // Award streak freeze every 5 lessons completed
+  // Apply premium multiplier if active
+  const premiumMultiplier = getPremiumMultiplier(progress);
+  const finalXP = xpReward * premiumMultiplier;
+
+  // Award streak freeze every 5 lessons completed (non-premium only)
   const lessonsCount = progress.completedLessons.length;
-  const newStreakFreezes = (lessonsCount + 1) % 5 === 0 ? (progress.streakFreezes || 0) + 1 : (progress.streakFreezes || 0);
+  const newStreakFreezes = !progress.isPremium && (lessonsCount + 1) % 5 === 0
+    ? (progress.streakFreezes || 0) + 1
+    : (progress.streakFreezes || 0);
 
   const updatedProgress = {
     ...progress,
     completedLessons: [...progress.completedLessons, lessonId],
-    totalXP: progress.totalXP + xpReward,
-    level: calculateLevel(progress.totalXP + xpReward),
+    totalXP: progress.totalXP + finalXP,
+    level: calculateLevel(progress.totalXP + finalXP),
     streakFreezes: newStreakFreezes
   };
 

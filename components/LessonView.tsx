@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { Lesson, QuizQuestion, OrderingQuestion, WordBankQuestion, FlashcardQuestion, DragDropQuestion, TimelineQuestion, ScenarioQuestion } from '@/types';
-import { CheckCircle, XCircle, ArrowRight, RotateCcw, Sparkles, Target, Clock, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, FlipHorizontal, Flame } from 'lucide-react';
-import { loadProgress, getStreakBonus } from '@/lib/progress';
+import { CheckCircle, XCircle, ArrowRight, RotateCcw, Sparkles, Target, Clock, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, FlipHorizontal, Flame, Crown } from 'lucide-react';
+import { loadProgress, getStreakBonus, checkPremiumStatus, getPremiumMultiplier } from '@/lib/progress';
 
 interface LessonViewProps {
   lesson: Lesson;
@@ -955,7 +955,10 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
     const xpEarned = Math.round(lesson.xpReward * (correctAnswers / Math.max(1, totalQuestions || 1)));
     const progress = loadProgress();
     const streakBonus = getStreakBonus(progress.currentStreak);
-    const totalXP = xpEarned + streakBonus;
+    const isPremium = checkPremiumStatus(progress);
+    const premiumMultiplier = getPremiumMultiplier(progress);
+    const premiumBonus = isPremium ? xpEarned : 0;
+    const totalXP = xpEarned + streakBonus + premiumBonus;
 
     return (
       <div className="max-w-2xl mx-auto animate-fade-in">
@@ -971,10 +974,19 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
             <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-2xl p-6 mb-4 border border-yellow-200">
               <div className="flex items-center justify-center gap-2 text-yellow-600">
                 <span className="text-3xl">⭐</span>
-                <span className="text-3xl font-bold">{xpEarned}</span>
+                <span className="text-3xl font-bold">{totalXP}</span>
                 <span className="text-xl">XP earned</span>
               </div>
             </div>
+
+            {isPremium && (
+              <div className="bg-gradient-to-r from-yellow-100 to-amber-100 rounded-2xl p-4 mb-4 border-2 border-yellow-300">
+                <div className="flex items-center justify-center gap-2 text-yellow-700">
+                  <Crown className="w-5 h-5" />
+                  <span className="font-semibold">Premium Bonus: +{premiumBonus} XP (2x Multiplier)</span>
+                </div>
+              </div>
+            )}
 
             {streakBonus > 0 && (
               <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl p-4 mb-4 border border-orange-200">

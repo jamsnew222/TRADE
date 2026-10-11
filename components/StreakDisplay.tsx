@@ -1,7 +1,8 @@
 'use client';
 
 import { UserProgress } from '@/types';
-import { Flame, Snowflake, Zap, Calendar, TrendingUp, Award, Clock } from 'lucide-react';
+import { Flame, Snowflake, Zap, Calendar, TrendingUp, Award, Clock, Crown, Infinity } from 'lucide-react';
+import { checkPremiumStatus } from '@/lib/progress';
 
 interface StreakDisplayProps {
   progress: UserProgress;
@@ -9,6 +10,8 @@ interface StreakDisplayProps {
 }
 
 export default function StreakDisplay({ progress, darkMode }: StreakDisplayProps) {
+  const isPremium = checkPremiumStatus(progress);
+
   const getStreakBonus = (streak: number): { xp: number; label: string } => {
     if (streak >= 30) return { xp: 50, label: '30-Day Master' };
     if (streak >= 21) return { xp: 35, label: '21-Day Hero' };
@@ -85,6 +88,23 @@ export default function StreakDisplay({ progress, darkMode }: StreakDisplayProps
         </div>
       )}
 
+      {/* Premium Bonus */}
+      {isPremium && (
+        <div className={`mb-4 p-3 rounded-xl ${darkMode ? 'bg-yellow-900/30 border border-yellow-700' : 'bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-300'}`}>
+          <div className="flex items-center gap-2">
+            <Crown className={`w-5 h-5 ${darkMode ? 'text-yellow-400' : 'text-yellow-600'}`} />
+            <div>
+              <p className={`font-semibold ${darkMode ? 'text-yellow-400' : 'text-yellow-700'}`}>
+                Premium Active
+              </p>
+              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                2x XP on all lessons
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Next Bonus */}
       <div className={`mb-4 p-3 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-white'}`}>
         <div className="flex items-center gap-2">
@@ -126,13 +146,17 @@ export default function StreakDisplay({ progress, darkMode }: StreakDisplayProps
             <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Freezes</p>
           </div>
           <p className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            {progress.streakFreezes ?? 0}
+            {isPremium ? (
+              <Infinity className="w-6 h-6 text-cyan-500" />
+            ) : (
+              progress.streakFreezes ?? 0
+            )}
           </p>
         </div>
       </div>
 
       {/* Streak Freeze Button */}
-      {(progress.streakFreezes ?? 0) > 0 && (
+      {!isPremium && (progress.streakFreezes ?? 0) > 0 && (
         <button
           className={`w-full mt-4 flex items-center justify-center gap-2 p-3 rounded-lg transition-colors ${
             darkMode
@@ -143,6 +167,15 @@ export default function StreakDisplay({ progress, darkMode }: StreakDisplayProps
           <Snowflake className="w-4 h-4" />
           <span className="font-medium">Use Streak Freeze ({progress.streakFreezes ?? 0} left)</span>
         </button>
+      )}
+
+      {isPremium && (
+        <div className={`w-full mt-4 flex items-center justify-center gap-2 p-3 rounded-lg ${
+          darkMode ? 'bg-gradient-to-r from-yellow-600 to-amber-600' : 'bg-gradient-to-r from-yellow-400 to-amber-500'
+        }`}>
+          <Crown className="w-4 h-4 text-white" />
+          <span className="font-medium text-white">Unlimited Streak Freezes</span>
+        </div>
       )}
 
       {/* Streak Milestones */}
