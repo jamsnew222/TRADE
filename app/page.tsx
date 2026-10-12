@@ -17,7 +17,8 @@ import TradingStyleSelector from '@/components/TradingStyleSelector';
 import PaperTradingPlatform from '@/components/PaperTradingPlatform';
 import LearningPath from '@/components/LearningPath';
 import PremiumModal from '@/components/PremiumModal';
-import { TrendingUp, BookOpen, Trophy, Moon, Sun, Gamepad2, RotateCcw, User, BarChart3, Map, Crown } from 'lucide-react';
+import SettingsModal from '@/components/SettingsModal';
+import { TrendingUp, Trophy, Gamepad2, RotateCcw, BarChart3, Settings, Crown } from 'lucide-react';
 
 export default function Home() {
   const [progress, setProgress] = useState<UserProgress | null>(null);
@@ -32,6 +33,7 @@ export default function Home() {
   const [showPaperTrading, setShowPaperTrading] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'path'>('path');
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     try {
@@ -117,15 +119,6 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setViewMode(viewMode === 'grid' ? 'path' : 'grid')}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                  darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {viewMode === 'grid' ? <Map className="w-4 h-4" /> : <BookOpen className="w-4 h-4" />}
-                <span className="text-sm font-medium">{viewMode === 'grid' ? 'Path' : 'Grid'}</span>
-              </button>
-              <button
                 onClick={() => setShowPaperTrading(true)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                   darkMode ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-500 text-white hover:bg-blue-600'
@@ -133,17 +126,6 @@ export default function Home() {
               >
                 <BarChart3 className="w-4 h-4" />
                 <span className="text-sm font-medium">Paper Trading</span>
-              </button>
-              <button
-                onClick={() => setShowStyleSelector(true)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                  darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <User className="w-4 h-4" />
-                <span className="text-sm font-medium">
-                  {progress?.tradingStyle ? tradingStyles.find(s => s.id === progress.tradingStyle)?.name : 'Style'}
-                </span>
               </button>
               <button
                 onClick={() => setShowReview(true)}
@@ -186,12 +168,13 @@ export default function Home() {
                 <span className="text-sm font-medium">{isPremiumUser ? 'Premium' : 'Upgrade'}</span>
               </button>
               <button
-                onClick={() => setDarkMode(!darkMode)}
-                className={`p-2 rounded-lg transition-colors ${
+                onClick={() => setShowSettings(true)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                   darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                <Settings className="w-4 h-4" />
+                <span className="text-sm font-medium">Settings</span>
               </button>
             </div>
           </div>
@@ -234,8 +217,8 @@ export default function Home() {
                 className={`px-4 py-2 rounded-full font-medium transition-colors ${
                   selectedCategory === 'All'
                     ? 'bg-green-500 text-white'
-                    : darkMode 
-                      ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+                    : darkMode
+                      ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                       : 'bg-white text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -248,8 +231,8 @@ export default function Home() {
                   className={`px-4 py-2 rounded-full font-medium transition-colors ${
                     selectedCategory === category
                       ? 'bg-green-500 text-white'
-                      : darkMode 
-                        ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' 
+                      : darkMode
+                        ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                         : 'bg-white text-gray-700 hover:bg-gray-100'
                   }`}
                 >
@@ -346,6 +329,19 @@ export default function Home() {
         onClose={() => setShowPremiumModal(false)}
         onSubscribe={handlePremiumSubscribe}
         darkMode={darkMode}
+      />
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        darkMode={darkMode}
+        onDarkModeToggle={() => setDarkMode(!darkMode)}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        onStyleSelectorOpen={() => setShowStyleSelector(true)}
+        tradingStyle={progress?.tradingStyle}
+        tradingStyles={tradingStyles}
       />
     </div>
   );
