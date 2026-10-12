@@ -64,9 +64,10 @@ export default function SettingsModal({
                 </div>
                 <button
                   onClick={onDarkModeToggle}
-                  className={`relative w-14 h-8 rounded-full transition-colors ${
+                  className={`relative w-14 h-8 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     darkMode ? 'bg-blue-600' : 'bg-gray-300'
                   }`}
+                  aria-label="Toggle dark mode"
                 >
                   <div
                     className={`absolute top-1 w-6 h-6 rounded-full bg-white transition-transform ${
