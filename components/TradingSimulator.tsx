@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { StockData, TradingStyle, Currency, Exchange } from '@/types';
 import { tradingStyles } from '@/data/trading-styles';
 import {
@@ -50,15 +50,23 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>('USD');
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isLive, setIsLive] = useState(true);
+  const [priceChanges, setPriceChanges] = useState<Record<string, 'up' | 'down' | null>>({});
+  const priceChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const availableExchanges = getAvailableExchanges();
   const availableCurrencies = getAvailableCurrencies();
 
   useEffect(() => {
     loadStocks();
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(loadStocks, 30000);
-    return () => clearInterval(interval);
+    // Auto-refresh every 5 seconds for real-time updates
+    const interval = setInterval(loadStocks, 5000);
+    return () => {
+      clearInterval(interval);
+      if (priceChangeTimeoutRef.current) {
+        clearTimeout(priceChangeTimeoutRef.current);
+      }
+    };
   }, [selectedExchange, selectedCurrency]);
 
   const loadStocks = async () => {
@@ -73,12 +81,32 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
         return exchangeMatch && currencyMatch;
       });
 
+      // Track price changes for visual indicators
+      const newPriceChanges: Record<string, 'up' | 'down' | null> = {};
+      filteredData.forEach(stock => {
+        const existingStock = stocks.find(s => s.symbol === stock.symbol);
+        if (existingStock) {
+          if (stock.price > existingStock.price) {
+            newPriceChanges[stock.symbol] = 'up';
+          } else if (stock.price < existingStock.price) {
+            newPriceChanges[stock.symbol] = 'down';
+          }
+        }
+      });
+      setPriceChanges(newPriceChanges);
+
       setStocks(filteredData);
       setLastUpdated(new Date());
 
       if (filteredData.length > 0 && !selectedStock) {
         setSelectedStock(filteredData[0]);
       }
+
+      // Clear price change indicators after 2 seconds
+      if (priceChangeTimeoutRef.current) {
+        clearTimeout(priceChangeTimeoutRef.current);
+      }
+      priceChangeTimeoutRef.current = setTimeout(() => setPriceChanges({}), 2000);
     } catch (error) {
       console.error('Error loading stocks:', error);
       showNotification('Failed to load stock data');
@@ -252,6 +280,12 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {isLive && (
+              <div className="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-xs font-medium text-green-700">LIVE</span>
+              </div>
+            )}
             {lastUpdated && (
               <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                 Updated: {lastUpdated.toLocaleTimeString()}
@@ -366,12 +400,14 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
                     <button
                       key={stock.symbol}
                       onClick={() => setSelectedStock(stock)}
-                      className={`w-full p-3 rounded-lg border-2 text-left transition-colors ${
+                      className={`w-full p-3 rounded-lg border-2 text-left transition-all ${
                         selectedStock?.symbol === stock.symbol
                           ? 'border-green-500 bg-green-50'
                           : darkMode
                             ? 'border-gray-700 bg-gray-700 hover:bg-gray-600'
                             : 'border-gray-200 bg-white hover:bg-gray-50'
+                      } ${priceChanges[stock.symbol] === 'up' ? 'animate-pulse border-green-300' : ''} ${
+                        priceChanges[stock.symbol] === 'down' ? 'animate-pulse border-red-300' : ''
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -381,6 +417,12 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
                             <span className={`text-xs ml-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                               {stock.exchange}
                             </span>
+                            {priceChanges[stock.symbol] === 'up' && (
+                              <span className="ml-2 text-green-500">↑</span>
+                            )}
+                            {priceChanges[stock.symbol] === 'down' && (
+                              <span className="ml-2 text-red-500">↓</span>
+                            )}
                           </p>
                           <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{stock.name}</p>
                         </div>

@@ -21,6 +21,9 @@ export default function StockChart({ symbol, darkMode }: StockChartProps) {
 
   useEffect(() => {
     loadChartData();
+    // Auto-refresh every 5 seconds for real-time updates
+    const interval = setInterval(loadChartData, 5000);
+    return () => clearInterval(interval);
   }, [symbol, timeframe]);
 
   const loadChartData = async () => {

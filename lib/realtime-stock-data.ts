@@ -6,7 +6,7 @@ const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY || 'demo';
 
 // Popular stocks across different exchanges
 const STOCK_SYMBOLS = [
-  // US Stocks (NYSE/NASDAQ)
+  // US Stocks (NYSE/NASDAQ) - Tech Giants
   { symbol: 'AAPL', name: 'Apple Inc.', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
   { symbol: 'GOOGL', name: 'Alphabet Inc.', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
   { symbol: 'MSFT', name: 'Microsoft Corporation', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
@@ -14,19 +14,70 @@ const STOCK_SYMBOLS = [
   { symbol: 'TSLA', name: 'Tesla Inc.', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
   { symbol: 'META', name: 'Meta Platforms Inc.', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
   { symbol: 'NVDA', name: 'NVIDIA Corporation', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'JPM', name: 'JPMorgan Chase & Co.', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'V', name: 'Visa Inc.', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'JNJ', name: 'Johnson & Johnson', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'WMT', name: 'Walmart Inc.', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'PG', name: 'Procter & Gamble', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'DIS', name: 'Walt Disney Co.', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
   { symbol: 'NFLX', name: 'Netflix Inc.', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
   { symbol: 'AMD', name: 'Advanced Micro Devices', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
   { symbol: 'INTC', name: 'Intel Corporation', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
+
+  // US Stocks - Financials
+  { symbol: 'JPM', name: 'JPMorgan Chase & Co.', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'BAC', name: 'Bank of America Corp', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'WFC', name: 'Wells Fargo & Co', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'C', name: 'Citigroup Inc', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'GS', name: 'Goldman Sachs Group', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+
+  // US Stocks - Consumer & Retail
+  { symbol: 'WMT', name: 'Walmart Inc.', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'PG', name: 'Procter & Gamble', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'KO', name: 'Coca-Cola Co', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'MCD', name: 'McDonald\'s Corp', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'NKE', name: 'Nike Inc', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'SBUX', name: 'Starbucks Corp', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'HD', name: 'Home Depot Inc', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'COST', name: 'Costco Wholesale', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
+
+  // US Stocks - Healthcare
+  { symbol: 'JNJ', name: 'Johnson & Johnson', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'PFE', name: 'Pfizer Inc', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'UNH', name: 'UnitedHealth Group', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'ABT', name: 'Abbott Laboratories', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+
+  // US Stocks - Energy
+  { symbol: 'XOM', name: 'Exxon Mobil Corp', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'CVX', name: 'Chevron Corp', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'COP', name: 'ConocoPhillips', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+
+  // US Stocks - Industrial
+  { symbol: 'CAT', name: 'Caterpillar Inc', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'BA', name: 'Boeing Co', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'GE', name: 'General Electric Co', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+
+  // US Stocks - Payment & Fintech
+  { symbol: 'V', name: 'Visa Inc.', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'MA', name: 'Mastercard Inc', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'PYPL', name: 'PayPal Holdings', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'SQ', name: 'Block Inc', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+
+  // US Stocks - Software & Cloud
   { symbol: 'CSCO', name: 'Cisco Systems', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
   { symbol: 'ORCL', name: 'Oracle Corporation', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
   { symbol: 'ADBE', name: 'Adobe Inc.', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
   { symbol: 'CRM', name: 'Salesforce Inc.', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'IBM', name: 'IBM Corp', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'ACN', name: 'Accenture PLC', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+
+  // US Stocks - Entertainment & Media
+  { symbol: 'DIS', name: 'Walt Disney Co', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'CMCSA', name: 'Comcast Corp', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'T', name: 'AT&T Inc', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+
+  // US Stocks - Communication
+  { symbol: 'VZ', name: 'Verizon Communications', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'TMUS', name: 'T-Mobile US', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
+
+  // US Stocks - Semiconductor
+  { symbol: 'QCOM', name: 'Qualcomm Inc', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'TXN', name: 'Texas Instruments', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
+  { symbol: 'MU', name: 'Micron Technology', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
 
   // UK Stocks (LSE)
   { symbol: 'HSBA.L', name: 'HSBC Holdings', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
@@ -35,6 +86,8 @@ const STOCK_SYMBOLS = [
   { symbol: 'BARC.L', name: 'Barclays PLC', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
   { symbol: 'ULVR.L', name: 'Unilever PLC', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
   { symbol: 'DGE.L', name: 'Diageo PLC', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
+  { symbol: 'RIO.L', name: 'Rio Tinto plc', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
+  { symbol: 'PRU.L', name: 'Prudential plc', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
 
   // Japanese Stocks (TSE)
   { symbol: '7203.T', name: 'Toyota Motor Corp', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
@@ -42,6 +95,8 @@ const STOCK_SYMBOLS = [
   { symbol: '7201.T', name: 'Nissan Motor Co', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
   { symbol: '8306.T', name: 'Mitsubishi UFJ Financial', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
   { symbol: '4755.T', name: 'SoftBank Group Corp', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
+  { symbol: '6702.T', name: 'Canon Inc', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
+  { symbol: '8035.T', name: 'Tokyo Electron', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
 
   // Canadian Stocks (TSX)
   { symbol: 'RY.TO', name: 'Royal Bank of Canada', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
@@ -49,6 +104,8 @@ const STOCK_SYMBOLS = [
   { symbol: 'TD.TO', name: 'Toronto-Dominion Bank', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
   { symbol: 'BMO.TO', name: 'Bank of Montreal', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
   { symbol: 'CNQ.TO', name: 'Canadian Natural Resources', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
+  { symbol: 'BNS.TO', name: 'Bank of Nova Scotia', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
+  { symbol: 'ENB.TO', name: 'Enbridge Inc', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
 
   // Australian Stocks (ASX)
   { symbol: 'CBA.AX', name: 'Commonwealth Bank', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
@@ -56,6 +113,8 @@ const STOCK_SYMBOLS = [
   { symbol: 'CSL.AX', name: 'CSL Ltd', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
   { symbol: 'WBC.AX', name: 'Westpac Banking', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
   { symbol: 'NAB.AX', name: 'National Australia Bank', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
+  { symbol: 'ANZ.AX', name: 'Australia & NZ Banking', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
+  { symbol: 'RIO.AX', name: 'Rio Tinto Ltd', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
 
   // European Stocks (various exchanges)
   { symbol: 'ASML.AS', name: 'ASML Holding', exchange: 'Euronext' as Exchange, currency: 'EUR' as Currency },
@@ -66,11 +125,14 @@ const STOCK_SYMBOLS = [
   { symbol: 'MC.PA', name: 'LVMH Moët Hennessy', exchange: 'Euronext' as Exchange, currency: 'EUR' as Currency },
   { symbol: 'OR.PA', name: 'L\'Oréal SA', exchange: 'Euronext' as Exchange, currency: 'EUR' as Currency },
   { symbol: 'SAN.PA', name: 'Sanofi SA', exchange: 'Euronext' as Exchange, currency: 'EUR' as Currency },
+  { symbol: 'AIR.PA', name: 'Airbus SE', exchange: 'Euronext' as Exchange, currency: 'EUR' as Currency },
+  { symbol: 'BNP.PA', name: 'BNP Paribas SA', exchange: 'Euronext' as Exchange, currency: 'EUR' as Currency },
 
   // Swiss Stocks (SIX)
   { symbol: 'NESN.SW', name: 'Nestlé SA', exchange: 'SIX' as Exchange, currency: 'CHF' as Currency },
   { symbol: 'ROG.SW', name: 'Roche Holding AG', exchange: 'SIX' as Exchange, currency: 'CHF' as Currency },
   { symbol: 'UBSG.SW', name: 'UBS Group AG', exchange: 'SIX' as Exchange, currency: 'CHF' as Currency },
+  { symbol: 'NOVN.SW', name: 'Novartis AG', exchange: 'SIX' as Exchange, currency: 'CHF' as Currency },
 ];
 
 // Currency symbols for display
