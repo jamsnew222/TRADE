@@ -18,7 +18,7 @@ import PaperTradingPlatform from '@/components/PaperTradingPlatform';
 import LearningPath from '@/components/LearningPath';
 import PremiumModal from '@/components/PremiumModal';
 import SettingsModal from '@/components/SettingsModal';
-import { TrendingUp, Trophy, Gamepad2, RotateCcw, BarChart3, Settings, Crown } from 'lucide-react';
+import { TrendingUp, Trophy, Gamepad2, RotateCcw, BarChart3, Settings, Crown, BookOpen, Map } from 'lucide-react';
 
 export default function Home() {
   const [progress, setProgress] = useState<UserProgress | null>(null);

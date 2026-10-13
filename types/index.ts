@@ -2,9 +2,9 @@ export type LessonType = 'quiz' | 'matching' | 'fill-blank' | 'multiple-choice' 
 
 export type TradingStyle = 'day-trading' | 'swing-trading' | 'long-term-investing' | 'balanced';
 
-export type Currency = 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD' | 'AUD' | 'CHF' | 'CNY' | 'INR' | 'BTC' | 'ETH';
+export type Currency = 'All' | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD' | 'AUD' | 'CHF' | 'CNY' | 'INR' | 'BTC' | 'ETH';
 
-export type Exchange = 'NYSE' | 'NASDAQ' | 'LSE' | 'TSE' | 'HKEX' | 'SSE' | 'NSE' | 'ASX' | 'TSX' | 'B3';
+export type Exchange = 'All' | 'NYSE' | 'NASDAQ' | 'LSE' | 'TSE' | 'HKEX' | 'SSE' | 'NSE' | 'ASX' | 'TSX' | 'B3' | 'Euronext' | 'XETRA' | 'SIX';
 
 export interface UserProgress {
   completedLessons: string[];

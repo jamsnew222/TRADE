@@ -63,8 +63,8 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
       const data = await fetchAllStockQuotes();
 
       const filteredData = data.filter(stock => {
-        const exchangeMatch = selectedExchange === 'NASDAQ' || stock.exchange === selectedExchange;
-        const currencyMatch = selectedCurrency === 'USD' || stock.currency === selectedCurrency;
+        const exchangeMatch = selectedExchange === 'All' || stock.exchange === selectedExchange;
+        const currencyMatch = selectedCurrency === 'All' || stock.currency === selectedCurrency;
         return exchangeMatch && currencyMatch;
       });
 

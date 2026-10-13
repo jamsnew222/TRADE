@@ -76,8 +76,8 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
 
       // Filter by selected exchange and currency
       const filteredData = data.filter(stock => {
-        const exchangeMatch = selectedExchange === 'NASDAQ' || stock.exchange === selectedExchange;
-        const currencyMatch = selectedCurrency === 'USD' || stock.currency === selectedCurrency;
+        const exchangeMatch = selectedExchange === 'All' || stock.exchange === selectedExchange;
+        const currencyMatch = selectedCurrency === 'All' || stock.currency === selectedCurrency;
         return exchangeMatch && currencyMatch;
       });
 
