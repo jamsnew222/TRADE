@@ -1,6 +1,6 @@
 import { Achievement, UserProgress } from '@/types';
 import { achievements } from '@/data/achievements';
-import { lessons } from '@/data/lessons';
+import { lessons } from '@/data/lessons-padded';
 
 const ACHIEVEMENTS_KEY = 'tradequest-achievements';
 
