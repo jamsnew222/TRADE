@@ -59,8 +59,8 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
 
   useEffect(() => {
     loadStocks();
-    // Auto-refresh every 5 seconds for real-time updates
-    const interval = setInterval(loadStocks, 5000);
+    // Auto-refresh every 2 seconds for true real-time updates
+    const interval = setInterval(loadStocks, 2000);
     return () => {
       clearInterval(interval);
       if (priceChangeTimeoutRef.current) {

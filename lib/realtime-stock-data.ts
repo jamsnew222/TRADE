@@ -211,28 +211,58 @@ export async function fetchStockQuote(symbol: string): Promise<StockData | null>
 /**
  * Generate fallback stock data when API fails
  */
+// Store current prices for realistic movement simulation
+const currentPrices: Record<string, number> = {};
+const dailyHighs: Record<string, number> = {};
+const dailyLows: Record<string, number> = {};
+
 function generateFallbackData(symbol: string): StockData | null {
   const stockInfo = STOCK_SYMBOLS.find(s => s.symbol === symbol);
   if (!stockInfo) return null;
 
-  // Generate realistic-looking data based on stock type
-  const basePrice = getBasePriceForStock(stockInfo);
-  const changePercent = (Math.random() - 0.5) * 4; // -2% to +2%
-  const change = basePrice * (changePercent / 100);
+  // Get or initialize current price
+  let currentPrice = currentPrices[symbol];
+  if (!currentPrice) {
+    currentPrice = getBasePriceForStock(stockInfo);
+    currentPrices[symbol] = currentPrice;
+    dailyHighs[symbol] = currentPrice;
+    dailyLows[symbol] = currentPrice;
+  }
+
+  // Simulate realistic price movement (geometric Brownian motion)
+  const volatility = 0.001; // 0.1% per update (more realistic)
+  const drift = 0.00005; // Slight upward drift
+  const randomShock = (Math.random() - 0.5) * 2; // Random shock between -1 and 1
+  const priceChange = currentPrice * (drift + volatility * randomShock);
+  currentPrice = Math.max(0.01, currentPrice + priceChange);
+  currentPrices[symbol] = currentPrice;
+
+  // Update daily high/low
+  if (currentPrice > dailyHighs[symbol]) {
+    dailyHighs[symbol] = currentPrice;
+  }
+  if (currentPrice < dailyLows[symbol]) {
+    dailyLows[symbol] = currentPrice;
+  }
+
+  // Calculate change from day open (simulated)
+  const dayOpen = getBasePriceForStock(stockInfo) * 0.995;
+  const change = currentPrice - dayOpen;
+  const changePercent = (change / dayOpen) * 100;
 
   return {
     symbol: stockInfo.symbol,
     name: stockInfo.name,
-    price: basePrice + change,
+    price: currentPrice,
     change: change,
     changePercent: changePercent,
     currency: stockInfo.currency,
     exchange: stockInfo.exchange,
-    open: basePrice,
-    high: basePrice * 1.02,
-    low: basePrice * 0.98,
-    previousClose: basePrice,
-    volume: Math.floor(Math.random() * 10000000) + 1000000
+    open: dayOpen,
+    high: dailyHighs[symbol],
+    low: dailyLows[symbol],
+    previousClose: dayOpen,
+    volume: Math.floor(Math.random() * 5000000) + 500000
   };
 }
 

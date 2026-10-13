@@ -47,8 +47,8 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
 
   useEffect(() => {
     loadStocks();
-    // Auto-refresh every 5 seconds for real-time updates
-    const interval = setInterval(loadStocks, 5000);
+    // Auto-refresh every 1 second for true real-time updates
+    const interval = setInterval(loadStocks, 1000);
     return () => {
       clearInterval(interval);
       if (priceChangeTimeoutRef.current) {
