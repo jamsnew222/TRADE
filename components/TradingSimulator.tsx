@@ -10,7 +10,7 @@ import {
   getAvailableExchanges,
   getAvailableCurrencies
 } from '@/lib/realtime-stock-data';
-import { subscribeMarket, getMarketMode, refreshMarketNow, getPriceHistory, isMarketOpen, MarketMode } from '@/lib/market-engine';
+import { subscribeMarket, getMarketMode, refreshMarketNow, getPriceHistory, isMarketOpen, isSymbolLive, MarketMode } from '@/lib/market-engine';
 import { X, TrendingUp, TrendingDown, Wallet, RefreshCw, Globe, DollarSign, Building2, LineChart } from 'lucide-react';
 import StockChart from './StockChart';
 import Sparkline from './Sparkline';
@@ -419,6 +419,11 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
                             }`}>
                               {isMarketOpen(stock.exchange) ? 'OPEN' : 'CLOSED'}
                             </span>
+                            {marketMode === 'live' && !isSymbolLive(stock.symbol) && (
+                              <span className="ml-1 text-[10px] font-semibold px-1 py-0.5 rounded bg-amber-100 text-amber-700" title="Simulated price — no real feed for this symbol">
+                                SIM
+                              </span>
+                            )}
                             {priceChanges[stock.symbol] === 'up' && (
                               <span className="ml-2 text-green-500">↑</span>
                             )}

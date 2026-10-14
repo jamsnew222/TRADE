@@ -22,6 +22,8 @@ let activeSource: 'finnhub' | 'stooq' | null = null;
 let initialized = false;
 let tickTimer: ReturnType<typeof setInterval> | null = null;
 let apiTimer: ReturnType<typeof setInterval> | null = null;
+let marketWatchTimer: ReturnType<typeof setInterval> | null = null;
+const exchangeOpenState = new Map<string, boolean>();
 
 const TICK_MS = 1500;
 const FINNHUB_REFRESH_MS = 60_000; // stay under Finnhub's 60 calls/min free limit
@@ -203,48 +205,90 @@ async function fetchStooqQuotes(): Promise<number> {
 
 // ---------- Lifecycle ----------
 
+const finnhubSymbols = () =>
+  STOCK_SYMBOLS_LIST.map(s => s.symbol).filter(isFinnhubSymbol);
+
+/**
+ * Try to activate a real data feed. Returns true if any real quotes arrived.
+ */
+async function tryActivateLive(): Promise<boolean> {
+  // 1) Finnhub if the user configured a key (US symbols)
+  if (FINNHUB_API_KEY) {
+    const probe = await fetchFinnhubQuote(finnhubSymbols()[0]);
+    if (probe !== null) {
+      activeSource = 'finnhub';
+      if (apiTimer) clearInterval(apiTimer);
+      refreshFinnhubQuotes(finnhubSymbols()).then(() => {
+        apiTimer = setInterval(
+          () => refreshFinnhubQuotes(finnhubSymbols()),
+          FINNHUB_REFRESH_MS
+        );
+      });
+      return true;
+    }
+  }
+
+  // 2) Stooq via CORS proxy — no key needed, covers international too
+  const found = await fetchStooqQuotes();
+  if (found > 0) {
+    activeSource = 'stooq';
+    if (apiTimer) clearInterval(apiTimer);
+    apiTimer = setInterval(fetchStooqQuotes, STOOQ_REFRESH_MS);
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Returns true the moment any exchange transitions closed -> open,
+ * so callers can snap prices back to real quotes at the bell.
+ */
+function checkMarketOpenTransitions(): boolean {
+  let justOpened = false;
+  STOCK_SYMBOLS_LIST.forEach(s => {
+    const openNow = isMarketOpen(s.exchange);
+    const was = exchangeOpenState.get(s.exchange);
+    if (was === false && openNow) justOpened = true;
+    exchangeOpenState.set(s.exchange, openNow);
+  });
+  return justOpened;
+}
+
 async function init() {
   if (initialized) return;
   initialized = true;
 
   // Synchronous seed — the UI has data on the very first render
   seed();
+  // Record current open/closed state so we detect the next opening bell
+  STOCK_SYMBOLS_LIST.forEach(s => {
+    exchangeOpenState.set(s.exchange, isMarketOpen(s.exchange));
+  });
   notify();
 
-  const finnhubSymbols = STOCK_SYMBOLS_LIST
-    .map(s => s.symbol)
-    .filter(isFinnhubSymbol);
-
-  // 1) Finnhub if the user configured a key (US symbols)
-  if (FINNHUB_API_KEY) {
-    const probe = await fetchFinnhubQuote(finnhubSymbols[0]);
-    if (probe !== null) {
-      mode = 'live';
-      activeSource = 'finnhub';
-      refreshFinnhubQuotes(finnhubSymbols).then(() => {
-        apiTimer = setInterval(
-          () => refreshFinnhubQuotes(finnhubSymbols),
-          FINNHUB_REFRESH_MS
-        );
-      });
-    }
-  }
-
-  // 2) Stooq via CORS proxy — no key needed, covers international too
-  if (mode !== 'live') {
-    const found = await fetchStooqQuotes();
-    if (found > 0) {
-      mode = 'live';
-      activeSource = 'stooq';
-      apiTimer = setInterval(fetchStooqQuotes, STOOQ_REFRESH_MS);
-    } else {
-      mode = 'simulated';
-    }
-  }
+  const activated = await tryActivateLive();
+  mode = activated ? 'live' : 'simulated';
+  notify();
 
   // Local tick keeps symbols without real data moving
   tickTimer = setInterval(tickSimulated, TICK_MS);
-  notify();
+
+  // Watch the clock: when a market opens, snap to real prices immediately.
+  // Also keeps retrying the real feed while in simulated mode so prices
+  // re-anchor as soon as a feed becomes reachable.
+  marketWatchTimer = setInterval(async () => {
+    if (checkMarketOpenTransitions()) {
+      await refreshMarketNow();
+    }
+    if (mode === 'simulated') {
+      const ok = await tryActivateLive();
+      if (ok) {
+        mode = 'live';
+        notify();
+      }
+    }
+  }, 30_000);
 }
 
 export function subscribeMarket(listener: Listener): () => void {
