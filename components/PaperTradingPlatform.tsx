@@ -11,8 +11,8 @@ import {
 } from '@/lib/realtime-stock-data';
 import { subscribeMarket, getMarketMode, refreshMarketNow, getPriceHistory, isMarketOpen, isSymbolLive, MarketMode } from '@/lib/market-engine';
 import Sparkline from './Sparkline';
-import { canTrade, consumeTrade, getRemainingUsage, loadProgress, FREE_DAILY_TRADES } from '@/lib/progress';
-import { X, TrendingUp, TrendingDown, Plus, Search, Clock, BarChart3, History, Settings, RefreshCw, Globe, DollarSign, Building2 } from 'lucide-react';
+import { canTrade, consumeTrade, loadProgress, FREE_DAILY_TRADES } from '@/lib/progress';
+import { X, TrendingUp, TrendingDown, Search, BarChart3, History, RefreshCw, DollarSign, Building2 } from 'lucide-react';
 
 interface PaperTradingPlatformProps {
   onClose: () => void;
@@ -238,12 +238,6 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
     return { totalReturn, returnPercent };
   };
 
-  const addToWatchlist = (symbol: string) => {
-    if (!portfolio.watchlist.includes(symbol)) {
-      setPortfolio({ ...portfolio, watchlist: [...portfolio.watchlist, symbol] });
-    }
-  };
-
   const removeFromWatchlist = (symbol: string) => {
     setPortfolio({ ...portfolio, watchlist: portfolio.watchlist.filter(s => s !== symbol) });
   };
@@ -267,6 +261,7 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
     };
 
     updateCalculations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- calculatePortfolioValue/calculateTotalReturn are derived from stocks+portfolio; recreating them per render would retrigger this effect every render
   }, [stocks, portfolio]);
 
   return (
@@ -406,7 +401,7 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
             ].map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={`flex items-center gap-2 px-6 py-3 border-b-2 transition-colors ${
                   activeTab === tab.id
                     ? 'border-green-500 text-green-600'

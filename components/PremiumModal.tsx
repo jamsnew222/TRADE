@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Crown, Star, Zap, Shield, Sparkles, Check, X, CreditCard, Gift, TrendingUp, BookOpen, Flame, Award } from 'lucide-react';
+import { Crown, Star, Zap, Shield, Check, X, CreditCard, Gift, TrendingUp, BookOpen, Flame, Award } from 'lucide-react';
 
 interface PremiumModalProps {
   isOpen: boolean;

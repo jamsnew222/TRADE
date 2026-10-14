@@ -1,9 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Lesson, QuizQuestion, OrderingQuestion, WordBankQuestion, FlashcardQuestion, DragDropQuestion, TimelineQuestion, ScenarioQuestion } from '@/types';
+import { useState } from 'react';
+import { Lesson, QuizQuestion, OrderingQuestion, WordBankQuestion, FlashcardQuestion, ScenarioQuestion } from '@/types';
 import { CheckCircle, XCircle, ArrowRight, RotateCcw, Sparkles, Target, Clock, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, FlipHorizontal, Flame, Crown } from 'lucide-react';
-import { loadProgress, getStreakBonus, checkPremiumStatus, getPremiumMultiplier } from '@/lib/progress';
+import { loadProgress, getStreakBonus, checkPremiumStatus } from '@/lib/progress';
+
+// Deterministic shuffle — pure (safe during render), keyed by a seed string
+const seededShuffle = (indices: number[], seed: string): number[] => {
+  let h = 0;
+  for (const c of seed) h = (h * 31 + c.charCodeAt(0)) | 0;
+  const arr = [...indices];
+  for (let i = arr.length - 1; i > 0; i--) {
+    h = (h * 1103515245 + 12345) | 0;
+    const j = (h >>> 0) % (i + 1);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
 
 interface LessonViewProps {
   lesson: Lesson;
@@ -41,25 +54,22 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
   const totalQuestions = allQuestions.length;
   const currentQuestionData = allQuestions[currentQuestion];
 
-  // Initialize ordering questions with a shuffled order (never the solved order)
-  useEffect(() => {
-    const q = currentQuestionData as (OrderingQuestion & { type?: string }) | undefined;
-    if (currentStep !== 'exercise' || q?.type !== 'ordering' || orderingItems.length > 0) return;
-    const indices = q.items.map((_, i) => i);
-    let shuffled = [...indices];
-    do {
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-    } while (shuffled.length > 1 && shuffled.every((v, i) => v === q.correctOrder[i]));
-    setOrderingItems(shuffled);
-  }, [currentQuestion, currentStep]);
+  // Ordering questions get a deterministic shuffled start (derived, no effect needed)
+  const orderingQuestion = (currentQuestionData as { type?: string })?.type === 'ordering'
+    ? (currentQuestionData as unknown as OrderingQuestion)
+    : null;
+  const orderingDefault = (() => {
+    if (!orderingQuestion) return [];
+    const base = seededShuffle(orderingQuestion.items.map((_, i) => i), orderingQuestion.id);
+    const solved = base.every((v, i) => v === orderingQuestion.correctOrder[i]);
+    return solved && base.length > 1 ? [...base.slice(1), base[0]] : base;
+  })();
+  const orderingDisplay = orderingItems.length > 0 ? orderingItems : orderingDefault;
 
   // Build "learn before you're tested" study slides from the lesson's own content
   const learnSlides = (() => {
     const slides: { title: string; body: string; emoji: string }[] = [];
-    const content = lesson.content as any;
+    const content = lesson.content;
 
     // Core explanation, chunked into short digestible cards
     const explanation = (content.explanation || '').trim();
@@ -85,7 +95,7 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
     };
     allQuestions.forEach(q => pushPoint((q as QuizQuestion).explanation));
     (content.scenario || []).forEach((q: ScenarioQuestion) => pushPoint(q.explanation));
-    if (content.fillBlank) pushPoint(content.fillBlank.explanation);
+    if (content.fillBlank?.hint) pushPoint(content.fillBlank.hint);
 
     points.forEach((point, i) => {
       slides.push({ title: `Key Point ${i + 1} of ${points.length}`, body: point, emoji: '🔑' });
@@ -190,14 +200,14 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
   };
 
   const handleOrderingSwap = (index1: number, index2: number) => {
-    const newOrder = [...orderingItems];
+    const newOrder = [...orderingDisplay];
     [newOrder[index1], newOrder[index2]] = [newOrder[index2], newOrder[index1]];
     setOrderingItems(newOrder);
   };
 
   const checkOrdering = () => {
     const question = currentQuestionData as OrderingQuestion;
-    const isCorrect = orderingItems.every((item, index) => item === question.correctOrder[index]);
+    const isCorrect = orderingDisplay.every((item, index) => item === question.correctOrder[index]);
     setShowResult(true);
     if (isCorrect) {
       setCorrectAnswers(prev => prev + 1);
@@ -319,7 +329,7 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
         <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-xl p-8 border-2 border-blue-200">
           <div className="text-center mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-blue-500">
-              Study this — you'll be tested on it
+              Study this — the quiz covers it
             </span>
           </div>
           <div className="text-center mb-6">
@@ -369,7 +379,7 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
             >
               {isLastSlide ? (
                 <>
-                  I'm ready — start the quiz
+                  Ready — start the quiz
                   <Target className="w-4 h-4" />
                 </>
               ) : (
@@ -799,7 +809,7 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
             <p className="text-gray-600 mb-6">Drag or use arrows to reorder the items</p>
 
             <div className="space-y-2 mb-6">
-              {orderingItems.map((itemIndex, position) => (
+              {orderingDisplay.map((itemIndex, position) => (
                 <div
                   key={position}
                   className="flex items-center gap-3 p-4 bg-white rounded-xl border-2 border-gray-200 shadow-sm"
@@ -814,7 +824,7 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
                     </button>
                     <button
                       onClick={() => handleOrderingSwap(position, position + 1)}
-                      disabled={position === orderingItems.length - 1}
+                      disabled={position === orderingDisplay.length - 1}
                       className="p-1 hover:bg-gray-100 rounded disabled:opacity-30"
                     >
                       <ChevronDown className="w-4 h-4 text-gray-600" />
@@ -838,22 +848,22 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
 
             {showResult && (
               <div className={`p-4 rounded-2xl mt-6 ${
-                orderingItems.every((item, index) => item === question.correctOrder[index])
+                orderingDisplay.every((item, index) => item === question.correctOrder[index])
                   ? 'bg-green-50 border-2 border-green-200'
                   : 'bg-red-50 border-2 border-red-200'
               }`}>
                 <div className="flex items-center gap-2 mb-2">
-                  {orderingItems.every((item, index) => item === question.correctOrder[index]) ? (
+                  {orderingDisplay.every((item, index) => item === question.correctOrder[index]) ? (
                     <CheckCircle className="w-5 h-5 text-green-600" />
                   ) : (
                     <XCircle className="w-5 h-5 text-red-600" />
                   )}
                   <span className={`font-semibold ${
-                    orderingItems.every((item, index) => item === question.correctOrder[index])
+                    orderingDisplay.every((item, index) => item === question.correctOrder[index])
                       ? 'text-green-700'
                       : 'text-red-700'
                   }`}>
-                    {orderingItems.every((item, index) => item === question.correctOrder[index])
+                    {orderingDisplay.every((item, index) => item === question.correctOrder[index])
                       ? 'Correct!'
                       : 'Incorrect'}
                   </span>
@@ -1103,7 +1113,6 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
     const progress = loadProgress();
     const streakBonus = getStreakBonus(progress.currentStreak);
     const isPremium = checkPremiumStatus(progress);
-    const premiumMultiplier = getPremiumMultiplier(progress);
     const premiumBonus = isPremium ? xpEarned : 0;
     const totalXP = xpEarned + streakBonus + premiumBonus;
 

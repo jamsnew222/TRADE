@@ -1,7 +1,7 @@
 'use client';
 
 import { UserProgress } from '@/types';
-import { Flame, Snowflake, Zap, Calendar, TrendingUp, Award, Clock, Crown, Infinity } from 'lucide-react';
+import { Flame, Snowflake, Zap, Calendar, TrendingUp, Award, Crown, Infinity } from 'lucide-react';
 import { checkPremiumStatus } from '@/lib/progress';
 
 interface StreakDisplayProps {

@@ -25,7 +25,6 @@ let apiTimer: ReturnType<typeof setInterval> | null = null;
 let stooqTimer: ReturnType<typeof setInterval> | null = null;
 let marketWatchTimer: ReturnType<typeof setInterval> | null = null;
 let ws: WebSocket | null = null;
-let wsConnected = false;
 let wsAttempts = 0;
 let wsNotifyTimer: ReturnType<typeof setTimeout> | null = null;
 const exchangeOpenState = new Map<string, boolean>();
@@ -132,7 +131,6 @@ function connectFinnhubWS(symbols: string[]) {
     ws = new WebSocket(`wss://ws.finnhub.io?token=${FINNHUB_API_KEY}`);
 
     ws.onopen = () => {
-      wsConnected = true;
       wsAttempts = 0;
       symbols.forEach(sym =>
         ws?.send(JSON.stringify({ type: 'subscribe', symbol: sym }))
@@ -163,7 +161,6 @@ function connectFinnhubWS(symbols: string[]) {
     };
 
     ws.onclose = () => {
-      wsConnected = false;
       ws = null;
       if (wsAttempts < 10) {
         wsAttempts++;
@@ -173,7 +170,7 @@ function connectFinnhubWS(symbols: string[]) {
 
     ws.onerror = () => ws?.close();
   } catch {
-    wsConnected = false;
+    // WebSocket unavailable — REST fallback still applies
   }
 }
 
@@ -358,6 +355,19 @@ async function init() {
       }
     }
   }, 30_000);
+}
+
+export function stopMarketEngine(): void {
+  [tickTimer, apiTimer, stooqTimer, marketWatchTimer].forEach(t => {
+    if (t) clearInterval(t);
+  });
+  tickTimer = apiTimer = stooqTimer = marketWatchTimer = null;
+  if (wsNotifyTimer) clearTimeout(wsNotifyTimer);
+  wsNotifyTimer = null;
+  ws?.close();
+  ws = null;
+  initialized = false;
+  mode = 'loading';
 }
 
 export function subscribeMarket(listener: Listener): () => void {

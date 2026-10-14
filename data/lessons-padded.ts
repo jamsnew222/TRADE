@@ -4,7 +4,7 @@ import { lessons as baseLessons } from './lessons';
 const MIN_QUESTIONS = 10;
 
 const safeCountQuestions = (lesson: Lesson): number => {
-  const content = (lesson.content ?? {}) as any;
+  const content = lesson.content ?? {};
   return (
     (content.quiz ?? []).length +
     (content.multipleChoice ?? []).length +
@@ -21,21 +21,21 @@ const isGenericText = (t: string) => t.toLowerCase().startsWith('this reinforces
 
 // Real facts taught/tested by the lesson — pulled from its question explanations
 const collectFacts = (lesson: Lesson): string[] => {
-  const content = (lesson.content ?? {}) as any;
+  const content = lesson.content ?? {};
   const facts: string[] = [];
   const push = (t?: string) => {
     const s = (t || '').trim();
     if (s && !isGenericText(s) && !facts.includes(s)) facts.push(s);
   };
-  ['quiz', 'multipleChoice', 'trueFalse', 'multipleSelect', 'ordering', 'wordBank', 'flashcards', 'scenario']
-    .forEach(key => (content[key] ?? []).forEach((q: any) => push(q.explanation)));
-  push(content.fillBlank?.explanation);
+  (['quiz', 'multipleChoice', 'trueFalse', 'multipleSelect', 'ordering', 'wordBank', 'flashcards', 'scenario'] as const)
+    .forEach(key => ((content[key] ?? []) as { explanation?: string }[]).forEach(q => push(q.explanation)));
+  push(content.fillBlank?.hint);
   return facts;
 };
 
 // Term -> definition pairs from matching exercises and flashcards
 const collectTerms = (lesson: Lesson): { term: string; def: string }[] => {
-  const content = (lesson.content ?? {}) as any;
+  const content = lesson.content ?? {};
   const terms: { term: string; def: string }[] = [];
   (content.matching?.pairs ?? []).forEach((p: { left: string; right: string }) =>
     terms.push({ term: p.left, def: p.right }));
@@ -174,7 +174,7 @@ const buildExtraQuestions = (lesson: Lesson, count: number): QuizQuestion[] => {
 
 export const padLessonQuestions = (lessons: Lesson[]): Lesson[] => {
   return lessons.map((lesson) => {
-    const content = { ...(lesson.content ?? {}) } as any;
+    const content = { ...(lesson.content ?? {}) };
     const totalQuestions = safeCountQuestions(lesson);
 
     if (totalQuestions >= MIN_QUESTIONS) {

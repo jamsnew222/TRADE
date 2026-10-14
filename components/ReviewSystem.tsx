@@ -29,7 +29,7 @@ export default function ReviewSystem({ completedLessons, lessons, onClose, darkM
           <div className="text-center py-8">
             <RotateCcw className={`w-12 h-12 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
             <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
-              You haven't completed any lessons yet. Complete some lessons to review them later!
+              {"You haven't completed any lessons yet. Complete some lessons to review them later!"}
             </p>
           </div>
         </div>

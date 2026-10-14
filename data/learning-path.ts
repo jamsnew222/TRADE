@@ -1,5 +1,5 @@
 import { lessons } from './lessons-padded';
-import { Unit, Level, LearningPath } from '@/types';
+import { Level, LearningPath } from '@/types';
 
 // Create levels from lessons
 function createLevelsFromLessons(lessonIds: string[], checkpointIndices: number[] = []): Level[] {

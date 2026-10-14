@@ -54,6 +54,7 @@ export default function StockChart({ symbol, darkMode }: StockChartProps) {
     tickCountRef.current = 0;
     const initial = getQuote(symbol);
     const base = initial?.price ?? 100;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: seed chart history from the external market engine on symbol/timeframe change, then subscribe for ticks
     setChartData(generateHistoricalData(base, timeframe));
     setCurrency(initial?.currency ?? 'USD');
 

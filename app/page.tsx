@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { lessons, categories } from '@/data/lessons-padded';
 import { tradingStyles } from '@/data/trading-styles';
 import { learningPath } from '@/data/learning-path';
-import { loadProgress, completeLesson, getAvailableLessons, getRecommendedLessons, saveTradingStyle, getStreakBonus, activatePremium, checkPremiumStatus, canStartLesson, getRemainingUsage, FREE_DAILY_LESSONS } from '@/lib/progress';
+import { loadProgress, completeLesson, getRecommendedLessons, saveTradingStyle, getStreakBonus, activatePremium, checkPremiumStatus, canStartLesson, getRemainingUsage, FREE_DAILY_LESSONS } from '@/lib/progress';
 import { checkAchievements, loadAchievements } from '@/lib/achievements';
-import { UserProgress, Lesson, Achievement, TradingStyle, Level } from '@/types';
+import { UserProgress, Lesson, Achievement, TradingStyle } from '@/types';
 import ProgressCard from '@/components/ProgressCard';
 import LessonCard from '@/components/LessonCard';
 import LessonView from '@/components/LessonView';
@@ -18,7 +18,7 @@ import PaperTradingPlatform from '@/components/PaperTradingPlatform';
 import LearningPath from '@/components/LearningPath';
 import PremiumModal from '@/components/PremiumModal';
 import SettingsModal from '@/components/SettingsModal';
-import { TrendingUp, Trophy, Gamepad2, RotateCcw, BarChart3, Settings, Crown, BookOpen, Map } from 'lucide-react';
+import { TrendingUp, Trophy, Gamepad2, RotateCcw, BarChart3, Settings, Crown } from 'lucide-react';
 
 export default function Home() {
   const [progress, setProgress] = useState<UserProgress | null>(null);
@@ -38,6 +38,7 @@ export default function Home() {
   useEffect(() => {
     try {
       const progressData = loadProgress();
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: hydrate persisted localStorage state after mount to avoid SSR/CSR mismatch
       setProgress(progressData);
       setAchievements(loadAchievements());
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { Settings as SettingsIcon, X, Sun, Moon, Grid, Map, User, Globe, DollarSign, Building2 } from 'lucide-react';
+import { Settings as SettingsIcon, X, Sun, Moon, Grid, Map, User } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;

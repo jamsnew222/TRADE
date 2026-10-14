@@ -12,7 +12,7 @@ interface LearningPathProps {
 export default function LearningPath({ units, onLevelClick, darkMode }: LearningPathProps) {
   return (
     <div className="space-y-8">
-      {units.filter(unit => unit.levels.length > 0).map((unit, unitIndex) => (
+      {units.filter(unit => unit.levels.length > 0).map((unit) => (
         <div key={unit.id} className="relative">
           {/* Unit Header */}
           <div className={`p-6 rounded-2xl mb-4 ${

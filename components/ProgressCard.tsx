@@ -1,6 +1,6 @@
 'use client';
 
-import { UserProgress, TradingStyle } from '@/types';
+import { UserProgress } from '@/types';
 import { tradingStyles } from '@/data/trading-styles';
 import { Star, Zap } from 'lucide-react';
 import StreakDisplay from './StreakDisplay';

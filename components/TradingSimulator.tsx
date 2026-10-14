@@ -11,7 +11,7 @@ import {
   getAvailableCurrencies
 } from '@/lib/realtime-stock-data';
 import { subscribeMarket, getMarketMode, refreshMarketNow, getPriceHistory, isMarketOpen, isSymbolLive, MarketMode } from '@/lib/market-engine';
-import { X, TrendingUp, TrendingDown, Wallet, RefreshCw, Globe, DollarSign, Building2, LineChart } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Wallet, RefreshCw, DollarSign, Building2 } from 'lucide-react';
 import StockChart from './StockChart';
 import Sparkline from './Sparkline';
 import { canTrade, consumeTrade, getRemainingUsage, loadProgress, checkPremiumStatus, FREE_DAILY_TRADES } from '@/lib/progress';
@@ -260,6 +260,7 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
     };
 
     updatePortfolioCalculations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- calculatePortfolioValue/calculateProfitLoss are derived from stocks+portfolio; recreating them per render would retrigger this effect every render
   }, [stocks, portfolio]);
 
   return (

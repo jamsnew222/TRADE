@@ -1,6 +1,6 @@
 'use client';
 
-import { TradingStyle, TradingStyleInfo } from '@/types';
+import { TradingStyle } from '@/types';
 import { tradingStyles } from '@/data/trading-styles';
 import { X, Check } from 'lucide-react';
 
