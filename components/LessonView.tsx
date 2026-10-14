@@ -12,7 +12,8 @@ interface LessonViewProps {
 }
 
 export default function LessonView({ lesson, onComplete, onBack }: LessonViewProps) {
-  const [currentStep, setCurrentStep] = useState<'intro' | 'exercise' | 'complete'>('intro');
+  const [currentStep, setCurrentStep] = useState<'intro' | 'learn' | 'exercise' | 'complete'>('intro');
+  const [learnIndex, setLearnIndex] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -38,6 +39,52 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
 
   const totalQuestions = allQuestions.length;
   const currentQuestionData = allQuestions[currentQuestion];
+
+  // Build "learn before you're tested" study slides from the lesson's own content
+  const learnSlides = (() => {
+    const slides: { title: string; body: string; emoji: string }[] = [];
+    const content = lesson.content as any;
+
+    // Core explanation, chunked into short digestible cards
+    const explanation = (content.explanation || '').trim();
+    if (explanation) {
+      const sentences = explanation.match(/[^.!?]+[.!?]+/g) || [explanation];
+      for (let i = 0; i < sentences.length; i += 2) {
+        slides.push({
+          title: i === 0 ? 'The Core Idea' : 'Keep Going',
+          body: sentences.slice(i, i + 2).join(' ').trim(),
+          emoji: '💡'
+        });
+      }
+    }
+
+    // Key points drawn from what the quiz will test — skip generic padding text
+    const isGeneric = (t: string) => t.toLowerCase().startsWith('this reinforces');
+    const points: string[] = [];
+    const pushPoint = (t?: string) => {
+      const s = (t || '').trim();
+      if (s && !isGeneric(s) && !points.includes(s) && points.length < 5) {
+        points.push(s);
+      }
+    };
+    allQuestions.forEach(q => pushPoint((q as QuizQuestion).explanation));
+    (content.scenario || []).forEach((q: ScenarioQuestion) => pushPoint(q.explanation));
+    if (content.fillBlank) pushPoint(content.fillBlank.explanation);
+
+    points.forEach((point, i) => {
+      slides.push({ title: `Key Point ${i + 1} of ${points.length}`, body: point, emoji: '🔑' });
+    });
+
+    // Terms to know — matching pairs and flashcard fronts/backs
+    const terms: string[] = [];
+    (content.matching?.pairs || []).forEach((p: { left: string; right: string }) => terms.push(`${p.left} — ${p.right}`));
+    (content.flashcards || []).forEach((f: FlashcardQuestion) => terms.push(`${f.front} — ${f.back}`));
+    if (terms.length > 0) {
+      slides.push({ title: 'Terms to Know', body: terms.join('\n'), emoji: '📖' });
+    }
+
+    return slides;
+  })();
 
   const handleAnswer = (answerIndex: number) => {
     if (showResult) return;
@@ -208,9 +255,13 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 mb-6 border border-blue-100">
                 <div className="flex items-center gap-2 mb-2">
                   <Sparkles className="w-5 h-5 text-blue-600" />
-                  <h3 className="font-semibold text-blue-900">Learn</h3>
+                  <h3 className="font-semibold text-blue-900">
+                    {learnSlides.length > 0 ? `You'll study ${learnSlides.length} quick cards, then get tested` : 'Learn'}
+                  </h3>
                 </div>
-                <p className="text-blue-800 leading-relaxed">{lesson.content.explanation}</p>
+                <p className="text-blue-800 leading-relaxed">
+                  {lesson.content.explanation.match(/[^.!?]+[.!?]+/)?.[0] || lesson.content.explanation}
+                </p>
               </div>
             )}
 
@@ -220,12 +271,98 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
                 <span className="font-semibold text-yellow-700">{lesson.xpReward} XP</span>
               </div>
               <button
-                onClick={() => setCurrentStep('exercise')}
+                onClick={() => setCurrentStep(learnSlides.length > 0 ? 'learn' : 'exercise')}
                 className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 rounded-full font-semibold transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                Start Lesson
+                {learnSlides.length > 0 ? 'Start Learning' : 'Start Lesson'}
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentStep === 'learn') {
+    const slide = learnSlides[learnIndex];
+    const isLastSlide = learnIndex === learnSlides.length - 1;
+
+    return (
+      <div className="max-w-2xl mx-auto animate-fade-in">
+        <div className="flex items-center justify-between mb-6">
+          <button onClick={onBack} className="text-gray-600 hover:text-gray-900 flex items-center gap-2 transition-colors">
+            <ArrowRight className="w-4 h-4 rotate-180" />
+            Back
+          </button>
+          <div className="flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full">
+            <Sparkles className="w-4 h-4 text-blue-600" />
+            <span className="text-sm text-blue-700 font-medium">Learn — {learnIndex + 1} of {learnSlides.length}</span>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-xl p-8 border-2 border-blue-200">
+          <div className="text-center mb-2">
+            <span className="text-xs font-semibold uppercase tracking-wider text-blue-500">
+              Study this — you'll be tested on it
+            </span>
+          </div>
+          <div className="text-center mb-6">
+            <span className="text-4xl">{slide.emoji}</span>
+            <h2 className="text-2xl font-bold text-gray-900 mt-2">{slide.title}</h2>
+          </div>
+
+          <div className="bg-white rounded-2xl p-6 border border-blue-100 shadow-sm min-h-[140px] flex items-center justify-center">
+            <div className="space-y-3">
+              {slide.body.split('\n').map((line, i) => (
+                <p key={i} className="text-gray-800 text-lg leading-relaxed text-center">{line}</p>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-center gap-2 mt-6">
+            {learnSlides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setLearnIndex(i)}
+                className={`w-2.5 h-2.5 rounded-full transition-all ${
+                  i === learnIndex ? 'bg-blue-500 w-6' : i < learnIndex ? 'bg-blue-300' : 'bg-gray-300'
+                }`}
+              />
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3 mt-6">
+            {learnIndex > 0 && (
+              <button
+                onClick={() => setLearnIndex(prev => prev - 1)}
+                className="px-6 py-3 rounded-full font-semibold border-2 border-gray-300 text-gray-600 hover:border-gray-400 transition-all flex items-center gap-2"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Back
+              </button>
+            )}
+            <button
+              onClick={() => {
+                if (isLastSlide) {
+                  setCurrentStep('exercise');
+                } else {
+                  setLearnIndex(prev => prev + 1);
+                }
+              }}
+              className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 rounded-full font-semibold transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+            >
+              {isLastSlide ? (
+                <>
+                  I'm ready — start the quiz
+                  <Target className="w-4 h-4" />
+                </>
+              ) : (
+                <>
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
