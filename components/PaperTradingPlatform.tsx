@@ -9,7 +9,8 @@ import {
   getAvailableExchanges,
   getAvailableCurrencies
 } from '@/lib/realtime-stock-data';
-import { subscribeMarket, getMarketMode, refreshMarketNow, MarketMode } from '@/lib/market-engine';
+import { subscribeMarket, getMarketMode, refreshMarketNow, getPriceHistory, MarketMode } from '@/lib/market-engine';
+import Sparkline from './Sparkline';
 import { X, TrendingUp, TrendingDown, Plus, Search, Clock, BarChart3, History, Settings, RefreshCw, Globe, DollarSign, Building2 } from 'lucide-react';
 
 interface PaperTradingPlatformProps {
@@ -470,19 +471,25 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
                             </p>
                             <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{stock.name}</p>
                           </div>
-                          <div className="text-right">
-                            <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                              {formatPrice(stock.price, stock.currency)}
-                            </p>
-                            <div className={`flex items-center gap-1 text-sm ${
-                              stock.change >= 0 ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              {stock.change >= 0 ? (
-                                <TrendingUp className="w-3 h-3" />
-                              ) : (
-                                <TrendingDown className="w-3 h-3" />
-                              )}
-                              {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                          <div className="flex items-center gap-2">
+                            <Sparkline
+                              data={getPriceHistory(stock.symbol)}
+                              positive={stock.change >= 0}
+                            />
+                            <div className="text-right">
+                              <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                {formatPrice(stock.price, stock.currency)}
+                              </p>
+                              <div className={`flex items-center justify-end gap-1 text-sm ${
+                                stock.change >= 0 ? 'text-green-600' : 'text-red-600'
+                              }`}>
+                                {stock.change >= 0 ? (
+                                  <TrendingUp className="w-3 h-3" />
+                                ) : (
+                                  <TrendingDown className="w-3 h-3" />
+                                )}
+                                {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                              </div>
                             </div>
                           </div>
                         </div>

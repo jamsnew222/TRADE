@@ -10,9 +10,12 @@ type Listener = (stocks: StockData[]) => void;
 const isFinnhubSymbol = (symbol: string) => !symbol.includes('.');
 
 const quotes = new Map<string, StockData>();
+const priceHistory = new Map<string, number[]>();
 const liveSymbols = new Set<string>();
 const listeners = new Set<Listener>();
 const simBias = new Map<string, number>();
+
+const MAX_HISTORY = 120;
 
 let mode: MarketMode = 'loading';
 let activeSource: 'finnhub' | 'stooq' | null = null;
@@ -56,6 +59,13 @@ function setQuote(symbol: string, price: number, dayOpen?: number) {
     previousClose: existing?.previousClose ?? open,
     volume: existing?.volume,
   });
+
+  const history = priceHistory.get(symbol) ?? [];
+  history.push(price);
+  if (history.length > MAX_HISTORY) {
+    history.splice(0, history.length - MAX_HISTORY);
+  }
+  priceHistory.set(symbol, history);
 }
 
 function seed() {
@@ -257,6 +267,10 @@ export function isSymbolLive(symbol: string): boolean {
 
 export function getQuote(symbol: string): StockData | undefined {
   return quotes.get(symbol);
+}
+
+export function getPriceHistory(symbol: string): number[] {
+  return priceHistory.get(symbol) ?? [];
 }
 
 export async function refreshMarketNow(): Promise<void> {

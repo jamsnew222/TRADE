@@ -10,9 +10,10 @@ import {
   getAvailableExchanges,
   getAvailableCurrencies
 } from '@/lib/realtime-stock-data';
-import { subscribeMarket, getMarketMode, refreshMarketNow, MarketMode } from '@/lib/market-engine';
+import { subscribeMarket, getMarketMode, refreshMarketNow, getPriceHistory, MarketMode } from '@/lib/market-engine';
 import { X, TrendingUp, TrendingDown, Wallet, RefreshCw, Globe, DollarSign, Building2, LineChart } from 'lucide-react';
 import StockChart from './StockChart';
+import Sparkline from './Sparkline';
 
 interface TradingSimulatorProps {
   onClose: () => void;
@@ -52,6 +53,7 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
   const [priceChanges, setPriceChanges] = useState<Record<string, 'up' | 'down' | null>>({});
   const priceChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const prevPricesRef = useRef<Record<string, number>>({});
+  const tradePanelRef = useRef<HTMLDivElement | null>(null);
 
   const availableExchanges = getAvailableExchanges();
   const availableCurrencies = getAvailableCurrencies();
@@ -390,21 +392,21 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
                   </div>
                 ) : (
                   stocks.map(stock => (
-                    <button
+                    <div
                       key={stock.symbol}
                       onClick={() => setSelectedStock(stock)}
-                      className={`w-full p-3 rounded-lg border-2 text-left transition-all ${
+                      className={`w-full p-3 rounded-lg border-2 text-left transition-all cursor-pointer ${
                         selectedStock?.symbol === stock.symbol
                           ? 'border-green-500 bg-green-50'
                           : darkMode
                             ? 'border-gray-700 bg-gray-700 hover:bg-gray-600'
                             : 'border-gray-200 bg-white hover:bg-gray-50'
-                      } ${priceChanges[stock.symbol] === 'up' ? 'animate-pulse border-green-300' : ''} ${
-                        priceChanges[stock.symbol] === 'down' ? 'animate-pulse border-red-300' : ''
+                      } ${priceChanges[stock.symbol] === 'up' ? 'border-green-300' : ''} ${
+                        priceChanges[stock.symbol] === 'down' ? 'border-red-300' : ''
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0">
                           <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                             {stock.symbol}
                             <span className={`text-xs ml-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -417,25 +419,55 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
                               <span className="ml-2 text-red-500">↓</span>
                             )}
                           </p>
-                          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{stock.name}</p>
+                          <p className={`text-sm truncate ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{stock.name}</p>
                         </div>
-                        <div className="text-right">
-                          <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                            {formatPrice(stock.price, stock.currency)}
-                          </p>
-                          <div className={`flex items-center gap-1 text-sm ${
-                            stock.change >= 0 ? 'text-green-600' : 'text-red-600'
-                          }`}>
-                            {stock.change >= 0 ? (
-                              <TrendingUp className="w-3 h-3" />
-                            ) : (
-                              <TrendingDown className="w-3 h-3" />
-                            )}
-                            {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                        <div className="flex items-center gap-2">
+                          <Sparkline
+                            data={getPriceHistory(stock.symbol)}
+                            positive={stock.change >= 0}
+                          />
+                          <div className="text-right">
+                            <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                              {formatPrice(stock.price, stock.currency)}
+                            </p>
+                            <div className={`flex items-center justify-end gap-1 text-sm ${
+                              stock.change >= 0 ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {stock.change >= 0 ? (
+                                <TrendingUp className="w-3 h-3" />
+                              ) : (
+                                <TrendingDown className="w-3 h-3" />
+                              )}
+                              {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </button>
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedStock(stock);
+                            setTradeType('buy');
+                            tradePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                          }}
+                          className="flex-1 py-1.5 rounded-md text-xs font-bold bg-green-500 text-white hover:bg-green-600 transition-colors"
+                        >
+                          BUY
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedStock(stock);
+                            setTradeType('sell');
+                            tradePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                          }}
+                          className="flex-1 py-1.5 rounded-md text-xs font-bold bg-red-500 text-white hover:bg-red-600 transition-colors"
+                        >
+                          SELL
+                        </button>
+                      </div>
+                    </div>
                   ))
                 )}
               </div>
@@ -443,14 +475,16 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
 
             {/* Chart and Trading Panel */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Stock Chart */}
-              {selectedStock && (
-                <StockChart symbol={selectedStock.symbol} darkMode={darkMode} />
-              )}
-
-              {/* Trading Panel */}
-              <div>
-                <h3 className={`font-semibold mb-3 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Trade</h3>
+              {/* Trading Panel — placed first so it's always visible */}
+              <div ref={tradePanelRef}>
+                <h3 className={`font-semibold mb-3 flex items-center gap-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Trade
+                  {selectedStock && (
+                    <span className="text-sm font-normal px-2 py-0.5 rounded bg-green-100 text-green-700">
+                      {selectedStock.symbol} selected
+                    </span>
+                  )}
+                </h3>
                 {selectedStock ? (
                   <div className={`p-4 rounded-xl border-2 ${darkMode ? 'border-gray-700 bg-gray-700' : 'border-gray-200 bg-white'}`}>
                     <div className="flex items-center justify-between mb-4">
@@ -534,6 +568,11 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
                   </div>
                 )}
               </div>
+
+              {/* Stock Chart */}
+              {selectedStock && (
+                <StockChart symbol={selectedStock.symbol} darkMode={darkMode} />
+              )}
             </div>
           </div>
 
