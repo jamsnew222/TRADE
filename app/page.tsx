@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { lessons, categories } from '@/data/lessons-padded';
 import { tradingStyles } from '@/data/trading-styles';
 import { learningPath } from '@/data/learning-path';
-import { loadProgress, completeLesson, getAvailableLessons, getRecommendedLessons, saveTradingStyle, getStreakBonus, activatePremium, checkPremiumStatus } from '@/lib/progress';
+import { loadProgress, completeLesson, getAvailableLessons, getRecommendedLessons, saveTradingStyle, getStreakBonus, activatePremium, checkPremiumStatus, canStartLesson, getRemainingUsage, FREE_DAILY_LESSONS } from '@/lib/progress';
 import { checkAchievements, loadAchievements } from '@/lib/achievements';
 import { UserProgress, Lesson, Achievement, TradingStyle, Level } from '@/types';
 import ProgressCard from '@/components/ProgressCard';
@@ -74,6 +74,15 @@ export default function Home() {
     setShowStyleSelector(false);
     const updatedProgress = loadProgress();
     setProgress(updatedProgress);
+  };
+
+  const handleStartLesson = (lesson: Lesson) => {
+    const current = loadProgress();
+    if (!canStartLesson(current)) {
+      setShowPremiumModal(true);
+      return;
+    }
+    setActiveLesson(lesson);
   };
 
   const handlePremiumSubscribe = (plan: 'monthly' | 'yearly') => {
@@ -186,6 +195,26 @@ export default function Home() {
         {progress && (
           <div className="mb-8">
             <ProgressCard progress={progress} darkMode={darkMode} />
+
+            {/* Free plan daily usage */}
+            {!isPremiumUser && (
+              <div className={`mt-4 p-4 rounded-xl border-2 flex items-center justify-between ${
+                darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+              }`}>
+                <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <span className="font-semibold">Free plan — today:</span>{' '}
+                  {getRemainingUsage(progress).lessons} of {FREE_DAILY_LESSONS} lessons,{' '}
+                  {getRemainingUsage(progress).trades} of 25 trades left
+                </div>
+                <button
+                  onClick={() => setShowPremiumModal(true)}
+                  className="text-sm font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-1"
+                >
+                  <Crown className="w-4 h-4" />
+                  Go unlimited
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -258,7 +287,7 @@ export default function Home() {
                     lesson={lesson}
                     isLocked={!isAvailable}
                     isCompleted={isCompleted || false}
-                    onStart={() => setActiveLesson(lesson)}
+                    onStart={() => handleStartLesson(lesson)}
                   />
                 );
               })}
@@ -274,7 +303,7 @@ export default function Home() {
           /* Learning Path */
           <LearningPath
             units={learningPath.units}
-            onLevelClick={(level) => setActiveLesson(level.lesson)}
+            onLevelClick={(level) => handleStartLesson(level.lesson)}
             darkMode={darkMode}
           />
         )}

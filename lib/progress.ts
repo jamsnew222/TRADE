@@ -204,6 +204,54 @@ export const getPremiumMultiplier = (progress: UserProgress): number => {
   return checkPremiumStatus(progress) ? 2 : 1;
 };
 
+// ---------- Free-tier daily usage limits ----------
+
+export const FREE_DAILY_LESSONS = 5;
+export const FREE_DAILY_TRADES = 25;
+
+const todayKey = () => new Date().toDateString();
+
+export const getUsage = (progress: UserProgress): { lessonsUsed: number; tradesUsed: number } => {
+  if (progress.usageDate !== todayKey()) {
+    return { lessonsUsed: 0, tradesUsed: 0 };
+  }
+  return {
+    lessonsUsed: progress.dailyLessonsUsed || 0,
+    tradesUsed: progress.dailyTradesUsed || 0,
+  };
+};
+
+export const canStartLesson = (progress: UserProgress): boolean => {
+  if (checkPremiumStatus(progress)) return true;
+  return getUsage(progress).lessonsUsed < FREE_DAILY_LESSONS;
+};
+
+export const canTrade = (progress: UserProgress): boolean => {
+  if (checkPremiumStatus(progress)) return true;
+  return getUsage(progress).tradesUsed < FREE_DAILY_TRADES;
+};
+
+export const getRemainingUsage = (progress: UserProgress): { lessons: number; trades: number } => {
+  const usage = getUsage(progress);
+  return {
+    lessons: Math.max(0, FREE_DAILY_LESSONS - usage.lessonsUsed),
+    trades: Math.max(0, FREE_DAILY_TRADES - usage.tradesUsed),
+  };
+};
+
+export const consumeTrade = (): UserProgress => {
+  const progress = loadProgress();
+  const usage = getUsage(progress);
+  const updated = {
+    ...progress,
+    usageDate: todayKey(),
+    dailyLessonsUsed: usage.lessonsUsed,
+    dailyTradesUsed: usage.tradesUsed + 1,
+  };
+  saveProgress(updated);
+  return updated;
+};
+
 export const completeLesson = (lessonId: string, xpReward: number): UserProgress => {
   const progress = loadProgress();
 
@@ -221,12 +269,18 @@ export const completeLesson = (lessonId: string, xpReward: number): UserProgress
     ? (progress.streakFreezes || 0) + 1
     : (progress.streakFreezes || 0);
 
+  // Count toward the daily free-tier lesson limit
+  const usage = getUsage(progress);
+
   const updatedProgress = {
     ...progress,
     completedLessons: [...progress.completedLessons, lessonId],
     totalXP: progress.totalXP + finalXP,
     level: calculateLevel(progress.totalXP + finalXP),
-    streakFreezes: newStreakFreezes
+    streakFreezes: newStreakFreezes,
+    usageDate: todayKey(),
+    dailyLessonsUsed: usage.lessonsUsed + 1,
+    dailyTradesUsed: usage.tradesUsed
   };
 
   const withStreak = updateStreak(updatedProgress);

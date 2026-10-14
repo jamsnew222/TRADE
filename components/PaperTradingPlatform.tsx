@@ -11,6 +11,7 @@ import {
 } from '@/lib/realtime-stock-data';
 import { subscribeMarket, getMarketMode, refreshMarketNow, getPriceHistory, isMarketOpen, isSymbolLive, MarketMode } from '@/lib/market-engine';
 import Sparkline from './Sparkline';
+import { canTrade, consumeTrade, getRemainingUsage, loadProgress, FREE_DAILY_TRADES } from '@/lib/progress';
 import { X, TrendingUp, TrendingDown, Plus, Search, Clock, BarChart3, History, Settings, RefreshCw, Globe, DollarSign, Building2 } from 'lucide-react';
 
 interface PaperTradingPlatformProps {
@@ -111,6 +112,11 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
     const qty = parseInt(quantity);
     if (isNaN(qty) || qty <= 0) return;
 
+    if (!canTrade(loadProgress())) {
+      alert(`Daily free limit of ${FREE_DAILY_TRADES} trades reached — upgrade to Premium for unlimited trades.`);
+      return;
+    }
+
     const stockPriceInBaseCurrency = await convertCurrency(
       selectedStock.price,
       selectedStock.currency,
@@ -196,6 +202,7 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
       });
     }
 
+    consumeTrade();
     setQuantity('');
   };
 

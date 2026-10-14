@@ -18,7 +18,7 @@ export default function PremiumModal({ isOpen, onClose, onSubscribe, darkMode }:
   const benefits = [
     { icon: Star, title: '2x XP Rewards', description: 'Earn double XP on every lesson' },
     { icon: Flame, title: 'Unlimited Streak Freezes', description: 'Never lose your streak again' },
-    { icon: Shield, title: 'Ad-Free Experience', description: 'No interruptions while learning' },
+    { icon: Zap, title: 'Unlimited Daily Usage', description: 'No daily limits on lessons or simulator trades' },
     { icon: BookOpen, title: 'Premium Lessons', description: 'Access exclusive advanced content' },
     { icon: Zap, title: 'Instant Level Up', description: 'Skip waiting to level up' },
     { icon: Award, title: 'Exclusive Badges', description: 'Show off premium achievements' },

@@ -14,6 +14,7 @@ import { subscribeMarket, getMarketMode, refreshMarketNow, getPriceHistory, isMa
 import { X, TrendingUp, TrendingDown, Wallet, RefreshCw, Globe, DollarSign, Building2, LineChart } from 'lucide-react';
 import StockChart from './StockChart';
 import Sparkline from './Sparkline';
+import { canTrade, consumeTrade, getRemainingUsage, loadProgress, FREE_DAILY_TRADES } from '@/lib/progress';
 
 interface TradingSimulatorProps {
   onClose: () => void;
@@ -128,6 +129,11 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
       return;
     }
 
+    if (!canTrade(loadProgress())) {
+      showNotification(`Daily free limit of ${FREE_DAILY_TRADES} trades reached — upgrade to Premium for unlimited`);
+      return;
+    }
+
     // Convert trade amount to stock's currency if needed
     const stockPriceInBaseCurrency = await convertCurrency(
       selectedStock.price,
@@ -194,6 +200,7 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
       showNotification(`Sold ${amount} shares of ${selectedStock.symbol}`);
     }
 
+    consumeTrade();
     setTradeAmount('');
   };
 
@@ -573,6 +580,11 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
                     >
                       {tradeType === 'buy' ? 'Buy Shares' : 'Sell Shares'}
                     </button>
+                    {!loadProgress().isPremium && (
+                      <p className={`text-xs text-center mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        {getRemainingUsage(loadProgress()).trades} of {FREE_DAILY_TRADES} free trades left today — Premium removes limits
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>

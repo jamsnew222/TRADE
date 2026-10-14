@@ -20,6 +20,9 @@ export interface UserProgress {
   totalDaysActive?: number;
   isPremium?: boolean;
   premiumExpiry?: string | null;
+  usageDate?: string;
+  dailyLessonsUsed?: number;
+  dailyTradesUsed?: number;
 }
 
 export interface Lesson {
