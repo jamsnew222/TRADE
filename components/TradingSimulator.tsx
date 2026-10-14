@@ -1,18 +1,16 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { StockData, TradingStyle, Currency, Exchange } from '@/types';
 import { tradingStyles } from '@/data/trading-styles';
 import {
-  fetchAllStockQuotes,
-  fetchStockQuote,
   convertCurrency,
   formatPrice,
   getCurrencySymbol,
   getAvailableExchanges,
-  getAvailableCurrencies,
-  getStocksByExchange
+  getAvailableCurrencies
 } from '@/lib/realtime-stock-data';
+import { subscribeMarket, getMarketMode, refreshMarketNow, MarketMode } from '@/lib/market-engine';
 import { X, TrendingUp, TrendingDown, Wallet, RefreshCw, Globe, DollarSign, Building2, LineChart } from 'lucide-react';
 import StockChart from './StockChart';
 
@@ -36,7 +34,8 @@ interface Portfolio {
 export default function TradingSimulator({ onClose, darkMode, tradingStyle }: TradingSimulatorProps) {
   const styleSettings = tradingStyle ? tradingStyles.find(s => s.id === tradingStyle)?.simulatorSettings : undefined;
 
-  const [stocks, setStocks] = useState<StockData[]>([]);
+  const [allStocks, setAllStocks] = useState<StockData[]>([]);
+  const [marketMode, setMarketMode] = useState<MarketMode>('loading');
   const [selectedStock, setSelectedStock] = useState<StockData | null>(null);
   const [portfolio, setPortfolio] = useState<Portfolio>({
     cash: styleSettings?.defaultPositionSize || 10000,
@@ -46,86 +45,75 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
   const [tradeAmount, setTradeAmount] = useState('');
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [notification, setNotification] = useState<string | null>(null);
-  const [selectedExchange, setSelectedExchange] = useState<Exchange>('NASDAQ');
-  const [selectedCurrency, setSelectedCurrency] = useState<Currency>('USD');
-  const [isLoading, setIsLoading] = useState(false);
+  const [selectedExchange, setSelectedExchange] = useState<Exchange>('All');
+  const [selectedCurrency, setSelectedCurrency] = useState<Currency>('All');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [isLive, setIsLive] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [priceChanges, setPriceChanges] = useState<Record<string, 'up' | 'down' | null>>({});
   const priceChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const prevPricesRef = useRef<Record<string, number>>({});
 
   const availableExchanges = getAvailableExchanges();
   const availableCurrencies = getAvailableCurrencies();
 
+  // Subscribe once — the engine pushes price updates in place.
+  // Filtering is derived below, so changing filters never reloads data.
   useEffect(() => {
-    loadStocks();
-    // Auto-refresh every 2 seconds for true real-time updates
-    const interval = setInterval(loadStocks, 2000);
+    const unsubscribe = subscribeMarket((snapshot) => {
+      const prev = prevPricesRef.current;
+      const changes: Record<string, 'up' | 'down'> = {};
+      snapshot.forEach(s => {
+        const old = prev[s.symbol];
+        if (old !== undefined && s.price !== old) {
+          changes[s.symbol] = s.price > old ? 'up' : 'down';
+        }
+        prev[s.symbol] = s.price;
+      });
+
+      if (Object.keys(changes).length > 0) {
+        setPriceChanges(changes);
+        if (priceChangeTimeoutRef.current) {
+          clearTimeout(priceChangeTimeoutRef.current);
+        }
+        priceChangeTimeoutRef.current = setTimeout(() => setPriceChanges({}), 1200);
+      }
+
+      setAllStocks(snapshot);
+      setMarketMode(getMarketMode());
+      setLastUpdated(new Date());
+
+      // Keep the selected stock in sync with the latest prices
+      setSelectedStock(prev => {
+        if (!prev) return snapshot[0] ?? null;
+        return snapshot.find(s => s.symbol === prev.symbol) ?? prev;
+      });
+    });
+
     return () => {
-      clearInterval(interval);
+      unsubscribe();
       if (priceChangeTimeoutRef.current) {
         clearTimeout(priceChangeTimeoutRef.current);
       }
     };
-  }, [selectedExchange, selectedCurrency]);
+  }, []);
 
-  const loadStocks = async () => {
-    setIsLoading(true);
+  const stocks = useMemo(
+    () => allStocks.filter(stock => {
+      const exchangeMatch = selectedExchange === 'All' || stock.exchange === selectedExchange;
+      const currencyMatch = selectedCurrency === 'All' || stock.currency === selectedCurrency;
+      return exchangeMatch && currencyMatch;
+    }),
+    [allStocks, selectedExchange, selectedCurrency]
+  );
+
+  const isLoading = marketMode === 'loading' && allStocks.length === 0;
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
     try {
-      const data = await fetchAllStockQuotes();
-
-      // Filter by selected exchange and currency
-      const filteredData = data.filter(stock => {
-        const exchangeMatch = selectedExchange === 'All' || stock.exchange === selectedExchange;
-        const currencyMatch = selectedCurrency === 'All' || stock.currency === selectedCurrency;
-        return exchangeMatch && currencyMatch;
-      });
-
-      // Track price changes for visual indicators
-      const newPriceChanges: Record<string, 'up' | 'down' | null> = {};
-      filteredData.forEach(stock => {
-        const existingStock = stocks.find(s => s.symbol === stock.symbol);
-        if (existingStock) {
-          if (stock.price > existingStock.price) {
-            newPriceChanges[stock.symbol] = 'up';
-          } else if (stock.price < existingStock.price) {
-            newPriceChanges[stock.symbol] = 'down';
-          }
-        }
-      });
-      setPriceChanges(newPriceChanges);
-
-      setStocks(filteredData);
-      setLastUpdated(new Date());
-
-      if (filteredData.length > 0 && !selectedStock) {
-        setSelectedStock(filteredData[0]);
-      }
-
-      // Clear price change indicators after 2 seconds
-      if (priceChangeTimeoutRef.current) {
-        clearTimeout(priceChangeTimeoutRef.current);
-      }
-      priceChangeTimeoutRef.current = setTimeout(() => setPriceChanges({}), 2000);
-    } catch (error) {
-      console.error('Error loading stocks:', error);
-      showNotification('Failed to load stock data');
+      await refreshMarketNow();
     } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const refreshSingleStock = async (symbol: string) => {
-    try {
-      const quote = await fetchStockQuote(symbol);
-      if (quote) {
-        setStocks(prev => prev.map(s => s.symbol === symbol ? quote : s));
-        if (selectedStock?.symbol === symbol) {
-          setSelectedStock(quote);
-        }
-      }
-    } catch (error) {
-      console.error('Error refreshing stock:', error);
+      setIsRefreshing(false);
     }
   };
 
@@ -280,23 +268,28 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {isLive && (
-              <div className="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full">
+            {marketMode === 'live' ? (
+              <div className="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full" title="Real market data">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                 <span className="text-xs font-medium text-green-700">LIVE</span>
               </div>
-            )}
+            ) : marketMode === 'simulated' ? (
+              <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 rounded-full" title="Simulated prices — add a Finnhub API key for real data">
+                <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+                <span className="text-xs font-medium text-amber-700">SIMULATED</span>
+              </div>
+            ) : null}
             {lastUpdated && (
               <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                 Updated: {lastUpdated.toLocaleTimeString()}
               </span>
             )}
             <button
-              onClick={loadStocks}
-              disabled={isLoading}
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
               className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
             >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               Refresh
             </button>
             <button

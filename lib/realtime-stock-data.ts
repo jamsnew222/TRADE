@@ -1,139 +1,11 @@
 import { StockData, Currency, Exchange } from '@/types';
+import { STOCK_SYMBOLS_LIST, getBasePrice } from './stock-universe';
 
 // Finnhub API - Free tier available
 // Get your API key at https://finnhub.io/
 const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY || 'demo';
 
-// Popular stocks across different exchanges
-const STOCK_SYMBOLS = [
-  // US Stocks (NYSE/NASDAQ) - Tech Giants
-  { symbol: 'AAPL', name: 'Apple Inc.', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'GOOGL', name: 'Alphabet Inc.', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'MSFT', name: 'Microsoft Corporation', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'AMZN', name: 'Amazon.com Inc.', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'TSLA', name: 'Tesla Inc.', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'META', name: 'Meta Platforms Inc.', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'NVDA', name: 'NVIDIA Corporation', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'NFLX', name: 'Netflix Inc.', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'AMD', name: 'Advanced Micro Devices', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'INTC', name: 'Intel Corporation', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-
-  // US Stocks - Financials
-  { symbol: 'JPM', name: 'JPMorgan Chase & Co.', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'BAC', name: 'Bank of America Corp', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'WFC', name: 'Wells Fargo & Co', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'C', name: 'Citigroup Inc', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'GS', name: 'Goldman Sachs Group', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-
-  // US Stocks - Consumer & Retail
-  { symbol: 'WMT', name: 'Walmart Inc.', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'PG', name: 'Procter & Gamble', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'KO', name: 'Coca-Cola Co', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'MCD', name: 'McDonald\'s Corp', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'NKE', name: 'Nike Inc', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'SBUX', name: 'Starbucks Corp', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'HD', name: 'Home Depot Inc', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'COST', name: 'Costco Wholesale', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-
-  // US Stocks - Healthcare
-  { symbol: 'JNJ', name: 'Johnson & Johnson', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'PFE', name: 'Pfizer Inc', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'UNH', name: 'UnitedHealth Group', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'ABT', name: 'Abbott Laboratories', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-
-  // US Stocks - Energy
-  { symbol: 'XOM', name: 'Exxon Mobil Corp', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'CVX', name: 'Chevron Corp', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'COP', name: 'ConocoPhillips', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-
-  // US Stocks - Industrial
-  { symbol: 'CAT', name: 'Caterpillar Inc', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'BA', name: 'Boeing Co', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'GE', name: 'General Electric Co', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-
-  // US Stocks - Payment & Fintech
-  { symbol: 'V', name: 'Visa Inc.', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'MA', name: 'Mastercard Inc', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'PYPL', name: 'PayPal Holdings', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'SQ', name: 'Block Inc', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-
-  // US Stocks - Software & Cloud
-  { symbol: 'CSCO', name: 'Cisco Systems', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'ORCL', name: 'Oracle Corporation', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'ADBE', name: 'Adobe Inc.', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'CRM', name: 'Salesforce Inc.', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'IBM', name: 'IBM Corp', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'ACN', name: 'Accenture PLC', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-
-  // US Stocks - Entertainment & Media
-  { symbol: 'DIS', name: 'Walt Disney Co', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'CMCSA', name: 'Comcast Corp', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'T', name: 'AT&T Inc', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-
-  // US Stocks - Communication
-  { symbol: 'VZ', name: 'Verizon Communications', exchange: 'NYSE' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'TMUS', name: 'T-Mobile US', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-
-  // US Stocks - Semiconductor
-  { symbol: 'QCOM', name: 'Qualcomm Inc', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'TXN', name: 'Texas Instruments', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-  { symbol: 'MU', name: 'Micron Technology', exchange: 'NASDAQ' as Exchange, currency: 'USD' as Currency },
-
-  // UK Stocks (LSE)
-  { symbol: 'HSBA.L', name: 'HSBC Holdings', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
-  { symbol: 'BP.L', name: 'BP plc', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
-  { symbol: 'GSK.L', name: 'GSK plc', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
-  { symbol: 'BARC.L', name: 'Barclays PLC', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
-  { symbol: 'ULVR.L', name: 'Unilever PLC', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
-  { symbol: 'DGE.L', name: 'Diageo PLC', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
-  { symbol: 'RIO.L', name: 'Rio Tinto plc', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
-  { symbol: 'PRU.L', name: 'Prudential plc', exchange: 'LSE' as Exchange, currency: 'GBP' as Currency },
-
-  // Japanese Stocks (TSE)
-  { symbol: '7203.T', name: 'Toyota Motor Corp', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
-  { symbol: '6758.T', name: 'Sony Group Corp', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
-  { symbol: '7201.T', name: 'Nissan Motor Co', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
-  { symbol: '8306.T', name: 'Mitsubishi UFJ Financial', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
-  { symbol: '4755.T', name: 'SoftBank Group Corp', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
-  { symbol: '6702.T', name: 'Canon Inc', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
-  { symbol: '8035.T', name: 'Tokyo Electron', exchange: 'TSE' as Exchange, currency: 'JPY' as Currency },
-
-  // Canadian Stocks (TSX)
-  { symbol: 'RY.TO', name: 'Royal Bank of Canada', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
-  { symbol: 'SHOP.TO', name: 'Shopify Inc.', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
-  { symbol: 'TD.TO', name: 'Toronto-Dominion Bank', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
-  { symbol: 'BMO.TO', name: 'Bank of Montreal', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
-  { symbol: 'CNQ.TO', name: 'Canadian Natural Resources', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
-  { symbol: 'BNS.TO', name: 'Bank of Nova Scotia', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
-  { symbol: 'ENB.TO', name: 'Enbridge Inc', exchange: 'TSX' as Exchange, currency: 'CAD' as Currency },
-
-  // Australian Stocks (ASX)
-  { symbol: 'CBA.AX', name: 'Commonwealth Bank', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
-  { symbol: 'BHP.AX', name: 'BHP Group', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
-  { symbol: 'CSL.AX', name: 'CSL Ltd', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
-  { symbol: 'WBC.AX', name: 'Westpac Banking', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
-  { symbol: 'NAB.AX', name: 'National Australia Bank', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
-  { symbol: 'ANZ.AX', name: 'Australia & NZ Banking', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
-  { symbol: 'RIO.AX', name: 'Rio Tinto Ltd', exchange: 'ASX' as Exchange, currency: 'AUD' as Currency },
-
-  // European Stocks (various exchanges)
-  { symbol: 'ASML.AS', name: 'ASML Holding', exchange: 'Euronext' as Exchange, currency: 'EUR' as Currency },
-  { symbol: 'SAP.DE', name: 'SAP SE', exchange: 'XETRA' as Exchange, currency: 'EUR' as Currency },
-  { symbol: 'SIE.DE', name: 'Siemens AG', exchange: 'XETRA' as Exchange, currency: 'EUR' as Currency },
-  { symbol: 'BAYN.DE', name: 'Bayer AG', exchange: 'XETRA' as Exchange, currency: 'EUR' as Currency },
-  { symbol: 'VOW.DE', name: 'Volkswagen AG', exchange: 'XETRA' as Exchange, currency: 'EUR' as Currency },
-  { symbol: 'MC.PA', name: 'LVMH Moët Hennessy', exchange: 'Euronext' as Exchange, currency: 'EUR' as Currency },
-  { symbol: 'OR.PA', name: 'L\'Oréal SA', exchange: 'Euronext' as Exchange, currency: 'EUR' as Currency },
-  { symbol: 'SAN.PA', name: 'Sanofi SA', exchange: 'Euronext' as Exchange, currency: 'EUR' as Currency },
-  { symbol: 'AIR.PA', name: 'Airbus SE', exchange: 'Euronext' as Exchange, currency: 'EUR' as Currency },
-  { symbol: 'BNP.PA', name: 'BNP Paribas SA', exchange: 'Euronext' as Exchange, currency: 'EUR' as Currency },
-
-  // Swiss Stocks (SIX)
-  { symbol: 'NESN.SW', name: 'Nestlé SA', exchange: 'SIX' as Exchange, currency: 'CHF' as Currency },
-  { symbol: 'ROG.SW', name: 'Roche Holding AG', exchange: 'SIX' as Exchange, currency: 'CHF' as Currency },
-  { symbol: 'UBSG.SW', name: 'UBS Group AG', exchange: 'SIX' as Exchange, currency: 'CHF' as Currency },
-  { symbol: 'NOVN.SW', name: 'Novartis AG', exchange: 'SIX' as Exchange, currency: 'CHF' as Currency },
-];
+const STOCK_SYMBOLS = STOCK_SYMBOLS_LIST;
 
 // Currency symbols for display
 const CURRENCY_SYMBOLS: Record<Currency, string> = {
@@ -208,14 +80,14 @@ export async function fetchStockQuote(symbol: string): Promise<StockData | null>
   }
 }
 
-/**
- * Generate fallback stock data when API fails
- */
 // Store current prices for realistic movement simulation
 const currentPrices: Record<string, number> = {};
 const dailyHighs: Record<string, number> = {};
 const dailyLows: Record<string, number> = {};
 
+/**
+ * Generate fallback stock data when API fails
+ */
 function generateFallbackData(symbol: string): StockData | null {
   const stockInfo = STOCK_SYMBOLS.find(s => s.symbol === symbol);
   if (!stockInfo) return null;
@@ -223,7 +95,7 @@ function generateFallbackData(symbol: string): StockData | null {
   // Get or initialize current price
   let currentPrice = currentPrices[symbol];
   if (!currentPrice) {
-    currentPrice = getBasePriceForStock(stockInfo);
+    currentPrice = getBasePrice(stockInfo);
     currentPrices[symbol] = currentPrice;
     dailyHighs[symbol] = currentPrice;
     dailyLows[symbol] = currentPrice;
@@ -246,7 +118,7 @@ function generateFallbackData(symbol: string): StockData | null {
   }
 
   // Calculate change from day open (simulated)
-  const dayOpen = getBasePriceForStock(stockInfo) * 0.995;
+  const dayOpen = getBasePrice(stockInfo) * 0.995;
   const change = currentPrice - dayOpen;
   const changePercent = (change / dayOpen) * 100;
 
@@ -264,131 +136,6 @@ function generateFallbackData(symbol: string): StockData | null {
     previousClose: dayOpen,
     volume: Math.floor(Math.random() * 5000000) + 500000
   };
-}
-
-function getBasePriceForStock(stock: { symbol: string; currency: string }): number {
-  // Base prices for realistic fallback data
-  const basePrices: Record<string, number> = {
-    'AAPL': 175,
-    'GOOGL': 140,
-    'MSFT': 380,
-    'AMZN': 180,
-    'TSLA': 240,
-    'META': 500,
-    'NVDA': 880,
-    'JPM': 195,
-    'BAC': 38,
-    'WMT': 165,
-    'DIS': 110,
-    'NFLX': 480,
-    'AMD': 150,
-    'INTC': 45,
-    'CSCO': 52,
-    'ORCL': 125,
-    'ADBE': 580,
-    'CRM': 280,
-    'IBM': 185,
-    'ACN': 320,
-    'XOM': 105,
-    'CVX': 155,
-    'CAT': 320,
-    'BA': 200,
-    'GE': 150,
-    'V': 280,
-    'MA': 450,
-    'PYPL': 65,
-    'SQ': 85,
-    'KO': 60,
-    'MCD': 280,
-    'NKE': 105,
-    'SBUX': 95,
-    'HD': 380,
-    'COST': 750,
-    'JNJ': 160,
-    'PFE': 28,
-    'UNH': 520,
-    'ABT': 110,
-    'CMCSA': 42,
-    'T': 18,
-    'VZ': 40,
-    'TMUS': 155,
-    'QCOM': 165,
-    'TXN': 175,
-    'MU': 95,
-    'PG': 160,
-    'WFC': 55,
-    'C': 58,
-    'GS': 380,
-    'HSBA.L': 6,
-    'BP.L': 5,
-    'GSK.L': 15,
-    'BARC.L': 2,
-    'ULVR.L': 45,
-    'DGE.L': 35,
-    'RIO.L': 60,
-    'PRU.L': 10,
-    '7203.T': 2500,
-    '6758.T': 8000,
-    '7201.T': 600,
-    '8306.T': 1500,
-    '4755.T': 6500,
-    '6702.T': 2200,
-    '8035.T': 15000,
-    'RY.TO': 95,
-    'SHOP.TO': 70,
-    'TD.TO': 78,
-    'BMO.TO': 110,
-    'CNQ.TO': 85,
-    'BNS.TO': 75,
-    'ENB.TO': 50,
-    'CBA.AX': 105,
-    'BHP.AX': 45,
-    'CSL.AX': 280,
-    'WBC.AX': 30,
-    'NAB.AX': 32,
-    'ANZ.AX': 28,
-    'RIO.AX': 120,
-    'ASML.AS': 700,
-    'SAP.DE': 160,
-    'SIE.DE': 180,
-    'BAYN.DE': 30,
-    'VOW.DE': 140,
-    'MC.PA': 750,
-    'OR.PA': 380,
-    'SAN.PA': 95,
-    'AIR.PA': 30,
-    'BNP.PA': 65,
-    'NESN.SW': 95,
-    'ROG.SW': 280,
-    'UBSG.SW': 25,
-    'NOVN.SW': 95,
-  };
-
-  // If we have a base price, use it with currency adjustment
-  if (basePrices[stock.symbol]) {
-    let price = basePrices[stock.symbol];
-    // Adjust for currency
-    if (stock.currency === 'GBP') price *= 0.78;
-    if (stock.currency === 'EUR') price *= 0.92;
-    if (stock.currency === 'JPY') price *= 150;
-    if (stock.currency === 'CAD') price *= 1.35;
-    if (stock.currency === 'AUD') price *= 1.55;
-    if (stock.currency === 'CHF') price *= 0.9;
-    return price;
-  }
-
-  // Default fallback prices
-  const currencyMultipliers: Record<string, number> = {
-    'USD': 100,
-    'GBP': 78,
-    'EUR': 92,
-    'JPY': 15000,
-    'CAD': 135,
-    'AUD': 155,
-    'CHF': 90,
-  };
-
-  return currencyMultipliers[stock.currency] || 100;
 }
 
 /**
@@ -485,8 +232,6 @@ export function formatPrice(price: number, currency: Currency): string {
  * Get stocks by exchange
  */
 export function getStocksByExchange(exchange: Exchange): StockData[] {
-  // This would be populated with fetched data
-  // For now, return the symbol definitions
   return STOCK_SYMBOLS
     .filter(s => s.exchange === exchange)
     .map(s => ({

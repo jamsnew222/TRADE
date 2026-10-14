@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { CandlestickChart, TrendingUp, TrendingDown, Activity } from 'lucide-react';
+import { subscribeMarket, getQuote, isSymbolLive } from '@/lib/market-engine';
+import { formatPrice } from '@/lib/realtime-stock-data';
+import { Currency } from '@/types';
 
 interface StockChartProps {
   symbol: string;
@@ -14,65 +17,70 @@ interface ChartData {
   price: number;
 }
 
+const MAX_LIVE_POINTS = 90;
+
+function generateHistoricalData(basePrice: number, tf: '1D' | '1W' | '1M'): ChartData[] {
+  const points = tf === '1D' ? 24 : tf === '1W' ? 7 : 30;
+  const data: ChartData[] = [];
+  let price = basePrice * 0.95;
+
+  for (let i = 0; i < points; i++) {
+    const change = (Math.random() - 0.5) * (basePrice * 0.02);
+    price += change;
+
+    const time = tf === '1D'
+      ? `${i}:00`
+      : tf === '1W'
+        ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i]
+        : `Day ${i + 1}`;
+
+    data.push({ time, price });
+  }
+
+  data[data.length - 1].price = basePrice;
+  return data;
+}
+
 export default function StockChart({ symbol, darkMode }: StockChartProps) {
   const [chartData, setChartData] = useState<ChartData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [live, setLive] = useState(false);
+  const [currency, setCurrency] = useState<Currency>('USD');
   const [timeframe, setTimeframe] = useState<'1D' | '1W' | '1M'>('1D');
+  const tickCountRef = useRef(0);
 
+  // Seed history once per symbol/timeframe, then append live ticks.
+  // No refetching — data flows in from the shared market engine.
   useEffect(() => {
-    loadChartData();
-    // Auto-refresh every 2 seconds for real-time updates
-    const interval = setInterval(loadChartData, 2000);
-    return () => clearInterval(interval);
+    tickCountRef.current = 0;
+    const initial = getQuote(symbol);
+    const base = initial?.price ?? 100;
+    setChartData(generateHistoricalData(base, timeframe));
+    setCurrency(initial?.currency ?? 'USD');
+
+    const unsubscribe = subscribeMarket(() => {
+      const quote = getQuote(symbol);
+      if (!quote) return;
+
+      setLive(isSymbolLive(symbol));
+      setCurrency(quote.currency);
+
+      if (timeframe !== '1D') return; // only live-append to the intraday view
+
+      tickCountRef.current += 1;
+      setChartData(prev => {
+        if (prev.length === 0) return prev;
+        const label = `L${tickCountRef.current}`;
+        const next = [...prev, { time: label, price: quote.price }];
+        return next.length > MAX_LIVE_POINTS
+          ? next.slice(next.length - MAX_LIVE_POINTS)
+          : next;
+      });
+    });
+
+    return unsubscribe;
   }, [symbol, timeframe]);
 
-  const loadChartData = async () => {
-    setIsLoading(true);
-    try {
-      // Generate realistic historical data based on current price
-      const response = await fetch(
-        `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${process.env.NEXT_PUBLIC_FINNHUB_API_KEY || 'demo'}`
-      );
-      const data = await response.json();
-      const currentPrice = data.c || 100;
-
-      // Generate historical data points
-      const dataPoints = generateHistoricalData(currentPrice, timeframe);
-      setChartData(dataPoints);
-    } catch (error) {
-      console.error('Error loading chart data:', error);
-      // Generate fallback data
-      const fallbackData = generateHistoricalData(100, timeframe);
-      setChartData(fallbackData);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const generateHistoricalData = (basePrice: number, tf: '1D' | '1W' | '1M'): ChartData[] => {
-    const points = tf === '1D' ? 24 : tf === '1W' ? 7 : 30;
-    const data: ChartData[] = [];
-    let price = basePrice * 0.95; // Start slightly below current price
-
-    for (let i = 0; i < points; i++) {
-      const change = (Math.random() - 0.5) * (basePrice * 0.02);
-      price += change;
-
-      const time = tf === '1D'
-        ? `${i}:00`
-        : tf === '1W'
-          ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i]
-          : `Day ${i + 1}`;
-
-      data.push({ time, price });
-    }
-
-    // Ensure last point is close to current price
-    data[data.length - 1].price = basePrice;
-
-    return data;
-  };
-
+  const isLoading = chartData.length === 0;
   const latestPrice = chartData.length > 0 ? chartData[chartData.length - 1].price : 0;
   const firstPrice = chartData.length > 0 ? chartData[0].price : 0;
   const isUp = latestPrice >= firstPrice;
@@ -98,6 +106,12 @@ export default function StockChart({ symbol, darkMode }: StockChartProps) {
         <div className="flex items-center gap-2">
           <CandlestickChart className={`w-5 h-5 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
           <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{symbol}</span>
+          {live && (
+            <span className="flex items-center gap-1 px-2 py-0.5 bg-green-100 rounded-full">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-[10px] font-medium text-green-700">LIVE</span>
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {['1D', '1W', '1M'].map((tf) => (
@@ -133,7 +147,7 @@ export default function StockChart({ symbol, darkMode }: StockChartProps) {
         )}
         <div>
           <span className="font-semibold">
-            {isUp ? '+' : ''}{latestPrice.toFixed(2)}
+            {isUp ? '+' : ''}{formatPrice(latestPrice, currency)}
           </span>
           <span className="text-sm ml-2">
             ({isUp ? '+' : ''}{percentChange.toFixed(2)}%)
@@ -162,7 +176,7 @@ export default function StockChart({ symbol, darkMode }: StockChartProps) {
               tickLine={false}
               axisLine={false}
               domain={['dataMin - 2', 'dataMax + 2']}
-              tickFormatter={(value) => `$${value.toFixed(0)}`}
+              tickFormatter={(value) => formatPrice(value, currency)}
             />
             <Tooltip
               contentStyle={{
@@ -172,7 +186,10 @@ export default function StockChart({ symbol, darkMode }: StockChartProps) {
               }}
               itemStyle={{ color: darkMode ? '#ffffff' : '#000000' }}
               labelStyle={{ color: darkMode ? '#9ca3af' : '#6b7280' }}
-              formatter={(value: any) => [`$${value.toFixed(2)}`, 'Price']}
+              formatter={(value: unknown) => [
+                formatPrice(typeof value === 'number' ? value : Number(value ?? 0), currency),
+                'Price'
+              ]}
             />
             <ReferenceLine
               y={firstPrice}
@@ -187,6 +204,7 @@ export default function StockChart({ symbol, darkMode }: StockChartProps) {
               strokeWidth={2}
               dot={false}
               activeDot={{ r: 6, fill: isUp ? '#10b981' : '#ef4444' }}
+              isAnimationActive={false}
             />
           </LineChart>
         </ResponsiveContainer>
@@ -197,19 +215,19 @@ export default function StockChart({ symbol, darkMode }: StockChartProps) {
         <div>
           <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>High</p>
           <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            ${Math.max(...chartData.map(d => d.price)).toFixed(2)}
+            {formatPrice(Math.max(...chartData.map(d => d.price)), currency)}
           </p>
         </div>
         <div>
           <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Low</p>
           <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            ${Math.min(...chartData.map(d => d.price)).toFixed(2)}
+            {formatPrice(Math.min(...chartData.map(d => d.price)), currency)}
           </p>
         </div>
         <div>
-          <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Volume</p>
+          <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Latest</p>
           <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            {(Math.random() * 10 + 1).toFixed(1)}M
+            {formatPrice(latestPrice, currency)}
           </p>
         </div>
       </div>
