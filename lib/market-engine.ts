@@ -22,7 +22,12 @@ let activeSource: 'finnhub' | 'stooq' | null = null;
 let initialized = false;
 let tickTimer: ReturnType<typeof setInterval> | null = null;
 let apiTimer: ReturnType<typeof setInterval> | null = null;
+let stooqTimer: ReturnType<typeof setInterval> | null = null;
 let marketWatchTimer: ReturnType<typeof setInterval> | null = null;
+let ws: WebSocket | null = null;
+let wsConnected = false;
+let wsAttempts = 0;
+let wsNotifyTimer: ReturnType<typeof setTimeout> | null = null;
 const exchangeOpenState = new Map<string, boolean>();
 
 const TICK_MS = 1500;
@@ -116,6 +121,62 @@ async function fetchFinnhubQuote(symbol: string): Promise<{ price: number; open:
   }
 }
 
+/**
+ * Finnhub WebSocket — true tick-by-tick trades for US stocks (free tier).
+ * Every trade message updates the price instantly; REST refresh still runs
+ * to keep open/high/low fields accurate.
+ */
+function connectFinnhubWS(symbols: string[]) {
+  if (typeof WebSocket === 'undefined' || !FINNHUB_API_KEY) return;
+  try {
+    ws = new WebSocket(`wss://ws.finnhub.io?token=${FINNHUB_API_KEY}`);
+
+    ws.onopen = () => {
+      wsConnected = true;
+      wsAttempts = 0;
+      symbols.forEach(sym =>
+        ws?.send(JSON.stringify({ type: 'subscribe', symbol: sym }))
+      );
+    };
+
+    ws.onmessage = ev => {
+      try {
+        const msg = JSON.parse(ev.data as string);
+        if (msg.type === 'trade' && Array.isArray(msg.data)) {
+          msg.data.forEach((t: { s?: string; p?: number }) => {
+            if (t.s && typeof t.p === 'number') {
+              liveSymbols.add(t.s);
+              setQuote(t.s, t.p);
+            }
+          });
+          // Throttle UI updates to ~2/sec so bursts of trades don't churn React
+          if (!wsNotifyTimer) {
+            wsNotifyTimer = setTimeout(() => {
+              wsNotifyTimer = null;
+              notify();
+            }, 500);
+          }
+        }
+      } catch {
+        // ignore malformed frames
+      }
+    };
+
+    ws.onclose = () => {
+      wsConnected = false;
+      ws = null;
+      if (wsAttempts < 10) {
+        wsAttempts++;
+        setTimeout(() => connectFinnhubWS(symbols), Math.min(30_000, 2000 * wsAttempts));
+      }
+    };
+
+    ws.onerror = () => ws?.close();
+  } catch {
+    wsConnected = false;
+  }
+}
+
 async function refreshFinnhubQuotes(symbols: string[]) {
   for (let i = 0; i < symbols.length; i += API_BATCH_SIZE) {
     const batch = symbols.slice(i, i + API_BATCH_SIZE);
@@ -194,7 +255,8 @@ async function fetchStooqQuotes(): Promise<number> {
     const ours = stooqToOurs.get(stooqSym);
     const close = parseFloat(cols[6]);
     const open = parseFloat(cols[3]);
-    if (ours && !isNaN(close)) {
+    // Never let delayed data overwrite a symbol streaming tick-by-tick
+    if (ours && !isNaN(close) && !(activeSource === 'finnhub' && isFinnhubSymbol(ours))) {
       liveSymbols.add(ours);
       setQuote(ours, close, isNaN(open) ? close : open);
       count++;
@@ -209,35 +271,42 @@ const finnhubSymbols = () =>
   STOCK_SYMBOLS_LIST.map(s => s.symbol).filter(isFinnhubSymbol);
 
 /**
- * Try to activate a real data feed. Returns true if any real quotes arrived.
+ * Try to activate real data feeds. Finnhub (WebSocket + REST seed) covers
+ * US symbols tick-by-tick when a key is configured; stooq covers everything
+ * else with ~15-min-delayed quotes — both can run together.
  */
 async function tryActivateLive(): Promise<boolean> {
+  let anyReal = false;
+
   // 1) Finnhub if the user configured a key (US symbols)
   if (FINNHUB_API_KEY) {
     const probe = await fetchFinnhubQuote(finnhubSymbols()[0]);
     if (probe !== null) {
       activeSource = 'finnhub';
-      if (apiTimer) clearInterval(apiTimer);
-      refreshFinnhubQuotes(finnhubSymbols()).then(() => {
+      connectFinnhubWS(finnhubSymbols());
+      refreshFinnhubQuotes(finnhubSymbols()); // seed open/high/low + last real price
+      if (!apiTimer) {
         apiTimer = setInterval(
           () => refreshFinnhubQuotes(finnhubSymbols()),
           FINNHUB_REFRESH_MS
         );
-      });
-      return true;
+      }
+      anyReal = true;
     }
   }
 
-  // 2) Stooq via CORS proxy — no key needed, covers international too
+  // 2) Stooq via CORS proxy — covers international (and US if no key).
+  //    Skips symbols already streaming via Finnhub.
   const found = await fetchStooqQuotes();
   if (found > 0) {
-    activeSource = 'stooq';
-    if (apiTimer) clearInterval(apiTimer);
-    apiTimer = setInterval(fetchStooqQuotes, STOOQ_REFRESH_MS);
-    return true;
+    if (!activeSource) activeSource = 'stooq';
+    if (!stooqTimer) {
+      stooqTimer = setInterval(fetchStooqQuotes, STOOQ_REFRESH_MS);
+    }
+    anyReal = true;
   }
 
-  return false;
+  return anyReal;
 }
 
 /**
@@ -361,13 +430,12 @@ export function getPriceHistory(symbol: string): number[] {
 
 export async function refreshMarketNow(): Promise<void> {
   if (activeSource === 'finnhub') {
-    const finnhubSymbols = STOCK_SYMBOLS_LIST
-      .map(s => s.symbol)
-      .filter(isFinnhubSymbol);
-    await refreshFinnhubQuotes(finnhubSymbols);
-  } else if (activeSource === 'stooq') {
-    await fetchStooqQuotes();
-  } else {
+    await refreshFinnhubQuotes(finnhubSymbols());
+  }
+  if (activeSource) {
+    await fetchStooqQuotes(); // covers whatever the primary feed doesn't
+  }
+  if (!activeSource) {
     tickSimulated();
   }
 }
