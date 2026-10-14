@@ -101,7 +101,7 @@ export default function Home() {
 
   if (activeLesson) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8 px-4">
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8 px-4 text-gray-900">
         <LessonView 
           lesson={activeLesson} 
           onComplete={handleLessonComplete}
@@ -112,7 +112,7 @@ export default function Home() {
   }
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-green-50 to-blue-50'}`}>
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gradient-to-br from-green-50 to-blue-50 text-gray-900'}`}>
       {/* Header */}
       <header className={`shadow-sm border-b ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
         <div className="max-w-6xl mx-auto px-4 py-4">
