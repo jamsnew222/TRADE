@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Lesson, QuizQuestion, OrderingQuestion, WordBankQuestion, FlashcardQuestion, DragDropQuestion, TimelineQuestion, ScenarioQuestion } from '@/types';
 import { CheckCircle, XCircle, ArrowRight, RotateCcw, Sparkles, Target, Clock, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, FlipHorizontal, Flame, Crown } from 'lucide-react';
 import { loadProgress, getStreakBonus, checkPremiumStatus, getPremiumMultiplier } from '@/lib/progress';
@@ -24,6 +24,7 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
   });
   const [selectedMultipleSelect, setSelectedMultipleSelect] = useState<number[]>([]);
   const [orderingItems, setOrderingItems] = useState<number[]>([]);
+  const [fillBlankAnswer, setFillBlankAnswer] = useState('');
   const [wordBankSelection, setWordBankSelection] = useState<string[]>([]);
   const [flashcardFlipped, setFlashcardFlipped] = useState(false);
 
@@ -39,6 +40,21 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
 
   const totalQuestions = allQuestions.length;
   const currentQuestionData = allQuestions[currentQuestion];
+
+  // Initialize ordering questions with a shuffled order (never the solved order)
+  useEffect(() => {
+    const q = currentQuestionData as (OrderingQuestion & { type?: string }) | undefined;
+    if (currentStep !== 'exercise' || q?.type !== 'ordering' || orderingItems.length > 0) return;
+    const indices = q.items.map((_, i) => i);
+    let shuffled = [...indices];
+    do {
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+    } while (shuffled.length > 1 && shuffled.every((v, i) => v === q.correctOrder[i]));
+    setOrderingItems(shuffled);
+  }, [currentQuestion, currentStep]);
 
   // Build "learn before you're tested" study slides from the lesson's own content
   const learnSlides = (() => {
@@ -713,8 +729,6 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
 
     // Fill in the Blank
     if (lesson.type === 'fill-blank') {
-      const [answer, setAnswer] = useState('');
-
       return (
         <div className="max-w-2xl mx-auto animate-fade-in">
           <button onClick={onBack} className="mb-6 text-gray-600 hover:text-gray-900 flex items-center gap-2 transition-colors">
@@ -734,8 +748,8 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
                     {index === 0 && (
                       <input
                         type="text"
-                        value={answer}
-                        onChange={(e) => setAnswer(e.target.value)}
+                        value={fillBlankAnswer}
+                        onChange={(e) => setFillBlankAnswer(e.target.value)}
                         className="border-b-4 border-cyan-400 bg-transparent outline-none w-40 text-center mx-2 text-cyan-800 font-semibold text-xl"
                         placeholder="_____"
                       />
@@ -752,8 +766,8 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
             </div>
 
             <button
-              onClick={() => handleFillBlank(answer)}
-              disabled={!answer}
+              onClick={() => handleFillBlank(fillBlankAnswer)}
+              disabled={!fillBlankAnswer}
               className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 disabled:from-gray-300 disabled:to-gray-400 text-white py-3 rounded-full font-semibold transition-all shadow-lg hover:shadow-xl"
             >
               Submit Answer
@@ -766,10 +780,6 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
     // Ordering
     if (lesson.type === 'ordering') {
       const question = currentQuestionData as OrderingQuestion;
-
-      if (orderingItems.length === 0) {
-        setOrderingItems(question.items.map((_, i) => i));
-      }
 
       return (
         <div className="max-w-2xl mx-auto animate-fade-in">

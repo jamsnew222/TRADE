@@ -40,12 +40,18 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>('All');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [notification, setNotification] = useState<string | null>(null);
   const [priceChanges, setPriceChanges] = useState<Record<string, 'up' | 'down' | null>>({});
   const priceChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const prevPricesRef = useRef<Record<string, number>>({});
 
   const availableExchanges = getAvailableExchanges();
   const availableCurrencies = getAvailableCurrencies();
+
+  const showNotification = (message: string) => {
+    setNotification(message);
+    setTimeout(() => setNotification(null), 3000);
+  };
 
   // Subscribe once — the engine pushes price updates in place
   useEffect(() => {
@@ -113,7 +119,7 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
     if (isNaN(qty) || qty <= 0) return;
 
     if (!canTrade(loadProgress())) {
-      alert(`Daily free limit of ${FREE_DAILY_TRADES} trades reached — upgrade to Premium for unlimited trades.`);
+      showNotification(`Daily free limit of ${FREE_DAILY_TRADES} trades reached — upgrade to Premium for unlimited trades`);
       return;
     }
 
@@ -127,7 +133,7 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
 
     if (tradeType === 'buy') {
       if (totalCost > portfolio.cash) {
-        alert('Insufficient funds');
+        showNotification('Insufficient funds');
         return;
       }
 
@@ -171,7 +177,7 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
     } else {
       const position = portfolio.positions.find(p => p.symbol === selectedStock.symbol);
       if (!position || position.shares < qty) {
-        alert('Insufficient shares');
+        showNotification('Insufficient shares');
         return;
       }
 
@@ -736,6 +742,13 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
             </div>
           )}
         </div>
+
+        {/* Notification */}
+        {notification && (
+          <div className="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-[60]">
+            {notification}
+          </div>
+        )}
       </div>
     </div>
   );

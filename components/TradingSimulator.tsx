@@ -14,7 +14,7 @@ import { subscribeMarket, getMarketMode, refreshMarketNow, getPriceHistory, isMa
 import { X, TrendingUp, TrendingDown, Wallet, RefreshCw, Globe, DollarSign, Building2, LineChart } from 'lucide-react';
 import StockChart from './StockChart';
 import Sparkline from './Sparkline';
-import { canTrade, consumeTrade, getRemainingUsage, loadProgress, FREE_DAILY_TRADES } from '@/lib/progress';
+import { canTrade, consumeTrade, getRemainingUsage, loadProgress, checkPremiumStatus, FREE_DAILY_TRADES } from '@/lib/progress';
 
 interface TradingSimulatorProps {
   onClose: () => void;
@@ -47,6 +47,7 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
   const [tradeAmount, setTradeAmount] = useState('');
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [notification, setNotification] = useState<string | null>(null);
+  const [tradeProgress, setTradeProgress] = useState(() => loadProgress());
   const [selectedExchange, setSelectedExchange] = useState<Exchange>('All');
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>('All');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -129,7 +130,7 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
       return;
     }
 
-    if (!canTrade(loadProgress())) {
+    if (!canTrade(tradeProgress)) {
       showNotification(`Daily free limit of ${FREE_DAILY_TRADES} trades reached — upgrade to Premium for unlimited`);
       return;
     }
@@ -200,7 +201,7 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
       showNotification(`Sold ${amount} shares of ${selectedStock.symbol}`);
     }
 
-    consumeTrade();
+    setTradeProgress(consumeTrade());
     setTradeAmount('');
   };
 
@@ -580,9 +581,9 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
                     >
                       {tradeType === 'buy' ? 'Buy Shares' : 'Sell Shares'}
                     </button>
-                    {!loadProgress().isPremium && (
+                    {!checkPremiumStatus(tradeProgress) && (
                       <p className={`text-xs text-center mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                        {getRemainingUsage(loadProgress()).trades} of {FREE_DAILY_TRADES} free trades left today — Premium removes limits
+                        {getRemainingUsage(tradeProgress).trades} of {FREE_DAILY_TRADES} free trades left today — Premium removes limits
                       </p>
                     )}
                   </div>
