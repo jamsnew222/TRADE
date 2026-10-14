@@ -10,7 +10,7 @@ import {
   getAvailableExchanges,
   getAvailableCurrencies
 } from '@/lib/realtime-stock-data';
-import { subscribeMarket, getMarketMode, refreshMarketNow, getPriceHistory, MarketMode } from '@/lib/market-engine';
+import { subscribeMarket, getMarketMode, refreshMarketNow, getPriceHistory, isMarketOpen, MarketMode } from '@/lib/market-engine';
 import { X, TrendingUp, TrendingDown, Wallet, RefreshCw, Globe, DollarSign, Building2, LineChart } from 'lucide-react';
 import StockChart from './StockChart';
 import Sparkline from './Sparkline';
@@ -271,12 +271,12 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
           </div>
           <div className="flex items-center gap-2">
             {marketMode === 'live' ? (
-              <div className="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full" title="Real market data">
+              <div className="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full" title="Real market data (may be delayed; shows last real price after market close)">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                 <span className="text-xs font-medium text-green-700">LIVE</span>
               </div>
             ) : marketMode === 'simulated' ? (
-              <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 rounded-full" title="Simulated prices — add a Finnhub API key for real data">
+              <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 rounded-full" title="Simulated prices for practice — real feed unreachable; movement continues even when markets are closed">
                 <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
                 <span className="text-xs font-medium text-amber-700">SIMULATED</span>
               </div>
@@ -411,6 +411,13 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
                             {stock.symbol}
                             <span className={`text-xs ml-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                               {stock.exchange}
+                            </span>
+                            <span className={`ml-1 text-[10px] font-semibold px-1 py-0.5 rounded ${
+                              isMarketOpen(stock.exchange)
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-gray-200 text-gray-500'
+                            }`}>
+                              {isMarketOpen(stock.exchange) ? 'OPEN' : 'CLOSED'}
                             </span>
                             {priceChanges[stock.symbol] === 'up' && (
                               <span className="ml-2 text-green-500">↑</span>

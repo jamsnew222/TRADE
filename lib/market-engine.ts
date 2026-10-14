@@ -269,6 +269,48 @@ export function getQuote(symbol: string): StockData | undefined {
   return quotes.get(symbol);
 }
 
+// ---------- Market hours ----------
+
+const EXCHANGE_HOURS: Record<string, { tz: string; openMin: number; closeMin: number }> = {
+  NYSE:     { tz: 'America/New_York',  openMin: 9 * 60 + 30,  closeMin: 16 * 60 },
+  NASDAQ:   { tz: 'America/New_York',  openMin: 9 * 60 + 30,  closeMin: 16 * 60 },
+  LSE:      { tz: 'Europe/London',     openMin: 8 * 60,       closeMin: 16 * 60 + 30 },
+  TSE:      { tz: 'Asia/Tokyo',        openMin: 9 * 60,       closeMin: 15 * 60 },
+  TSX:      { tz: 'America/Toronto',   openMin: 9 * 60 + 30,  closeMin: 16 * 60 },
+  ASX:      { tz: 'Australia/Sydney',  openMin: 10 * 60,      closeMin: 16 * 60 },
+  XETRA:    { tz: 'Europe/Berlin',     openMin: 9 * 60,       closeMin: 17 * 60 + 30 },
+  Euronext: { tz: 'Europe/Paris',      openMin: 9 * 60,       closeMin: 17 * 60 + 30 },
+  SIX:      { tz: 'Europe/Zurich',     openMin: 9 * 60,       closeMin: 17 * 60 + 30 },
+};
+
+/**
+ * Whether the exchange's regular session is open right now,
+ * evaluated in the exchange's local timezone (Mon–Fri only).
+ */
+export function isMarketOpen(exchange: string): boolean {
+  const hours = EXCHANGE_HOURS[exchange];
+  if (!hours) return true;
+
+  try {
+    const now = new Date();
+    const weekday = new Intl.DateTimeFormat('en-US', {
+      timeZone: hours.tz, weekday: 'short',
+    }).format(now);
+    if (weekday === 'Sat' || weekday === 'Sun') return false;
+
+    const timeParts = new Intl.DateTimeFormat('en-US', {
+      timeZone: hours.tz, hour: 'numeric', minute: 'numeric', hour12: false,
+    }).formatToParts(now);
+    const hour = Number(timeParts.find(p => p.type === 'hour')?.value ?? 0) % 24;
+    const minute = Number(timeParts.find(p => p.type === 'minute')?.value ?? 0);
+    const nowMin = hour * 60 + minute;
+
+    return nowMin >= hours.openMin && nowMin < hours.closeMin;
+  } catch {
+    return true;
+  }
+}
+
 export function getPriceHistory(symbol: string): number[] {
   return priceHistory.get(symbol) ?? [];
 }
