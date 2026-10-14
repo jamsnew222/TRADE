@@ -1,4 +1,4 @@
-import { StockData, Currency, Exchange } from '@/types';
+import { StockData } from '@/types';
 import { STOCK_SYMBOLS_LIST, getBasePrice } from './stock-universe';
 
 const FINNHUB_API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY || '';
@@ -7,19 +7,22 @@ export type MarketMode = 'live' | 'simulated' | 'loading';
 type Listener = (stocks: StockData[]) => void;
 
 // Finnhub free tier only supports US symbols (no exchange suffix)
-const isApiSymbol = (symbol: string) => !symbol.includes('.');
+const isFinnhubSymbol = (symbol: string) => !symbol.includes('.');
 
 const quotes = new Map<string, StockData>();
 const liveSymbols = new Set<string>();
 const listeners = new Set<Listener>();
+const simBias = new Map<string, number>();
 
 let mode: MarketMode = 'loading';
+let activeSource: 'finnhub' | 'stooq' | null = null;
 let initialized = false;
 let tickTimer: ReturnType<typeof setInterval> | null = null;
 let apiTimer: ReturnType<typeof setInterval> | null = null;
 
 const TICK_MS = 1500;
-const API_REFRESH_MS = 60_000; // stay under Finnhub's 60 calls/min free limit
+const FINNHUB_REFRESH_MS = 60_000; // stay under Finnhub's 60 calls/min free limit
+const STOOQ_REFRESH_MS = 30_000; // stooq is one batched request per cycle
 const API_BATCH_SIZE = 15;
 const API_BATCH_GAP_MS = 1200;
 
@@ -58,32 +61,36 @@ function setQuote(symbol: string, price: number, dayOpen?: number) {
 function seed() {
   STOCK_SYMBOLS_LIST.forEach(info => {
     const base = getBasePrice(info);
-    // Small deterministic-ish spread so prices aren't identical on load
-    const price = base * (1 + (Math.random() - 0.5) * 0.004);
+    // Small spread so stocks don't all start identical, roughly half red/half green
+    const price = base * (1 + (Math.random() - 0.5) * 0.008);
     setQuote(info.symbol, price, base);
+    // Persistent per-stock trend bias so some trend up and some trend down
+    simBias.set(info.symbol, (Math.random() - 0.5) * 0.0008);
   });
 }
 
 function tickSimulated() {
   let changed = false;
   quotes.forEach((q, symbol) => {
-    if (liveSymbols.has(symbol)) return; // real symbols only move on API data
+    if (liveSymbols.has(symbol)) return; // real symbols only move on real data
+
     const volatility = 0.0012;
-    const drift = 0.00002;
+    const bias = simBias.get(symbol) ?? 0;
     const shock = (Math.random() - 0.5) * 2;
-    const next = Math.max(0.01, q.price * (1 + drift + volatility * shock));
+    // Gentle mean reversion toward day open keeps prices bounded
+    const dayOpen = q.open ?? q.price;
+    const reversion = dayOpen > 0 ? ((dayOpen - q.price) / dayOpen) * 0.002 : 0;
+    const next = Math.max(0.01, q.price * (1 + bias + reversion + volatility * shock));
+
     setQuote(symbol, next);
     changed = true;
   });
   if (changed) notify();
 }
 
-interface RealQuote {
-  price: number;
-  open: number;
-}
+// ---------- Finnhub (requires user API key, US symbols only) ----------
 
-async function fetchRealQuote(symbol: string): Promise<RealQuote | null> {
+async function fetchFinnhubQuote(symbol: string): Promise<{ price: number; open: number } | null> {
   try {
     const res = await fetch(
       `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`
@@ -97,18 +104,14 @@ async function fetchRealQuote(symbol: string): Promise<RealQuote | null> {
   }
 }
 
-async function refreshApiQuotes(symbols: string[]) {
+async function refreshFinnhubQuotes(symbols: string[]) {
   for (let i = 0; i < symbols.length; i += API_BATCH_SIZE) {
     const batch = symbols.slice(i, i + API_BATCH_SIZE);
     const results = await Promise.allSettled(
       batch.map(async sym => {
-        const res = await fetch(
-          `https://finnhub.io/api/v1/quote?symbol=${sym}&token=${FINNHUB_API_KEY}`
-        );
-        if (!res.ok) throw new Error('bad response');
-        const data = await res.json();
-        if (data.error || !data.c) throw new Error('no data');
-        return { sym, price: data.c as number, open: data.o as number };
+        const q = await fetchFinnhubQuote(sym);
+        if (!q) throw new Error('no data');
+        return { sym, ...q };
       })
     );
 
@@ -126,6 +129,70 @@ async function refreshApiQuotes(symbols: string[]) {
   }
 }
 
+// ---------- Stooq (free, no key needed, via CORS proxy) ----------
+
+// Map our symbols to stooq tickers. Stooq covers most major markets.
+function toStooqSymbol(symbol: string): string {
+  if (!symbol.includes('.')) return `${symbol.toLowerCase()}.us`;
+  const dot = symbol.lastIndexOf('.');
+  const base = symbol.slice(0, dot).toLowerCase();
+  const suffix = symbol.slice(dot + 1);
+  const map: Record<string, string> = {
+    L: 'uk', T: 'jp', TO: 'ca', AX: 'au', DE: 'de', PA: 'fr', AS: 'nl', SW: 'ch',
+  };
+  const mapped = map[suffix];
+  return mapped ? `${base}.${mapped}` : '';
+}
+
+const CORS_PROXIES = [
+  (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  (url: string) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+];
+
+async function fetchStooqQuotes(): Promise<number> {
+  const pairs = STOCK_SYMBOLS_LIST
+    .map(s => ({ ours: s.symbol, stooq: toStooqSymbol(s.symbol) }))
+    .filter(p => p.stooq);
+  const stooqToOurs = new Map(pairs.map(p => [p.stooq.toLowerCase(), p.ours]));
+
+  const url = `https://stooq.com/q/l/?s=${pairs.map(p => p.stooq).join(',')}&f=sd2t2ohlcv&h&e=csv`;
+
+  let text: string | null = null;
+  for (const wrap of CORS_PROXIES) {
+    try {
+      const res = await fetch(wrap(url));
+      if (res.ok) {
+        text = await res.text();
+        break;
+      }
+    } catch {
+      // try next proxy
+    }
+  }
+  if (!text) return 0;
+
+  let count = 0;
+  const lines = text.trim().split('\n');
+  for (const line of lines) {
+    const cols = line.split(',');
+    if (cols.length < 7) continue;
+    const stooqSym = cols[0]?.trim().toLowerCase();
+    if (!stooqSym || stooqSym === 'symbol') continue; // skip header
+
+    const ours = stooqToOurs.get(stooqSym);
+    const close = parseFloat(cols[6]);
+    const open = parseFloat(cols[3]);
+    if (ours && !isNaN(close)) {
+      liveSymbols.add(ours);
+      setQuote(ours, close, isNaN(open) ? close : open);
+      count++;
+    }
+  }
+  return count;
+}
+
+// ---------- Lifecycle ----------
+
 async function init() {
   if (initialized) return;
   initialized = true;
@@ -134,30 +201,38 @@ async function init() {
   seed();
   notify();
 
-  const apiSymbols = STOCK_SYMBOLS_LIST
+  const finnhubSymbols = STOCK_SYMBOLS_LIST
     .map(s => s.symbol)
-    .filter(isApiSymbol);
+    .filter(isFinnhubSymbol);
 
+  // 1) Finnhub if the user configured a key (US symbols)
   if (FINNHUB_API_KEY) {
-    // Probe one symbol; if the key works, pull real quotes for all API symbols
-    const probe = await fetchRealQuote(apiSymbols[0]);
+    const probe = await fetchFinnhubQuote(finnhubSymbols[0]);
     if (probe !== null) {
       mode = 'live';
-      // refreshApiQuotes already batched/rate-limited
-      refreshApiQuotes(apiSymbols).then(() => {
+      activeSource = 'finnhub';
+      refreshFinnhubQuotes(finnhubSymbols).then(() => {
         apiTimer = setInterval(
-          () => refreshApiQuotes(apiSymbols),
-          API_REFRESH_MS
+          () => refreshFinnhubQuotes(finnhubSymbols),
+          FINNHUB_REFRESH_MS
         );
       });
+    }
+  }
+
+  // 2) Stooq via CORS proxy — no key needed, covers international too
+  if (mode !== 'live') {
+    const found = await fetchStooqQuotes();
+    if (found > 0) {
+      mode = 'live';
+      activeSource = 'stooq';
+      apiTimer = setInterval(fetchStooqQuotes, STOOQ_REFRESH_MS);
     } else {
       mode = 'simulated';
     }
-  } else {
-    mode = 'simulated';
   }
 
-  // Local tick keeps simulated symbols moving; live symbols hold real prices
+  // Local tick keeps symbols without real data moving
   tickTimer = setInterval(tickSimulated, TICK_MS);
   notify();
 }
@@ -165,7 +240,6 @@ async function init() {
 export function subscribeMarket(listener: Listener): () => void {
   listeners.add(listener);
   init();
-  // Send current snapshot immediately
   const snapshot = STOCK_SYMBOLS_LIST
     .map(s => quotes.get(s.symbol))
     .filter((q): q is StockData => !!q);
@@ -186,12 +260,14 @@ export function getQuote(symbol: string): StockData | undefined {
 }
 
 export async function refreshMarketNow(): Promise<void> {
-  if (mode !== 'live') {
+  if (activeSource === 'finnhub') {
+    const finnhubSymbols = STOCK_SYMBOLS_LIST
+      .map(s => s.symbol)
+      .filter(isFinnhubSymbol);
+    await refreshFinnhubQuotes(finnhubSymbols);
+  } else if (activeSource === 'stooq') {
+    await fetchStooqQuotes();
+  } else {
     tickSimulated();
-    return;
   }
-  const apiSymbols = STOCK_SYMBOLS_LIST
-    .map(s => s.symbol)
-    .filter(isApiSymbol);
-  await refreshApiQuotes(apiSymbols);
 }
