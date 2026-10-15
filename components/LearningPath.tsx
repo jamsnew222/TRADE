@@ -1,7 +1,7 @@
 'use client';
 
 import { Unit, Level } from '@/types';
-import { Lock, CheckCircle, Circle, ChevronRight, Star } from 'lucide-react';
+import { Crown, Lock, CheckCircle, Circle, ChevronRight, Star } from 'lucide-react';
 
 interface LearningPathProps {
   units: Unit[];
@@ -112,9 +112,13 @@ export default function LearningPath({ units, onLevelClick, darkMode }: Learning
                               {isCheckpoint && (
                                 <Star className="w-4 h-4 text-yellow-500" />
                               )}
+                              {level.lesson.premiumOnly && (
+                                <Crown className="w-4 h-4 text-yellow-500" />
+                              )}
                             </div>
                             <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                               {level.lesson.description}
+                              {level.lesson.premiumOnly && <span className="text-yellow-600 font-medium"> · Premium</span>}
                             </p>
                           </div>
                           <div className="flex items-center gap-3">

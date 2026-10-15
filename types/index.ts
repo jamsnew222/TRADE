@@ -53,6 +53,8 @@ export interface Lesson {
     scenario?: ScenarioQuestion[];
   };
   prerequisites?: string[];
+  /** Premium-gated lesson — free users see the paywall when they tap it */
+  premiumOnly?: boolean;
 }
 
 export interface Level {

@@ -93,6 +93,10 @@ export default function Home() {
 
   const handleStartLesson = (lesson: Lesson) => {
     const current = loadProgress();
+    if (lesson.premiumOnly && !checkPremiumStatus(current)) {
+      setShowPremiumModal(true);
+      return;
+    }
     if (!canStartLesson(current)) {
       setShowPremiumModal(true);
       return;

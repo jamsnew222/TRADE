@@ -14,6 +14,7 @@ export const advancedLessons: Lesson[] = [
     difficulty: 'advanced',
     category: 'Options',
     xpReward: 70,
+    premiumOnly: true,
     content: {
       explanation: 'Options are contracts that give you the right — not the obligation — to buy (call) or sell (put) a stock at a set price before expiration. A covered call sells a call against stock you own to collect premium income. A protective put is insurance on a stock you hold. A spread buys and sells options at different strikes to cap both cost and risk. A straddle buys a call and a put at the same strike to profit from a big move in either direction. Every option loses value over time — that decay is called theta.',
       quiz: [
@@ -460,6 +461,7 @@ export const advancedLessons: Lesson[] = [
     difficulty: 'advanced',
     category: 'Risk Management',
     xpReward: 70,
+    premiumOnly: true,
     content: {
       explanation: 'Position sizing decides how much you can lose before analysis decides what to buy. The 1-2% rule risks at most 1-2% of your account on any single trade — so a string of losses cannot sink you. Your position size = (account × risk%) ÷ distance to stop-loss. R multiples measure every trade in units of initial risk: +2R means you made twice what you risked. Risk/reward of 1:3 means risking $100 to make $300 — at that ratio you can be wrong 60% of the time and still profit. Drawdowns compound: a 50% loss needs a 100% gain just to get back to even.',
       quiz: [

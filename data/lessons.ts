@@ -1838,6 +1838,7 @@ export const lessons: Lesson[] = [
     difficulty: 'advanced',
     category: 'Practice',
     xpReward: 40,
+    premiumOnly: true,
     prerequisites: ['risk-management', 'diversification', 'support-resistance'],
     content: {
       explanation: 'Real portfolio management means juggling winners and losers at once. An overbought RSI on a big winner argues for trimming, not dumping — lock in some gains and rebalance. A fundamentally strong loser may be an opportunity, not a problem — check whether the drop is company-specific or just market noise. And every decision runs through position sizing and risk limits, not gut feel.',

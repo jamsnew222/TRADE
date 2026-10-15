@@ -1,7 +1,7 @@
 'use client';
 
 import { Lesson } from '@/types';
-import { Lock, Play, Star } from 'lucide-react';
+import { Crown, Lock, Play, Star } from 'lucide-react';
 
 interface LessonCardProps {
   lesson: Lesson;
@@ -67,6 +67,11 @@ export default function LessonCard({ lesson, isLocked, isCompleted, onStart }: L
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${difficultyColors[lesson.difficulty]}`}>
               {lesson.difficulty}
             </span>
+            {lesson.premiumOnly && (
+              <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 flex items-center gap-1">
+                <Crown className="w-3 h-3" /> Premium
+              </span>
+            )}
           </div>
           
           <p className="text-gray-600 text-sm mb-3">{lesson.description}</p>
