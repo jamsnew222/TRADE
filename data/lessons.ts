@@ -220,6 +220,7 @@ export const lessons: Lesson[] = [
     category: 'Basics',
     xpReward: 15,
     content: {
+      explanation: 'Traders speak their own language. A dividend is a share of company profits paid to shareholders. Your portfolio is the collection of everything you own. Volatility measures how wildly a price swings. A bid is what buyers offer; the ask is what sellers want — the gap between them is the spread. And volume counts how many shares changed hands. Learn the vocabulary and the market\'s conversation starts making sense.',
       matching: {
         id: 'match1',
         instruction: 'Match the trading term with its correct definition',
@@ -347,6 +348,7 @@ export const lessons: Lesson[] = [
     category: 'Practice',
     xpReward: 30,
     content: {
+      explanation: 'Buying a stock is three decisions: how much to spend, which order type to use, and when to act. Your cash divided by the share price gives you your share count. A market order buys immediately at the current price; a limit order waits for your price. Once you own shares, every price move changes your position\'s value — a 10% drop on $1,000 costs you $100.',
       interactive: {
         scenario: 'You have $1,000 to invest. You\'ve been researching XYZ Corp and believe it\'s a good investment. The current price is $50 per share.',
         steps: [
@@ -720,9 +722,9 @@ export const lessons: Lesson[] = [
         {
           id: 'q5',
           question: 'Which are market cap classifications? (Select all that apply)',
-          options: ['Large-cap', 'Mid-cap', 'Small-cap', 'Micro-cap'],
+          options: ['Large-cap', 'Mid-cap', 'Small-cap', 'Micro-cap', 'Penny-cap'],
           correctAnswer: 0,
-          explanation: 'All four are market cap classifications: large-cap (over $10B), mid-cap ($2-10B), small-cap ($300M-2B), and micro-cap (under $300M).',
+          explanation: 'Large-cap (over $10B), mid-cap ($2-10B), small-cap ($300M-2B), and micro-cap (under $300M) are the standard classes — "penny-cap" is not one (penny stocks are defined by share price, not market cap).',
           type: 'multiple-select',
           correctAnswers: [0, 1, 2, 3]
         }
@@ -1199,9 +1201,9 @@ export const lessons: Lesson[] = [
         {
           id: 'q5',
           question: 'Which are key elements of a candlestick? (Select all that apply)',
-          options: ['Open price', 'High price', 'Low price', 'Close price'],
+          options: ['Open price', 'High price', 'Low price', 'Close price', 'Dividend yield'],
           correctAnswer: 0,
-          explanation: 'Candlesticks show open, high, low, and close prices - these four elements provide a complete picture of price movement.',
+          explanation: 'Candlesticks show open, high, low, and close prices — the OHLC. Dividend yield is a fundamental metric, not part of a candle.',
           type: 'multiple-select',
           correctAnswers: [0, 1, 2, 3]
         }
@@ -1245,6 +1247,7 @@ export const lessons: Lesson[] = [
     category: 'Basics',
     xpReward: 15,
     content: {
+      explanation: 'The market sorts companies into sectors — broad groups like technology, healthcare, financials, energy, and consumer goods — and narrower industries inside each. Sector matters because stocks in the same sector often move together: oil prices lift the whole energy sector, rate changes hit all the banks. Knowing a stock\'s sector tells you what forces move it and whether your portfolio is truly diversified.',
       matching: {
         id: 'match5',
         instruction: 'Match the sector with its description',
@@ -1434,6 +1437,7 @@ export const lessons: Lesson[] = [
     category: 'Basics',
     xpReward: 15,
     content: {
+      explanation: 'Markets have referees. The SEC regulates securities markets and prosecutes fraud and insider trading. FINRA oversees the brokers you trade through. The FDIC insures bank deposits, and the Federal Reserve sets interest rates that ripple through every asset price. These bodies exist so that prices reflect real information and small investors are not playing a rigged game.',
       matching: {
         id: 'match6',
         instruction: 'Match the regulatory body with its role',
@@ -1651,6 +1655,7 @@ export const lessons: Lesson[] = [
     category: 'Basics',
     xpReward: 15,
     content: {
+      explanation: 'Economic indicators are the market\'s vital signs, released on a schedule and capable of moving everything at once. GDP measures total economic output. The inflation rate (often the CPI) tracks how fast prices rise — it drives Fed rate decisions. The unemployment rate shows labor-market health, and consumer confidence hints at future spending. Traders watch the calendar because surprises in these numbers move markets in seconds.',
       matching: {
         id: 'match7',
         instruction: 'Match the economic indicator with what it measures',
@@ -1784,6 +1789,7 @@ export const lessons: Lesson[] = [
     category: 'Technical Analysis',
     xpReward: 30,
     content: {
+      explanation: 'Chart patterns are recurring shapes in price action that traders read as clues about what comes next. Reversal patterns — head and shoulders, double tops and bottoms — warn that a trend is exhausted. Continuation patterns — triangles, flags, pennants — are pauses before the trend resumes. None are guarantees: they shift odds, and volume usually confirms whether a pattern is real.',
       matching: {
         id: 'match3',
         instruction: 'Match the chart pattern with its description',
@@ -1834,6 +1840,7 @@ export const lessons: Lesson[] = [
     xpReward: 40,
     prerequisites: ['risk-management', 'diversification', 'support-resistance'],
     content: {
+      explanation: 'Real portfolio management means juggling winners and losers at once. An overbought RSI on a big winner argues for trimming, not dumping — lock in some gains and rebalance. A fundamentally strong loser may be an opportunity, not a problem — check whether the drop is company-specific or just market noise. And every decision runs through position sizing and risk limits, not gut feel.',
       interactive: {
         scenario: 'You have a diversified portfolio worth $50,000. One of your holdings, TechCorp, has risen 25% and is showing signs of being overbought with an RSI of 75. Another holding, StableInc, has dropped 15% due to market conditions but has strong fundamentals. You have $10,000 in cash available.',
         steps: [
@@ -3156,28 +3163,6 @@ export const lessons: Lesson[] = [
         type: 'true-false'
       }
     ]
-  }
-},
-{
-  id: 'matching-chart-patterns',
-  title: 'Chart Patterns Matching',
-  description: 'Match chart patterns with their descriptions',
-  type: 'matching',
-  difficulty: 'intermediate',
-  category: 'Technical Analysis',
-  xpReward: 40,
-  content: {
-    explanation: 'Chart patterns are visual formations on price charts that can help predict future price movements. Learning to recognize them is a key technical analysis skill.',
-    matching: {
-      id: 'patterns1',
-      instruction: 'Match each chart pattern with its description:',
-      pairs: [
-        { left: 'Head and Shoulders', right: 'Reversal pattern with three peaks' },
-        { left: 'Double Top', right: 'Bearish reversal pattern with two peaks' },
-        { left: 'Triangle', right: 'Continuation pattern with converging lines' },
-        { left: 'Flag', right: 'Short-term continuation pattern' }
-      ]
-    }
   }
 },
 {
