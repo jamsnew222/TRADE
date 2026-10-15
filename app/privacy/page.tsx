@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Shield } from 'lucide-react';
 
 export const metadata = {
@@ -87,9 +88,9 @@ export default function PrivacyPage() {
           ))}
         </div>
 
-        <a href="/" className="mt-10 inline-block text-green-600 font-semibold hover:underline">
+        <Link href="/" className="mt-10 inline-block text-green-600 font-semibold hover:underline">
           ← Back to TradeQuest
-        </a>
+        </Link>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PaperPortfolio, PaperTrade, Currency, Exchange } from '@/types';
 import {
   convertCurrency,
@@ -13,9 +13,10 @@ import { refreshMarketNow } from '@/lib/market-engine';
 import { useMarket } from '@/lib/useMarket';
 import { applyBuy, applySell, valuePositions } from '@/lib/portfolio';
 import { useNotification } from '@/lib/useNotification';
+import { loadPaperPortfolio, savePaperPortfolio, resetPaperPortfolio } from '@/lib/simulator-storage';
 import StockRow from './StockRow';
 import { canTrade, consumeTrade, loadProgress, FREE_DAILY_TRADES } from '@/lib/progress';
-import { X, TrendingUp, TrendingDown, Search, BarChart3, History, RefreshCw, DollarSign, Building2 } from 'lucide-react';
+import { X, TrendingUp, TrendingDown, Search, BarChart3, History, RefreshCw, DollarSign, Building2, RotateCcw } from 'lucide-react';
 
 interface PaperTradingPlatformProps {
   onClose: () => void;
@@ -30,7 +31,7 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
     selectedCurrency, setSelectedCurrency,
     isLoading,
   } = useMarket();
-  const [portfolio, setPortfolio] = useState<PaperPortfolio>({
+  const defaultPortfolio: PaperPortfolio = {
     cash: 100000,
     initialCash: 100000,
     baseCurrency: 'USD',
@@ -38,7 +39,25 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
     trades: [],
     watchlist: ['AAPL', 'GOOGL', 'MSFT', 'AMZN', 'TSLA'],
     startDate: new Date().toISOString()
-  });
+  };
+  const [portfolio, setPortfolio] = useState<PaperPortfolio>(defaultPortfolio);
+  // Persisted across sessions: hydrate on mount, save on change.
+  const skipSave = useRef(true);
+  useEffect(() => {
+    const saved = loadPaperPortfolio<PaperPortfolio>();
+    if (saved && typeof saved.cash === 'number' && Array.isArray(saved.positions) && Array.isArray(saved.trades)) {
+      // Hydrating persisted state from localStorage — intentional post-mount load
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPortfolio(saved);
+    }
+  }, []);
+  useEffect(() => {
+    if (skipSave.current) {
+      skipSave.current = false;
+      return;
+    }
+    savePaperPortfolio(portfolio);
+  }, [portfolio]);
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [quantity, setQuantity] = useState('');
   const [activeTab, setActiveTab] = useState<'trade' | 'portfolio' | 'watchlist' | 'history'>('trade');
@@ -241,6 +260,18 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
 
         {/* Portfolio Summary */}
         <div className={`p-4 border-b ${darkMode ? 'border-gray-700' : ''}`}>
+          <div className="flex justify-end mb-2 -mt-1">
+            <button
+              onClick={() => { resetPaperPortfolio(); setPortfolio({ ...defaultPortfolio, startDate: new Date().toISOString() }); showNotification('Portfolio reset'); }}
+              className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-lg transition-colors ${
+                darkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-200'
+              }`}
+              title="Reset portfolio to $100,000"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Reset
+            </button>
+          </div>
           <div className="grid grid-cols-4 gap-4">
             <div className={`p-3 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
               <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Portfolio Value</p>

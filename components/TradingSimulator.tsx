@@ -14,7 +14,8 @@ import { refreshMarketNow, isMarketOpen, getSimPriceHistory } from '@/lib/market
 import { useMarket } from '@/lib/useMarket';
 import { Position, applyBuy, applySell, valuePositions, positionsPL } from '@/lib/portfolio';
 import { useNotification } from '@/lib/useNotification';
-import { X, TrendingUp, Wallet, RefreshCw, DollarSign, Building2 } from 'lucide-react';
+import { loadSimulatorPortfolio, saveSimulatorPortfolio, resetSimulatorPortfolio } from '@/lib/simulator-storage';
+import { X, TrendingUp, Wallet, RefreshCw, DollarSign, Building2, RotateCcw } from 'lucide-react';
 import StockChart from './StockChart';
 import StockRow from './StockRow';
 import { canTrade, consumeTrade, getRemainingUsage, loadProgress, checkPremiumStatus, FREE_DAILY_TRADES } from '@/lib/progress';
@@ -45,11 +46,30 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
     selectedCurrency, setSelectedCurrency,
     isLoading,
   } = useMarket({ simulated: isPractice, liveOnly: !isPractice });
-  const [portfolio, setPortfolio] = useState<Portfolio>({
+  const defaultPortfolio: Portfolio = {
     cash: styleSettings?.defaultPositionSize || 10000,
     baseCurrency: 'USD',
     holdings: []
-  });
+  };
+  const [portfolio, setPortfolio] = useState<Portfolio>(defaultPortfolio);
+  // Persisted across sessions: hydrate from storage on mount, save on every change.
+  // skipSave prevents the mount-pass effect from overwriting storage with defaults.
+  const skipSave = useRef(true);
+  useEffect(() => {
+    const saved = loadSimulatorPortfolio<Portfolio>();
+    if (saved && typeof saved.cash === 'number' && Array.isArray(saved.holdings)) {
+      // Hydrating persisted state from localStorage — intentional post-mount load
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPortfolio(saved);
+    }
+  }, []);
+  useEffect(() => {
+    if (skipSave.current) {
+      skipSave.current = false;
+      return;
+    }
+    saveSimulatorPortfolio(portfolio);
+  }, [portfolio]);
   const [tradeAmount, setTradeAmount] = useState('');
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const { notification, show: showNotification } = useNotification();
@@ -274,6 +294,16 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
             <div className="flex items-center gap-2 mb-4">
               <Wallet className={`w-5 h-5 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
               <span className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Portfolio Value</span>
+              <button
+                onClick={() => { resetSimulatorPortfolio(); setPortfolio(defaultPortfolio); showNotification('Portfolio reset'); }}
+                className={`ml-auto flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-lg transition-colors ${
+                  darkMode ? 'text-gray-400 hover:text-white hover:bg-gray-700' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-200'
+                }`}
+                title="Reset portfolio to starting cash"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Reset
+              </button>
             </div>
 
             <div className="grid grid-cols-3 gap-4">
