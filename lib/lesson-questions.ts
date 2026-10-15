@@ -54,6 +54,7 @@ export const buildQuestions = (lesson: Lesson): AnyQuestion[] => {
       options: q.options,
       correctAnswer: q.correctAnswer,
       explanation: q.explanation,
+      chart: q.chart,
       type: 'quiz',
     })),
     // Timeline events render through the ordering card

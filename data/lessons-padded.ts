@@ -1,5 +1,6 @@
 import { Lesson, QuizQuestion } from '@/types';
 import { lessons as baseLessons } from './lessons';
+import { dayTradingLessons } from './day-trading-lessons';
 
 const MIN_QUESTIONS = 10;
 
@@ -193,7 +194,7 @@ export const padLessonQuestions = (lessons: Lesson[]): Lesson[] => {
   });
 };
 
-export const lessons: Lesson[] = padLessonQuestions(baseLessons);
+export const lessons: Lesson[] = padLessonQuestions([...baseLessons, ...dayTradingLessons]);
 
 export const categories = [
   'Basics',

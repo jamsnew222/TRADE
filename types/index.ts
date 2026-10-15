@@ -90,6 +90,7 @@ export interface QuizQuestion {
   explanation: string;
   type?: 'quiz' | 'multiple-choice' | 'true-false' | 'multiple-select';
   correctAnswers?: number[]; // For multiple-select questions
+  chart?: number[]; // Price path rendered as a mini chart (e.g. "identify this pattern")
 }
 
 export interface MatchingExercise {
@@ -179,6 +180,7 @@ export interface ScenarioQuestion {
   options: string[];
   correctAnswer: number;
   explanation: string;
+  chart?: number[]; // Optional price path rendered above the question
 }
 
 export interface StockData {

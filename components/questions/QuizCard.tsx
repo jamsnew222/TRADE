@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { QuizQuestion } from '@/types';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, XCircle, LineChart } from 'lucide-react';
 import QuestionShell from './QuestionShell';
 import ResultPanel from './ResultPanel';
+import Sparkline from '../Sparkline';
 
 interface QuizCardProps {
   question: QuizQuestion;
@@ -23,6 +24,22 @@ export default function QuizCard({ question, counterLabel, isLast, onBack, onRes
 
   const isMultiSelect = question.type === 'multiple-select' || Array.isArray(question.correctAnswers);
   const isTrueFalse = question.type === 'true-false';
+
+  const chartFigure = question.chart && question.chart.length > 1 ? (
+    <div className="mb-6 rounded-2xl border-2 border-indigo-100 bg-white p-4">
+      <div className="flex items-center gap-2 mb-2 text-xs font-semibold uppercase tracking-wider text-indigo-500">
+        <LineChart className="w-4 h-4" /> Price chart
+      </div>
+      <div className="flex justify-center">
+        <Sparkline
+          data={question.chart}
+          width={320}
+          height={96}
+          positive={question.chart[question.chart.length - 1] >= question.chart[0]}
+        />
+      </div>
+    </div>
+  ) : null;
 
   const selectAnswer = (index: number) => {
     if (showResult) return;
@@ -52,6 +69,7 @@ export default function QuizCard({ question, counterLabel, isLast, onBack, onRes
       <QuestionShell onBack={onBack} counterLabel={counterLabel}>
         <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-xl p-8 border-2 border-blue-200">
           <h2 className="text-xl font-bold text-gray-900 mb-6">{question.question}</h2>
+          {chartFigure}
           <div className="grid grid-cols-2 gap-4">
             {['True', 'False'].map((label, index) => (
               <button
@@ -86,6 +104,7 @@ export default function QuizCard({ question, counterLabel, isLast, onBack, onRes
         <div className="bg-gradient-to-br from-white to-purple-50 rounded-3xl shadow-xl p-8 border-2 border-purple-200">
           <h2 className="text-xl font-bold text-gray-900 mb-2">{question.question}</h2>
           <p className="text-gray-600 mb-4">Select all that apply</p>
+          {chartFigure}
 
           <div className="space-y-3 mb-6">
             {question.options.map((option, index) => (
@@ -132,6 +151,7 @@ export default function QuizCard({ question, counterLabel, isLast, onBack, onRes
     <QuestionShell onBack={onBack} counterLabel={counterLabel}>
       <div className="bg-gradient-to-br from-white to-indigo-50 rounded-3xl shadow-xl p-8 border-2 border-indigo-200">
         <h2 className="text-xl font-bold text-gray-900 mb-6">{question.question}</h2>
+        {chartFigure}
 
         <div className="space-y-3">
           {question.options.map((option, index) => {

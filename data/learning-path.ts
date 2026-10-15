@@ -127,9 +127,26 @@ export const learningPath: LearningPath = {
         'dollar-cost-averaging',
         'bull-bear-markets'
       ], [2, 3])
+    },
+    // Unit 6: Day Trading & Patterns
+    {
+      id: 'unit-6',
+      title: 'Day Trading & Patterns',
+      description: 'Intraday strategies, chart patterns, and candlesticks',
+      icon: '📈',
+      category: 'Strategy',
+      locked: true,
+      completed: false,
+      totalXP: 180,
+      levels: createLevelsFromLessons([
+        'day-trading-basics',
+        'day-trading-strategies',
+        'chart-patterns',
+        'candlestick-patterns'
+      ], [1, 3])
     }
   ],
-  totalXP: 360,
+  totalXP: 540,
   totalLessons: 0
 };
 
