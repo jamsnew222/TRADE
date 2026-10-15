@@ -7,3 +7,15 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Verification
+- `npm run lint` (ESLint flat config, react-hooks rules enforced)
+- `npx tsc --noEmit`
+- `npm test` (Vitest: progress, question normalization, portfolio math)
+- `npm run build` produces `out/` for Capacitor (output: 'export' - no API routes)
+- Dev server: `npm run dev` at http://localhost:3000
+
+## Notes
+- Finnhub key lives in .env.local (gitignored) as NEXT_PUBLIC_FINNHUB_API_KEY - client-side by necessity (static export); regenerate via finnhub.io if ever leaked
+- Free tier: 5 lessons + 25 trades/day; premium bypasses (localStorage until real IAP)
+- Question cards dispatch on question.type (not lesson.type) - see lib/lesson-questions.ts
