@@ -12,6 +12,8 @@ import {
 } from '@/lib/currency';
 import { refreshMarketNow } from '@/lib/market-engine';
 import { useMarket } from '@/lib/useMarket';
+import { Position, applyBuy, applySell, valuePositions, positionsPL } from '@/lib/portfolio';
+import { useNotification } from '@/lib/useNotification';
 import { X, TrendingUp, Wallet, RefreshCw, DollarSign, Building2 } from 'lucide-react';
 import StockChart from './StockChart';
 import StockRow from './StockRow';
@@ -26,12 +28,7 @@ interface TradingSimulatorProps {
 interface Portfolio {
   cash: number;
   baseCurrency: Currency;
-  holdings: Array<{
-    symbol: string;
-    shares: number;
-    averageCost: number;
-    currency: Currency;
-  }>;
+  holdings: Position[];
 }
 
 export default function TradingSimulator({ onClose, darkMode, tradingStyle }: TradingSimulatorProps) {
@@ -51,7 +48,7 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
   });
   const [tradeAmount, setTradeAmount] = useState('');
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
-  const [notification, setNotification] = useState<string | null>(null);
+  const { notification, show: showNotification } = useNotification();
   const [tradeProgress, setTradeProgress] = useState(() => loadProgress());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const tradePanelRef = useRef<HTMLDivElement | null>(null);
@@ -97,48 +94,18 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
         return;
       }
 
-      const existingHolding = portfolio.holdings.find(h => h.symbol === selectedStock.symbol);
-      let newHoldings;
-
-      if (existingHolding) {
-        newHoldings = portfolio.holdings.map(h => {
-          if (h.symbol === selectedStock.symbol) {
-            const totalShares = h.shares + amount;
-            const newAverageCost = ((h.shares * h.averageCost) + totalCost) / totalShares;
-            return { ...h, shares: totalShares, averageCost: newAverageCost };
-          }
-          return h;
-        });
-      } else {
-        newHoldings = [...portfolio.holdings, {
-          symbol: selectedStock.symbol,
-          shares: amount,
-          averageCost: stockPriceInBaseCurrency,
-          currency: selectedStock.currency
-        }];
-      }
-
       setPortfolio({
         ...portfolio,
         cash: portfolio.cash - totalCost,
-        holdings: newHoldings
+        holdings: applyBuy(portfolio.holdings, selectedStock.symbol, amount, stockPriceInBaseCurrency, selectedStock.currency)
       });
       showNotification(`Bought ${amount} shares of ${selectedStock.symbol}`);
     } else {
-      const holding = portfolio.holdings.find(h => h.symbol === selectedStock.symbol);
-      if (!holding || holding.shares < amount) {
+      const newHoldings = applySell(portfolio.holdings, selectedStock.symbol, amount);
+      if (!newHoldings) {
         showNotification('Insufficient shares');
         return;
       }
-
-      const newHoldings = portfolio.holdings
-        .map(h => {
-          if (h.symbol === selectedStock.symbol) {
-            return { ...h, shares: h.shares - amount };
-          }
-          return h;
-        })
-        .filter(h => h.shares > 0);
 
       setPortfolio({
         ...portfolio,
@@ -152,62 +119,18 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
     setTradeAmount('');
   };
 
-  const showNotification = (message: string) => {
-    setNotification(message);
-    setTimeout(() => setNotification(null), 3000);
-  };
-
-  const calculatePortfolioValue = async () => {
-    let holdingsValue = 0;
-
-    for (const holding of portfolio.holdings) {
-      const stock = stocks.find(s => s.symbol === holding.symbol);
-      if (stock) {
-        const valueInStockCurrency = holding.shares * stock.price;
-        const valueInBaseCurrency = await convertCurrency(
-          valueInStockCurrency,
-          stock.currency,
-          portfolio.baseCurrency
-        );
-        holdingsValue += valueInBaseCurrency;
-      }
-    }
-
-    return portfolio.cash + holdingsValue;
-  };
-
-  const calculateProfitLoss = async () => {
-    let profitLoss = 0;
-
-    for (const holding of portfolio.holdings) {
-      const stock = stocks.find(s => s.symbol === holding.symbol);
-      if (stock) {
-        const currentValue = await convertCurrency(
-          stock.price * holding.shares,
-          stock.currency,
-          portfolio.baseCurrency
-        );
-        const costValue = holding.averageCost * holding.shares;
-        profitLoss += currentValue - costValue;
-      }
-    }
-
-    return profitLoss;
-  };
-
   const [portfolioValue, setPortfolioValue] = useState(0);
   const [profitLoss, setProfitLoss] = useState(0);
 
   useEffect(() => {
     const updatePortfolioCalculations = async () => {
-      const value = await calculatePortfolioValue();
-      const pl = await calculateProfitLoss();
-      setPortfolioValue(value);
+      const value = await valuePositions(portfolio.holdings, stocks, portfolio.baseCurrency);
+      const pl = await positionsPL(portfolio.holdings, stocks, portfolio.baseCurrency);
+      setPortfolioValue(portfolio.cash + value);
       setProfitLoss(pl);
     };
 
     updatePortfolioCalculations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- calculatePortfolioValue/calculateProfitLoss are derived from stocks+portfolio; recreating them per render would retrigger this effect every render
   }, [stocks, portfolio]);
 
   return (

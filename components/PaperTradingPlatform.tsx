@@ -11,6 +11,8 @@ import {
 } from '@/lib/currency';
 import { refreshMarketNow } from '@/lib/market-engine';
 import { useMarket } from '@/lib/useMarket';
+import { applyBuy, applySell, valuePositions } from '@/lib/portfolio';
+import { useNotification } from '@/lib/useNotification';
 import StockRow from './StockRow';
 import { canTrade, consumeTrade, loadProgress, FREE_DAILY_TRADES } from '@/lib/progress';
 import { X, TrendingUp, TrendingDown, Search, BarChart3, History, RefreshCw, DollarSign, Building2 } from 'lucide-react';
@@ -42,15 +44,10 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
   const [activeTab, setActiveTab] = useState<'trade' | 'portfolio' | 'watchlist' | 'history'>('trade');
   const [searchTerm, setSearchTerm] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [notification, setNotification] = useState<string | null>(null);
+  const { notification, show: showNotification } = useNotification();
 
   const availableExchanges = getAvailableExchanges();
   const availableCurrencies = getAvailableCurrencies();
-
-  const showNotification = (message: string) => {
-    setNotification(message);
-    setTimeout(() => setNotification(null), 3000);
-  };
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
@@ -79,6 +76,15 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
     );
 
     const totalCost = qty * stockPriceInBaseCurrency;
+    const newTrade: PaperTrade = {
+      id: Date.now().toString(),
+      symbol: selectedStock.symbol,
+      type: tradeType,
+      quantity: qty,
+      price: stockPriceInBaseCurrency,
+      currency: portfolio.baseCurrency,
+      timestamp: new Date().toISOString()
+    };
 
     if (tradeType === 'buy') {
       if (totalCost > portfolio.cash) {
@@ -86,68 +92,18 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
         return;
       }
 
-      const existingPosition = portfolio.positions.find(p => p.symbol === selectedStock.symbol);
-      let newPositions;
-
-      if (existingPosition) {
-        newPositions = portfolio.positions.map(p => {
-          if (p.symbol === selectedStock.symbol) {
-            const totalShares = p.shares + qty;
-            const newAvgCost = ((p.shares * p.averageCost) + totalCost) / totalShares;
-            return { ...p, shares: totalShares, averageCost: newAvgCost };
-          }
-          return p;
-        });
-      } else {
-        newPositions = [...portfolio.positions, {
-          symbol: selectedStock.symbol,
-          shares: qty,
-          averageCost: stockPriceInBaseCurrency,
-          currency: selectedStock.currency
-        }];
-      }
-
-      const newTrade: PaperTrade = {
-        id: Date.now().toString(),
-        symbol: selectedStock.symbol,
-        type: 'buy',
-        quantity: qty,
-        price: stockPriceInBaseCurrency,
-        currency: portfolio.baseCurrency,
-        timestamp: new Date().toISOString()
-      };
-
       setPortfolio({
         ...portfolio,
         cash: portfolio.cash - totalCost,
-        positions: newPositions,
+        positions: applyBuy(portfolio.positions, selectedStock.symbol, qty, stockPriceInBaseCurrency, selectedStock.currency),
         trades: [newTrade, ...portfolio.trades]
       });
     } else {
-      const position = portfolio.positions.find(p => p.symbol === selectedStock.symbol);
-      if (!position || position.shares < qty) {
+      const newPositions = applySell(portfolio.positions, selectedStock.symbol, qty);
+      if (!newPositions) {
         showNotification('Insufficient shares');
         return;
       }
-
-      const newPositions = portfolio.positions
-        .map(p => {
-          if (p.symbol === selectedStock.symbol) {
-            return { ...p, shares: p.shares - qty };
-          }
-          return p;
-        })
-        .filter(p => p.shares > 0);
-
-      const newTrade: PaperTrade = {
-        id: Date.now().toString(),
-        symbol: selectedStock.symbol,
-        type: 'sell',
-        quantity: qty,
-        price: stockPriceInBaseCurrency,
-        currency: portfolio.baseCurrency,
-        timestamp: new Date().toISOString()
-      };
 
       setPortfolio({
         ...portfolio,
@@ -159,32 +115,6 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
 
     consumeTrade();
     setQuantity('');
-  };
-
-  const calculatePortfolioValue = async () => {
-    let holdingsValue = 0;
-
-    for (const holding of portfolio.positions) {
-      const stock = stocks.find(s => s.symbol === holding.symbol);
-      if (stock) {
-        const valueInStockCurrency = holding.shares * stock.price;
-        const valueInBaseCurrency = await convertCurrency(
-          valueInStockCurrency,
-          stock.currency,
-          portfolio.baseCurrency
-        );
-        holdingsValue += valueInBaseCurrency;
-      }
-    }
-
-    return portfolio.cash + holdingsValue;
-  };
-
-  const calculateTotalReturn = async () => {
-    const currentValue = await calculatePortfolioValue();
-    const totalReturn = currentValue - portfolio.initialCash;
-    const returnPercent = (totalReturn / portfolio.initialCash) * 100;
-    return { totalReturn, returnPercent };
   };
 
   const removeFromWatchlist = (symbol: string) => {
@@ -202,15 +132,15 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
 
   useEffect(() => {
     const updateCalculations = async () => {
-      const value = await calculatePortfolioValue();
-      const returns = await calculateTotalReturn();
-      setPortfolioValue(value);
-      setTotalReturn(returns.totalReturn);
-      setReturnPercent(returns.returnPercent);
+      const value = await valuePositions(portfolio.positions, stocks, portfolio.baseCurrency);
+      const currentValue = portfolio.cash + value;
+      const totalReturn = currentValue - portfolio.initialCash;
+      setPortfolioValue(currentValue);
+      setTotalReturn(totalReturn);
+      setReturnPercent((totalReturn / portfolio.initialCash) * 100);
     };
 
     updateCalculations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- calculatePortfolioValue/calculateTotalReturn are derived from stocks+portfolio; recreating them per render would retrigger this effect every render
   }, [stocks, portfolio]);
 
   return (
