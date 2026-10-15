@@ -7,6 +7,7 @@ import { learningPath } from '@/data/learning-path';
 import { loadProgress, completeLesson, getRecommendedLessons, saveTradingStyle, getStreakBonus, checkPremiumStatus, canStartLesson, getRemainingUsage, FREE_DAILY_LESSONS } from '@/lib/progress';
 import { initPurchases, purchasePremium, PurchaseResult } from '@/lib/purchases';
 import { checkAchievements, loadAchievements } from '@/lib/achievements';
+import { playClaim } from '@/lib/sounds';
 import { UserProgress, Lesson, Achievement, TradingStyle, Unit } from '@/types';
 import ProgressCard from '@/components/ProgressCard';
 import QuestsCard from '@/components/QuestsCard';
@@ -60,6 +61,7 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [questTick, setQuestTick] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [justUnlocked, setJustUnlocked] = useState<Achievement | null>(null);
 
   useEffect(() => {
     try {
@@ -101,6 +103,14 @@ export default function Home() {
       setQuestTick(t => t + 1);
       setProgress(updatedProgress);
       const updatedAchievements = checkAchievements(updatedProgress);
+      // Surface newly unlocked achievements as a toast instead of silently
+      const prevUnlocked = new Set(achievements.filter(a => a.unlocked).map(a => a.id));
+      const fresh = updatedAchievements.find(a => a.unlocked && !prevUnlocked.has(a.id));
+      if (fresh) {
+        playClaim();
+        setJustUnlocked(fresh);
+        setTimeout(() => setJustUnlocked(null), 4000);
+      }
       setAchievements(updatedAchievements);
       setActiveLesson(null);
     }
@@ -414,6 +424,20 @@ export default function Home() {
         onRestored={handlePremiumRestored}
         darkMode={darkMode}
       />
+
+      {/* Achievement unlocked toast */}
+      {justUnlocked && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] animate-fade-in">
+          <div className={`flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl border-2 ${darkMode ? 'bg-gray-800 border-yellow-500' : 'bg-white border-yellow-400'}`}>
+            <span className="text-3xl">{justUnlocked.icon}</span>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-yellow-600">Achievement Unlocked</p>
+              <p className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{justUnlocked.title}</p>
+              <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{justUnlocked.description}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* First-launch onboarding */}
       {showOnboarding && (
