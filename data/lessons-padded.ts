@@ -2,6 +2,7 @@ import { Lesson, QuizQuestion } from '@/types';
 import { lessons as baseLessons } from './lessons';
 import { dayTradingLessons } from './day-trading-lessons';
 import { advancedLessons } from './advanced-lessons';
+import { investingLessons } from './investing-lessons';
 
 const MIN_QUESTIONS = 10;
 
@@ -195,7 +196,7 @@ export const padLessonQuestions = (lessons: Lesson[]): Lesson[] => {
   });
 };
 
-export const lessons: Lesson[] = padLessonQuestions([...baseLessons, ...dayTradingLessons, ...advancedLessons]);
+export const lessons: Lesson[] = padLessonQuestions([...baseLessons, ...dayTradingLessons, ...advancedLessons, ...investingLessons]);
 
 export const categories = [
   'Basics',

@@ -162,9 +162,26 @@ export const learningPath: LearningPath = {
         'trading-psychology',
         'position-sizing-risk'
       ], [2, 4])
+    },
+    // Unit 8: Investing Essentials
+    {
+      id: 'unit-8',
+      title: 'Investing Essentials',
+      description: 'ETFs, dividends, macro economics, and earnings season',
+      icon: '💼',
+      category: 'Strategy',
+      locked: true,
+      completed: false,
+      totalXP: 245,
+      levels: createLevelsFromLessons([
+        'etf-index-funds',
+        'financial-statements',
+        'macro-economics',
+        'earnings-season'
+      ], [1, 3])
     }
   ],
-  totalXP: 860,
+  totalXP: 1105,
   totalLessons: 0
 };
 
