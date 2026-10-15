@@ -144,9 +144,27 @@ export const learningPath: LearningPath = {
         'chart-patterns',
         'candlestick-patterns'
       ], [1, 3])
+    },
+    // Unit 7: Beyond Stocks
+    {
+      id: 'unit-7',
+      title: 'Beyond Stocks',
+      description: 'Options strategies, forex, crypto, psychology, and advanced risk management',
+      icon: '🚀',
+      category: 'Advanced',
+      locked: true,
+      completed: false,
+      totalXP: 320,
+      levels: createLevelsFromLessons([
+        'options-strategies',
+        'forex-trading',
+        'crypto-essentials',
+        'trading-psychology',
+        'position-sizing-risk'
+      ], [2, 4])
     }
   ],
-  totalXP: 540,
+  totalXP: 860,
   totalLessons: 0
 };
 
