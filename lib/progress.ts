@@ -63,6 +63,17 @@ export const saveTradingStyle = (tradingStyle: string): void => {
   }
 };
 
+// Registered by lib/progress-sync.ts — invoked after every save so signed-in
+// users' progress uploads to Firestore. Kept as a registration hook to avoid
+// a circular import (progress-sync reads via loadProgress()).
+let progressUploader: ((p: UserProgress) => void) | null = null;
+export const registerProgressUploader = (fn: (p: UserProgress) => void): void => {
+  progressUploader = fn;
+};
+export const notifyProgressSaved = (progress: UserProgress): void => {
+  try { progressUploader?.(progress); } catch { /* sync must never break saves */ }
+};
+
 export const saveProfile = (name: string, avatar: string): UserProgress => {
   const progress = loadProgress();
   const updated = {
@@ -77,6 +88,7 @@ export const saveProfile = (name: string, avatar: string): UserProgress => {
 export const saveProgress = (progress: UserProgress): void => {
   if (typeof window !== 'undefined') {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    notifyProgressSaved(progress);
   }
 };
 

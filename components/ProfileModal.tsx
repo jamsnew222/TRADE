@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Pencil, Check, Trophy, Flame, Star, BookOpen, Calendar, Crown } from 'lucide-react';
+import { X, Pencil, Check, Trophy, Flame, Star, BookOpen, Calendar, Crown, LogOut } from 'lucide-react';
 import { UserProgress, Achievement } from '@/types';
 import { saveProfile, getNextLevelXP } from '@/lib/progress';
 import { tradingStyles } from '@/data/trading-styles';
@@ -14,6 +14,9 @@ interface ProfileModalProps {
   achievements: Achievement[];
   /** Called after the profile is saved so the header avatar/name refresh */
   onSaved: (progress: UserProgress) => void;
+  /** Signed-in account email — shown when auth is active */
+  accountEmail?: string | null;
+  onSignOut?: () => void;
 }
 
 const AVATARS = [
@@ -22,7 +25,7 @@ const AVATARS = [
   '🤖', '😎', '🧙', '🥷', '🤠', '👽', '🐸', '🦉'
 ];
 
-export default function ProfileModal({ isOpen, onClose, darkMode, progress, achievements, onSaved }: ProfileModalProps) {
+export default function ProfileModal({ isOpen, onClose, darkMode, progress, achievements, onSaved, accountEmail, onSignOut }: ProfileModalProps) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(progress.profileName ?? '');
   const [avatar, setAvatar] = useState(progress.profileAvatar ?? '📈');
@@ -159,6 +162,24 @@ export default function ProfileModal({ isOpen, onClose, darkMode, progress, achi
               </div>
             ))}
           </div>
+
+          {/* Account */}
+          {accountEmail && (
+            <div className={`p-4 rounded-xl flex items-center justify-between ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+              <div className="min-w-0">
+                <p className={`text-xs uppercase font-medium ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Signed in as</p>
+                <p className={`text-sm font-medium truncate ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{accountEmail}</p>
+                <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>Progress syncs to this account</p>
+              </div>
+              <button
+                onClick={onSignOut}
+                className="ml-3 shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Sign Out
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

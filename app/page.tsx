@@ -5,7 +5,10 @@ import { lessons, categories } from '@/data/lessons-padded';
 import { tradingStyles } from '@/data/trading-styles';
 import { learningPath } from '@/data/learning-path';
 import { loadProgress, completeLesson, getRecommendedLessons, saveTradingStyle, getStreakBonus, checkPremiumStatus, canStartLesson, getRemainingUsage, grantMonthlyPremiumBonus, FREE_DAILY_LESSONS } from '@/lib/progress';
-import { initPurchases, purchasePremium, PurchaseResult } from '@/lib/purchases';
+import { initPurchases, purchasePremium, linkPurchasesToUser, PurchaseResult } from '@/lib/purchases';
+import { useAuth, authMethods } from '@/lib/auth';
+import { syncOnLogin, enableProgressSync } from '@/lib/progress-sync';
+import AuthScreen from '@/components/AuthScreen';
 import { checkAchievements, loadAchievements } from '@/lib/achievements';
 import { playClaim } from '@/lib/sounds';
 import { UserProgress, Lesson, Achievement, TradingStyle, Unit } from '@/types';
@@ -47,6 +50,7 @@ function buildPathUnits(completedLessonIds: string[]): Unit[] {
 }
 
 export default function Home() {
+  const { user, loading: authLoading, required: authRequired } = useAuth();
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
@@ -93,6 +97,19 @@ export default function Home() {
       console.error('Error loading initial data:', error);
     }
   }, []);
+
+  // When signed in: pull cloud progress (merged with local), keep every
+  // future save uploading, and link RevenueCat purchases to this account.
+  useEffect(() => {
+    if (!user) return;
+    let cleanup: (() => void) | undefined;
+    syncOnLogin(user.uid).then(merged => {
+      setProgress(merged);
+      cleanup = enableProgressSync(user.uid);
+      void linkPurchasesToUser(user.uid);
+    });
+    return () => cleanup?.();
+  }, [user]);
 
   const handleLessonComplete = (xpEarned: number) => {
     if (activeLesson) {
@@ -164,6 +181,19 @@ export default function Home() {
     : lessons.filter(lesson => lesson.category === selectedCategory);
 
   const availableLessons = progress ? getRecommendedLessons(lessons, progress) : [];
+
+  // Auth gate — when Firebase is configured, signing in is required.
+  // (Without env config the app runs in guest/local mode so dev still works.)
+  if (authRequired && authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-100 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+  if (authRequired && !user) {
+    return <AuthScreen />;
+  }
 
   if (activeLesson) {
     return (
@@ -471,6 +501,8 @@ export default function Home() {
           progress={progress}
           achievements={achievements}
           onSaved={setProgress}
+          accountEmail={user?.email}
+          onSignOut={() => { void authMethods.signOut(); setShowProfile(false); }}
         />
       )}
 

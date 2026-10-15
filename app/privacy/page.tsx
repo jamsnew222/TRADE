@@ -10,14 +10,22 @@ const sections: { title: string; body: string[] }[] = [
   {
     title: 'Overview',
     body: [
-      'TradeQuest is a trading education app. It is designed to work without an account: your progress, XP, streaks, portfolio positions, and settings are stored locally on your device and are never uploaded to our servers.',
+      'TradeQuest is a trading education app. To keep your progress safe across devices, the app asks you to sign in with an email address, Google, or Apple. Your learning progress, XP, streaks, and profile are then saved to your account in the cloud so they follow you wherever you sign in.',
       'This policy explains what data the app touches, what third parties it contacts, and what choices you have.'
     ],
   },
   {
-    title: 'Data stored on your device',
+    title: 'Your account',
     body: [
-      'The app stores your learning progress, XP, streaks, daily usage counters, premium status, theme preference, trading style, and simulator portfolio in your device\'s local storage. This data never leaves your device and you can erase it at any time by clearing the app\'s storage or reinstalling.',
+      'Accounts are provided by Firebase Authentication (Google). Depending on how you sign in, Firebase processes your email address and basic profile details from your chosen provider (Google or Apple). We never see or store your password.',
+      'You can sign out at any time from your profile. Signing out keeps a local copy of your progress on the device; signing back in restores and syncs it.',
+    ],
+  },
+  {
+    title: 'Data stored on your device and in the cloud',
+    body: [
+      'The app stores your learning progress, XP, streaks, daily usage counters, premium status, theme preference, trading style, and simulator portfolio in your device\'s local storage so the app works offline.',
+      'When you are signed in, your learning progress (completed lessons, XP, streaks, level, and profile details) is also saved to a cloud database (Cloud Firestore) under your account. This copy is used to restore and sync your progress between devices. It is not shared with other users and is not used for advertising.',
     ],
   },
   {
@@ -30,7 +38,7 @@ const sections: { title: string; body: string[] }[] = [
   {
     title: 'Purchases',
     body: [
-      'Premium subscriptions are processed by Apple App Store or Google Play through RevenueCat (revenuecat.com). We never see or store your card details. RevenueCat receives an anonymous app user ID to manage your subscription entitlement across devices and restores.',
+      'Premium subscriptions are processed by Apple App Store or Google Play through RevenueCat (revenuecat.com). We never see or store your card details. When you are signed in, RevenueCat links your subscription entitlement to your account ID so premium follows you across devices and restores.',
     ],
   },
   {
@@ -46,9 +54,15 @@ const sections: { title: string; body: string[] }[] = [
     ],
   },
   {
+    title: 'Deleting your data',
+    body: [
+      'To remove your data, clear the app\'s storage or uninstall the app (removes the local copy). To delete the cloud copy and your account, contact us through the support channel listed on the app\'s store page and we will remove it.',
+    ],
+  },
+  {
     title: 'Children',
     body: [
-      'The app does not knowingly collect personal information from children under 13. All learning data stays on the device.',
+      'The app does not knowingly collect personal information from children under 13. Accounts require an email address or an existing Google/Apple account, which carry their own age requirements.',
     ],
   },
   {

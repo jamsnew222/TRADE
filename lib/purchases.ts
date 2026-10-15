@@ -62,6 +62,23 @@ export async function initPurchases(): Promise<void> {
   }
 }
 
+/**
+ * Tie the RevenueCat customer to the signed-in Firebase UID so a premium
+ * subscription follows the account across devices and reinstalls.
+ */
+export async function linkPurchasesToUser(uid: string): Promise<void> {
+  if (!isNativeBilling()) return;
+  try {
+    const Purchases = await getPurchases();
+    const { customerInfo } = await Purchases.logIn({ appUserID: uid });
+    if (hasEntitlement(customerInfo)) {
+      activatePremium('yearly');
+    }
+  } catch (e) {
+    console.warn('RevenueCat login failed:', e);
+  }
+}
+
 export interface PurchaseResult {
   success: boolean;
   cancelled?: boolean;
