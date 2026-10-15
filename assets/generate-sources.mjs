@@ -22,3 +22,11 @@ for (const [src, dest, size] of jobs) {
     .toFile(join(dir, dest));
   console.log(`wrote ${dest}`);
 }
+
+// Play Store feature graphic is non-square: 1024x500
+const feature = readFileSync(join(dir, 'feature-graphic.svg'));
+await sharp(feature, { density: 384 })
+  .resize(1024, 500)
+  .png()
+  .toFile(join(dir, 'feature-graphic.png'));
+console.log('wrote feature-graphic.png');
