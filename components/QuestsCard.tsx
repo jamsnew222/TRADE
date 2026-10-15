@@ -9,9 +9,11 @@ interface QuestsCardProps {
   darkMode: boolean;
   /** Bump to re-read quest progress (e.g. after a lesson completes). */
   tick?: number;
+  /** Called after a claim — claimed XP updates progress, parent should reload it. */
+  onClaimed?: () => void;
 }
 
-export default function QuestsCard({ darkMode, tick = 0 }: QuestsCardProps) {
+export default function QuestsCard({ darkMode, tick = 0, onClaimed }: QuestsCardProps) {
   const [quests, setQuests] = useState<Quest[]>([]);
   const [justClaimed, setJustClaimed] = useState<number | null>(null);
 
@@ -29,6 +31,7 @@ export default function QuestsCard({ darkMode, tick = 0 }: QuestsCardProps) {
       playClaim();
       setJustClaimed(reward);
       setQuests(getTodayQuests());
+      onClaimed?.();
       setTimeout(() => setJustClaimed(null), 2500);
     }
   };

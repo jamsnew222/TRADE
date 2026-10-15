@@ -266,7 +266,7 @@ export default function Home() {
               </div>
             )}
 
-            <QuestsCard darkMode={darkMode} tick={questTick} />
+            <QuestsCard darkMode={darkMode} tick={questTick} onClaimed={() => setProgress(loadProgress())} />
           </div>
         )}
 
