@@ -17,6 +17,8 @@ interface ProfileModalProps {
   /** Signed-in account email — shown when auth is active */
   accountEmail?: string | null;
   onSignOut?: () => void;
+  /** Permanently deletes the account (cloud + local); should throw on failure */
+  onDeleteAccount?: () => Promise<void>;
 }
 
 const AVATARS = [
@@ -25,11 +27,14 @@ const AVATARS = [
   '🤖', '😎', '🧙', '🥷', '🤠', '👽', '🐸', '🦉'
 ];
 
-export default function ProfileModal({ isOpen, onClose, darkMode, progress, achievements, onSaved, accountEmail, onSignOut }: ProfileModalProps) {
+export default function ProfileModal({ isOpen, onClose, darkMode, progress, achievements, onSaved, accountEmail, onSignOut, onDeleteAccount }: ProfileModalProps) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(progress.profileName ?? '');
   const [avatar, setAvatar] = useState(progress.profileAvatar ?? '📈');
   const [pickingAvatar, setPickingAvatar] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -178,6 +183,53 @@ export default function ProfileModal({ isOpen, onClose, darkMode, progress, achi
                 <LogOut className="w-4 h-4" />
                 Sign Out
               </button>
+            </div>
+          )}
+
+          {/* Delete account — required by App Store 5.1.1 / Play policy for
+              apps with account creation */}
+          {accountEmail && onDeleteAccount && (
+            <div className={`p-4 rounded-xl border ${confirmingDelete ? 'border-red-300 bg-red-50' : darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+              {!confirmingDelete ? (
+                <button
+                  onClick={() => setConfirmingDelete(true)}
+                  className="text-sm text-red-500 hover:text-red-700 font-medium"
+                >
+                  Delete account…
+                </button>
+              ) : (
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-red-700">
+                    This permanently deletes your account, cloud saves, and all local progress. This can&apos;t be undone.
+                  </p>
+                  {deleteError && <p className="text-sm text-red-600">{deleteError}</p>}
+                  <div className="flex gap-2">
+                    <button
+                      disabled={deleting}
+                      onClick={async () => {
+                        setDeleting(true);
+                        setDeleteError(null);
+                        try {
+                          await onDeleteAccount();
+                        } catch (e) {
+                          setDeleteError(e instanceof Error ? e.message : 'Delete failed');
+                          setDeleting(false);
+                        }
+                      }}
+                      className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-bold disabled:opacity-50"
+                    >
+                      {deleting ? 'Deleting…' : 'Yes, delete everything'}
+                    </button>
+                    <button
+                      disabled={deleting}
+                      onClick={() => { setConfirmingDelete(false); setDeleteError(null); }}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium ${darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-700'}`}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

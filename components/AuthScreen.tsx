@@ -11,6 +11,7 @@ export default function AuthScreen() {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const isIOS = Capacitor.getPlatform() === 'ios';
 
   const run = async (fn: () => Promise<unknown>) => {
@@ -48,6 +49,11 @@ export default function AuthScreen() {
         {error && (
           <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
             {error}
+          </div>
+        )}
+        {notice && (
+          <div className="mb-4 p-3 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm">
+            {notice}
           </div>
         )}
 
@@ -126,12 +132,30 @@ export default function AuthScreen() {
             {busy ? <Loader2 className="w-5 h-5 animate-spin" /> : <Mail className="w-5 h-5" />}
             {mode === 'signup' ? 'Create Account' : 'Log In'}
           </button>
+
+          {mode === 'login' && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                if (!email) { setError('Enter your email first, then tap Forgot password'); return; }
+                setNotice(null);
+                void run(async () => {
+                  await authMethods.resetPassword(email);
+                  setNotice(`Password reset link sent to ${email}`);
+                });
+              }}
+              className="w-full text-center text-sm text-gray-500 hover:text-blue-600"
+            >
+              Forgot password?
+            </button>
+          )}
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-500">
           {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
           <button
-            onClick={() => { setMode(m => m === 'login' ? 'signup' : 'login'); setError(null); }}
+            onClick={() => { setMode(m => m === 'login' ? 'signup' : 'login'); setError(null); setNotice(null); }}
             className="font-semibold text-blue-600 hover:text-blue-700"
           >
             {mode === 'login' ? 'Sign up' : 'Log in'}

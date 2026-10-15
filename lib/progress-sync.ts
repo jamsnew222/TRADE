@@ -1,9 +1,16 @@
 'use client';
 
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { UserProgress } from '@/types';
 import { getFirestoreDb } from './firebase';
 import { loadProgress, saveProgress, registerProgressUploader } from './progress';
+import {
+  loadSimulatorPortfolio,
+  saveSimulatorPortfolio,
+  loadPaperPortfolio,
+  savePaperPortfolio,
+  registerPortfolioUploader,
+} from './simulator-storage';
 
 /**
  * Cloud sync: progress lives at users/{uid}.progress in Firestore.
@@ -76,10 +83,21 @@ export async function syncOnLogin(uid: string): Promise<UserProgress> {
   const local = loadProgress();
   try {
     const snap = await getDoc(docRef(uid));
-    const cloud = snap.exists() ? (snap.data().progress as Partial<UserProgress>) : undefined;
-    const merged = mergeProgress(local, cloud);
+    const data = snap.exists() ? snap.data() : undefined;
+    const merged = mergeProgress(local, data?.progress as Partial<UserProgress> | undefined);
     saveProgress(merged); // local cache gets the merged state
     await setDoc(docRef(uid), { progress: merged }, { merge: true });
+
+    // Portfolios: last-writer-wins — restore cloud only when this device has
+    // none; otherwise this device keeps its own and will overwrite the cloud
+    // on its next save (portfolios are practice state, not merged per-position).
+    if (loadSimulatorPortfolio() === null && data?.simulator) {
+      saveSimulatorPortfolio(data.simulator);
+    }
+    if (loadPaperPortfolio() === null && data?.paper) {
+      savePaperPortfolio(data.paper);
+    }
+
     return merged;
   } catch (e) {
     console.warn('Cloud sync failed, continuing with local progress:', e);
@@ -90,12 +108,27 @@ export async function syncOnLogin(uid: string): Promise<UserProgress> {
 /** Register the uploader so every local save also writes to the cloud
  *  (fire-and-forget — offline writes queue in Firestore's own cache). */
 export function enableProgressSync(uid: string): () => void {
-  registerProgressUploader(progress => {
+  const upload = (fields: Record<string, unknown>) => {
     const db = getFirestoreDb();
     if (!db) return;
-    void setDoc(docRef(uid), { progress }, { merge: true }).catch(e =>
+    void setDoc(docRef(uid), fields, { merge: true }).catch(e =>
       console.warn('Progress upload failed:', e)
     );
-  });
-  return () => registerProgressUploader(() => {});
+  };
+  registerProgressUploader(progress => upload({ progress }));
+  registerPortfolioUploader('sim', p => upload({ simulator: p }));
+  registerPortfolioUploader('paper', p => upload({ paper: p }));
+  return () => {
+    registerProgressUploader(() => {});
+    registerPortfolioUploader('sim', null);
+    registerPortfolioUploader('paper', null);
+  };
+}
+
+/** Permanently deletes the user's cloud document — call before deleting the
+ *  auth account while security rules still allow the write. */
+export async function deleteUserDoc(uid: string): Promise<void> {
+  const db = getFirestoreDb();
+  if (!db) return;
+  await deleteDoc(docRef(uid));
 }

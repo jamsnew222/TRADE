@@ -56,7 +56,7 @@ const sections: { title: string; body: string[] }[] = [
   {
     title: 'Deleting your data',
     body: [
-      'To remove your data, clear the app\'s storage or uninstall the app (removes the local copy). To delete the cloud copy and your account, contact us through the support channel listed on the app\'s store page and we will remove it.',
+      'You can delete your account and all associated data at any time inside the app: open your Profile and choose "Delete account". This permanently removes your account, the cloud copy of your progress, and local app data on that device. You can also clear local data by clearing the app\'s storage or uninstalling, or contact us through the support channel listed on the app\'s store page.',
     ],
   },
   {

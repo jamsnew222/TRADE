@@ -105,6 +105,9 @@ export default function Home() {
     let cleanup: (() => void) | undefined;
     syncOnLogin(user.uid).then(merged => {
       setProgress(merged);
+      // Re-derive achievements from the merged record — on a fresh device the
+      // unlocked list starts empty and would stay locked until the next lesson
+      setAchievements(checkAchievements(merged));
       cleanup = enableProgressSync(user.uid);
       void linkPurchasesToUser(user.uid);
     });
@@ -503,6 +506,12 @@ export default function Home() {
           onSaved={setProgress}
           accountEmail={user?.email}
           onSignOut={() => { void authMethods.signOut(); setShowProfile(false); }}
+          onDeleteAccount={async () => {
+            await authMethods.deleteAccount();
+            // Reload so every in-memory slice (progress, quests, portfolios)
+            // resets before the auth gate returns to the sign-in screen
+            window.location.reload();
+          }}
         />
       )}
 

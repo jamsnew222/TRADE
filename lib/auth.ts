@@ -11,11 +11,13 @@ import {
   GoogleAuthProvider,
   OAuthProvider,
   EmailAuthProvider,
+  sendPasswordResetEmail,
   type User,
 } from 'firebase/auth';
 import { Capacitor } from '@capacitor/core';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { getFirebaseAuth, firebaseConfigured } from './firebase';
+import { deleteUserDoc } from './progress-sync';
 
 export interface AuthState {
   /** null = not logged in; undefined is avoided — use `loading` */
@@ -99,6 +101,12 @@ async function signInApple() {
   }
 }
 
+async function resetPassword(email: string) {
+  const auth = getFirebaseAuth();
+  if (!auth) throw new Error('Auth is not configured');
+  await sendPasswordResetEmail(auth, email);
+}
+
 async function signOut() {
   const auth = getFirebaseAuth();
   if (Capacitor.isNativePlatform()) {
@@ -107,4 +115,40 @@ async function signOut() {
   if (auth) await fbSignOut(auth);
 }
 
-export const authMethods = { signInEmail, signUpEmail, signInGoogle, signInApple, signOut };
+/**
+ * Permanently deletes the account: cloud doc first (rules still allow the
+ * write), then the auth user, then all local app data. Firebase requires a
+ * recent login for deletion — callers should surface that message so the user
+ * can re-sign-in and retry.
+ */
+async function deleteAccount() {
+  const auth = getFirebaseAuth();
+  const user = auth?.currentUser;
+  if (!user) throw new Error('Not signed in');
+
+  await deleteUserDoc(user.uid);
+  try {
+    await user.delete();
+  } catch (e) {
+    if ((e as { code?: string }).code === 'auth/requires-recent-login') {
+      throw new Error('For security, sign out and sign back in, then delete your account.');
+    }
+    throw e;
+  }
+  if (Capacitor.isNativePlatform()) {
+    await FirebaseAuthentication.signOut().catch(() => {});
+  }
+  // Account deletion should leave nothing behind — device prefs included,
+  // so the next person on this device starts completely fresh.
+  localStorage.clear();
+}
+
+export const authMethods = {
+  signInEmail,
+  signUpEmail,
+  signInGoogle,
+  signInApple,
+  resetPassword,
+  signOut,
+  deleteAccount,
+};
