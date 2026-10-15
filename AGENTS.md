@@ -19,3 +19,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Finnhub key lives in .env.local (gitignored) as NEXT_PUBLIC_FINNHUB_API_KEY - client-side by necessity (static export); regenerate via finnhub.io if ever leaked
 - Free tier: 5 lessons + 25 trades/day; premium bypasses (localStorage until real IAP)
 - Question cards dispatch on question.type (not lesson.type) - see lib/lesson-questions.ts
+
+## Auth & cloud sync
+- Firebase = the backend (static export, no server). Console setup: AUTH_SETUP.md; env vars in .env.example — without them the app runs guest/local mode (no login gate)
+- lib/firebase.ts (init + persistent Firestore cache), lib/auth.ts (useAuth + authMethods), lib/progress-sync.ts (Firestore users/{uid}: progress + simulator + paper portfolios, merge-on-login, upload-on-save via registerProgressUploader hooks — never import sync from progress.ts directly, that's why the hook exists)
+- firestore.rules must be deployed; users can only access their own doc
+- In-app account deletion exists (Profile -> Delete account) - App Store 5.1.1/Play require it for apps with account creation
+- On native, Capacitor plugin signs in the native layer then credentials are bridged into the web SDK via signInWithCredential (web auth state is what web Firestore uses)
+- RevenueCat linkPurchasesToUser(uid) ties premium to the Firebase account

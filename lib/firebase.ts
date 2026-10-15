@@ -1,6 +1,12 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import {
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  Firestore,
+} from 'firebase/firestore';
 
 // Public web config — safe to embed (Firebase keys identify the project,
 // they don't grant access; rules on Firestore do the protecting).
@@ -31,6 +37,18 @@ export function getFirebaseAuth(): Auth | null {
 export function getFirestoreDb(): Firestore | null {
   if (!firebaseConfigured || typeof window === 'undefined') return null;
   if (!app) app = getApps().length ? getApps()[0] : initializeApp(config);
-  if (!db) db = getFirestore(app);
+  if (!db) {
+    // IndexedDB-backed cache: reads work offline and unsynced writes survive
+    // app restarts — multi-tab manager so several open tabs share it safely.
+    try {
+      db = initializeFirestore(app, {
+        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+      });
+    } catch {
+      // IndexedDB unavailable (e.g. some embedded webviews) — fall back to
+      // the default in-memory cache rather than breaking the app.
+      db = getFirestore(app);
+    }
+  }
   return db;
 }
