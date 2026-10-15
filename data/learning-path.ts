@@ -180,9 +180,27 @@ export const learningPath: LearningPath = {
         'macro-economics',
         'earnings-season'
       ], [1, 3])
+    },
+    // Unit 9: Trader's Toolkit
+    {
+      id: 'unit-9',
+      title: "Trader's Toolkit",
+      description: 'Deeper indicators, bonds, commodities, retirement accounts, and the trading plan',
+      icon: '🧰',
+      category: 'Advanced',
+      locked: true,
+      completed: false,
+      totalXP: 295,
+      levels: createLevelsFromLessons([
+        'macd-bollinger',
+        'bonds-fixed-income',
+        'commodities-reits',
+        'retirement-accounts',
+        'trading-plan'
+      ], [2, 4])
     }
   ],
-  totalXP: 1105,
+  totalXP: 1400,
   totalLessons: 0
 };
 

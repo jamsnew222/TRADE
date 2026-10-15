@@ -3,6 +3,7 @@ import { lessons as baseLessons } from './lessons';
 import { dayTradingLessons } from './day-trading-lessons';
 import { advancedLessons } from './advanced-lessons';
 import { investingLessons } from './investing-lessons';
+import { toolkitLessons } from './toolkit-lessons';
 
 const MIN_QUESTIONS = 10;
 
@@ -196,7 +197,7 @@ export const padLessonQuestions = (lessons: Lesson[]): Lesson[] => {
   });
 };
 
-export const lessons: Lesson[] = padLessonQuestions([...baseLessons, ...dayTradingLessons, ...advancedLessons, ...investingLessons]);
+export const lessons: Lesson[] = padLessonQuestions([...baseLessons, ...dayTradingLessons, ...advancedLessons, ...investingLessons, ...toolkitLessons]);
 
 export const categories = [
   'Basics',
