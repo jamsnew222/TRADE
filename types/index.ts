@@ -88,7 +88,7 @@ export interface QuizQuestion {
   options: string[];
   correctAnswer: number;
   explanation: string;
-  type?: 'multiple-choice' | 'true-false' | 'multiple-select';
+  type?: 'quiz' | 'multiple-choice' | 'true-false' | 'multiple-select';
   correctAnswers?: number[]; // For multiple-select questions
 }
 
