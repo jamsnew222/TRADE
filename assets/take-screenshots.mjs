@@ -75,13 +75,27 @@ try {
 
     if (await tryClick(page.getByRole('button', { name: /start learning|start lesson/i }), 'begin lesson')) {
       await page.waitForTimeout(600);
-      for (let i = 0; i < 4; i++) {
-        const done = await tryClick(page.getByRole('button', { name: /next|ready|continue/i }), `learn slide ${i}`);
-        if (!done) break;
-        await page.waitForTimeout(400);
+      // Keep clicking Next until the quiz actually starts (the label changes to
+      // "Ready - start the quiz" on the last learn slide)
+      for (let i = 0; i < 10; i++) {
+        const quizReady = await page.getByRole('button', { name: /ready/i }).count();
+        if (quizReady) {
+          await tryClick(page.getByRole('button', { name: /ready/i }), 'start quiz');
+          break;
+        }
+        const clicked = await tryClick(page.getByRole('button', { name: /next|continue/i }), `learn slide ${i}`);
+        if (!clicked) break;
+        await page.waitForTimeout(350);
       }
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(700);
       await shot('04-lesson-question.png');
+      // Answer the first option to show the checked state
+      if (await tryClick(page.locator('button').filter({ hasText: /./ }).nth(3), 'answer option')) {
+        await page.waitForTimeout(400);
+        await tryClick(page.getByRole('button', { name: /check|submit/i }), 'check answer');
+        await page.waitForTimeout(600);
+        await shot('04b-lesson-result.png');
+      }
     }
     await tryClick(page.getByRole('button', { name: /back|exit|quit/i }), 'exit lesson');
     await page.waitForTimeout(500);
