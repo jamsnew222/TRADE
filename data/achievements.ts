@@ -118,7 +118,7 @@ export const achievements: Achievement[] = [
     icon: '🎓',
     requirement: {
       type: 'category_completed',
-      value: 30,
+      value: 33,
       category: 'Basics'
     },
     unlocked: false
@@ -130,7 +130,7 @@ export const achievements: Achievement[] = [
     icon: '📋',
     requirement: {
       type: 'category_completed',
-      value: 8,
+      value: 11,
       category: 'Orders'
     },
     unlocked: false
@@ -142,7 +142,7 @@ export const achievements: Achievement[] = [
     icon: '🧠',
     requirement: {
       type: 'category_completed',
-      value: 20,
+      value: 21,
       category: 'Strategy'
     },
     unlocked: false
@@ -154,7 +154,7 @@ export const achievements: Achievement[] = [
     icon: '📈',
     requirement: {
       type: 'category_completed',
-      value: 15,
+      value: 11,
       category: 'Technical Analysis'
     },
     unlocked: false
@@ -166,7 +166,7 @@ export const achievements: Achievement[] = [
     icon: '🔍',
     requirement: {
       type: 'category_completed',
-      value: 10,
+      value: 8,
       category: 'Fundamental Analysis'
     },
     unlocked: false
@@ -178,7 +178,7 @@ export const achievements: Achievement[] = [
     icon: '🚀',
     requirement: {
       type: 'category_completed',
-      value: 8,
+      value: 3,
       category: 'Advanced'
     },
     unlocked: false
@@ -190,7 +190,7 @@ export const achievements: Achievement[] = [
     icon: '📊',
     requirement: {
       type: 'category_completed',
-      value: 5,
+      value: 3,
       category: 'Options'
     },
     unlocked: false
@@ -202,7 +202,7 @@ export const achievements: Achievement[] = [
     icon: '💱',
     requirement: {
       type: 'category_completed',
-      value: 5,
+      value: 2,
       category: 'Forex'
     },
     unlocked: false
@@ -214,7 +214,7 @@ export const achievements: Achievement[] = [
     icon: '₿',
     requirement: {
       type: 'category_completed',
-      value: 5,
+      value: 3,
       category: 'Crypto'
     },
     unlocked: false
@@ -226,7 +226,7 @@ export const achievements: Achievement[] = [
     icon: '🧠',
     requirement: {
       type: 'category_completed',
-      value: 5,
+      value: 2,
       category: 'Psychology'
     },
     unlocked: false
@@ -238,7 +238,7 @@ export const achievements: Achievement[] = [
     icon: '🛡️',
     requirement: {
       type: 'category_completed',
-      value: 5,
+      value: 4,
       category: 'Risk Management'
     },
     unlocked: false

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { lessons } from './lessons-padded';
+import { achievements } from './achievements';
 import { buildQuestions, AnyQuestion } from '@/lib/lesson-questions';
 
 /**
@@ -119,6 +120,25 @@ describe('lesson corpus validation', () => {
       if (!l.category?.trim()) errors.push(`${l.id}: no category`);
       if (!['beginner', 'intermediate', 'advanced'].includes(l.difficulty)) {
         errors.push(`${l.id}: bad difficulty '${l.difficulty}'`);
+      }
+    }
+    expect(errors).toEqual([]);
+  });
+
+  it('category achievements are reachable — targets match real lesson counts', () => {
+    const counts = new Map<string, number>();
+    for (const l of lessons) counts.set(l.category, (counts.get(l.category) ?? 0) + 1);
+
+    const errors: string[] = [];
+    for (const a of achievements) {
+      if (a.requirement.type === 'category_completed' && a.requirement.category) {
+        const actual = counts.get(a.requirement.category) ?? 0;
+        if (a.requirement.value > actual) {
+          errors.push(`${a.id}: needs ${a.requirement.value} ${a.requirement.category} lessons but only ${actual} exist`);
+        }
+      }
+      if (a.requirement.type === 'lessons_completed' && a.requirement.value > lessons.length) {
+        errors.push(`${a.id}: needs ${a.requirement.value} lessons but only ${lessons.length} exist`);
       }
     }
     expect(errors).toEqual([]);
