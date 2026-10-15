@@ -7,7 +7,7 @@ import { learningPath } from '@/data/learning-path';
 import { loadProgress, completeLesson, getRecommendedLessons, saveTradingStyle, getStreakBonus, checkPremiumStatus, canStartLesson, getRemainingUsage, FREE_DAILY_LESSONS } from '@/lib/progress';
 import { initPurchases, purchasePremium, PurchaseResult } from '@/lib/purchases';
 import { checkAchievements, loadAchievements } from '@/lib/achievements';
-import { UserProgress, Lesson, Achievement, TradingStyle } from '@/types';
+import { UserProgress, Lesson, Achievement, TradingStyle, Unit } from '@/types';
 import ProgressCard from '@/components/ProgressCard';
 import QuestsCard from '@/components/QuestsCard';
 import OnboardingModal, { hasSeenOnboarding, markOnboarded } from '@/components/OnboardingModal';
@@ -23,6 +23,26 @@ import LearningPath from '@/components/LearningPath';
 import PremiumModal from '@/components/PremiumModal';
 import SettingsModal from '@/components/SettingsModal';
 import { TrendingUp, Trophy, Gamepad2, RotateCcw, BarChart3, Settings, Crown } from 'lucide-react';
+
+// Merge real progress into the static path data: unlock levels
+// sequentially within a unit, and units once the previous is done.
+function buildPathUnits(completedLessonIds: string[]): Unit[] {
+  const done = new Set(completedLessonIds);
+  let prevUnitComplete = true;
+  return learningPath.units.map(unit => {
+    let prevLevelDone = true;
+    const levels = unit.levels.map((level, i) => {
+      const completed = done.has(level.lessonId);
+      const locked = !prevUnitComplete || (i > 0 && !prevLevelDone);
+      prevLevelDone = completed;
+      return { ...level, locked, completed };
+    });
+    const completed = levels.every(l => l.completed);
+    const merged = { ...unit, levels, locked: !prevUnitComplete, completed };
+    prevUnitComplete = completed;
+    return merged;
+  });
+}
 
 export default function Home() {
   const [progress, setProgress] = useState<UserProgress | null>(null);
@@ -90,6 +110,8 @@ export default function Home() {
     const updatedProgress = loadProgress();
     setProgress(updatedProgress);
   };
+
+  const pathUnits = buildPathUnits(progress?.completedLessons ?? []);
 
   const handleStartLesson = (lesson: Lesson) => {
     const current = loadProgress();
@@ -332,7 +354,7 @@ export default function Home() {
         ) : (
           /* Learning Path */
           <LearningPath
-            units={learningPath.units}
+            units={pathUnits}
             onLevelClick={(level) => handleStartLesson(level.lesson)}
             darkMode={darkMode}
           />
