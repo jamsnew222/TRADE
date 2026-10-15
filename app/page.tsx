@@ -10,6 +10,7 @@ import { checkAchievements, loadAchievements } from '@/lib/achievements';
 import { UserProgress, Lesson, Achievement, TradingStyle } from '@/types';
 import ProgressCard from '@/components/ProgressCard';
 import QuestsCard from '@/components/QuestsCard';
+import OnboardingModal, { hasSeenOnboarding, markOnboarded } from '@/components/OnboardingModal';
 import { recordQuestEvent } from '@/lib/quests';
 import LessonCard from '@/components/LessonCard';
 import LessonView from '@/components/LessonView';
@@ -38,6 +39,7 @@ export default function Home() {
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [questTick, setQuestTick] = useState(0);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     try {
@@ -51,8 +53,10 @@ export default function Home() {
         setDarkMode(true);
       }
 
-      // Show style selector if no trading style selected
-      if (!progressData.tradingStyle) {
+      // First launch: onboarding carousel, then style selector
+      if (!hasSeenOnboarding()) {
+        setShowOnboarding(true);
+      } else if (!progressData.tradingStyle) {
         setShowStyleSelector(true);
       }
 
@@ -381,6 +385,17 @@ export default function Home() {
         onRestored={handlePremiumRestored}
         darkMode={darkMode}
       />
+
+      {/* First-launch onboarding */}
+      {showOnboarding && (
+        <OnboardingModal
+          onDone={() => {
+            markOnboarded();
+            setShowOnboarding(false);
+            if (!progress?.tradingStyle) setShowStyleSelector(true);
+          }}
+        />
+      )}
 
       {/* Settings Modal */}
       <SettingsModal
