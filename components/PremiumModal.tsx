@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Crown, Star, Zap, Shield, Check, X, CreditCard, Gift, TrendingUp, BookOpen, Flame, Award, RotateCcw, Heart } from 'lucide-react';
+import { Crown, Star, Zap, Shield, Check, X, CreditCard, Gift, BookOpen, Flame, RotateCcw, Heart } from 'lucide-react';
 import { PurchaseResult, restorePurchases } from '@/lib/purchases';
 
 interface PremiumModalProps {
@@ -60,15 +60,14 @@ export default function PremiumModal({ isOpen, onClose, onSubscribe, onRestored,
     { icon: Heart, title: '2 Revives Per Lesson', description: 'Keep going after running out of hearts' },
     { icon: Zap, title: 'Unlimited Daily Usage', description: 'No daily limits on lessons or simulator trades' },
     { icon: BookOpen, title: 'Premium Lessons', description: 'Access exclusive advanced content' },
-    { icon: Zap, title: 'Instant Level Up', description: 'Skip waiting to level up' },
-    { icon: Award, title: 'Exclusive Badges', description: 'Show off premium achievements' },
-    { icon: TrendingUp, title: 'Real-Time Market Data', description: 'Live stock prices and charts' },
     { icon: Gift, title: 'Monthly Bonus XP', description: 'Get 500 bonus XP every month' },
+    { icon: Crown, title: 'Premium Profile Crown', description: 'Show your status on your profile' },
+    { icon: Shield, title: 'Ad-Free Forever', description: 'No ads, no tracking, no interruptions' },
   ];
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className={`max-w-4xl w-full rounded-3xl shadow-2xl overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+      <div className={`max-w-4xl w-full rounded-3xl shadow-2xl overflow-y-auto max-h-[90vh] ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
         {/* Header */}
         <div className="bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 p-8 text-center relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>

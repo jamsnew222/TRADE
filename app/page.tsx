@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { lessons, categories } from '@/data/lessons-padded';
 import { tradingStyles } from '@/data/trading-styles';
 import { learningPath } from '@/data/learning-path';
-import { loadProgress, completeLesson, getRecommendedLessons, saveTradingStyle, getStreakBonus, checkPremiumStatus, canStartLesson, getRemainingUsage, FREE_DAILY_LESSONS } from '@/lib/progress';
+import { loadProgress, completeLesson, getRecommendedLessons, saveTradingStyle, getStreakBonus, checkPremiumStatus, canStartLesson, getRemainingUsage, grantMonthlyPremiumBonus, FREE_DAILY_LESSONS } from '@/lib/progress';
 import { initPurchases, purchasePremium, PurchaseResult } from '@/lib/purchases';
 import { checkAchievements, loadAchievements } from '@/lib/achievements';
 import { playClaim } from '@/lib/sounds';
@@ -23,6 +23,7 @@ import PaperTradingPlatform from '@/components/PaperTradingPlatform';
 import LearningPath from '@/components/LearningPath';
 import PremiumModal from '@/components/PremiumModal';
 import SettingsModal from '@/components/SettingsModal';
+import ProfileModal from '@/components/ProfileModal';
 import { TrendingUp, Trophy, Gamepad2, RotateCcw, BarChart3, Settings, Crown } from 'lucide-react';
 
 // Merge real progress into the static path data: unlock levels
@@ -61,6 +62,7 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [questTick, setQuestTick] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [justUnlocked, setJustUnlocked] = useState<Achievement | null>(null);
 
   useEffect(() => {
@@ -84,6 +86,9 @@ export default function Home() {
 
       // Sync premium entitlement with the store (native builds only; no-op on web)
       void initPurchases().then(() => setProgress(loadProgress()));
+
+      // Premium monthly XP perk
+      setProgress(grantMonthlyPremiumBonus());
     } catch (error) {
       console.error('Error loading initial data:', error);
     }
@@ -93,9 +98,9 @@ export default function Home() {
     if (activeLesson) {
       const progressData = loadProgress();
       const streakBonus = getStreakBonus(progressData.currentStreak);
-      // LessonView advertises premium 2x XP on the completion screen — award it for real
-      const premiumBonus = checkPremiumStatus(progressData) ? xpEarned : 0;
-      const totalXP = xpEarned + streakBonus + premiumBonus;
+      // completeLesson applies the premium 2x multiplier internally — pass
+      // base+streak so it isn't double-counted
+      const totalXP = xpEarned + streakBonus;
 
       const updatedProgress = completeLesson(activeLesson.id, totalXP);
       recordQuestEvent('lesson', 1);
@@ -246,6 +251,13 @@ export default function Home() {
               >
                 <Settings className="w-4 h-4" />
                 <span className="text-sm font-medium">Settings</span>
+              </button>
+              <button
+                onClick={() => setShowProfile(true)}
+                className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-lg shadow hover:scale-105 transition-transform"
+                aria-label="Profile"
+              >
+                {progress?.profileAvatar ?? '📈'}
               </button>
             </div>
           </div>
@@ -447,6 +459,18 @@ export default function Home() {
             setShowOnboarding(false);
             if (!progress?.tradingStyle) setShowStyleSelector(true);
           }}
+        />
+      )}
+
+      {/* Profile */}
+      {progress && (
+        <ProfileModal
+          isOpen={showProfile}
+          onClose={() => setShowProfile(false)}
+          darkMode={darkMode}
+          progress={progress}
+          achievements={achievements}
+          onSaved={setProgress}
         />
       )}
 

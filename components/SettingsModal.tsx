@@ -47,6 +47,7 @@ export default function SettingsModal({
           </div>
           <button
             onClick={onClose}
+            aria-label="Close"
             className={`p-2 hover:bg-gray-100 rounded-full transition-colors ${darkMode ? 'hover:bg-gray-700' : ''}`}
           >
             <X className={`w-5 h-5 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />

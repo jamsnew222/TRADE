@@ -212,6 +212,7 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
             </button>
             <button
               onClick={onClose}
+              aria-label="Close"
               className={`p-2 hover:bg-gray-100 rounded-full transition-colors ${darkMode ? 'hover:bg-gray-700' : ''}`}
             >
               <X className={`w-5 h-5 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`} />
@@ -309,21 +310,21 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
             </div>
 
             <div className="grid grid-cols-3 gap-4">
-              <div>
+              <div className="min-w-0">
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Total Value</p>
-                <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                <p className={`text-lg sm:text-2xl font-bold truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                   {formatPrice(portfolioValue, portfolio.baseCurrency)}
                 </p>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Cash</p>
-                <p className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                <p className={`text-lg sm:text-2xl font-bold truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                   {formatPrice(portfolio.cash, portfolio.baseCurrency)}
                 </p>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>P/L</p>
-                <p className={`text-2xl font-bold ${profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <p className={`text-lg sm:text-2xl font-bold truncate ${profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {profitLoss >= 0 ? '+' : ''}{formatPrice(profitLoss, portfolio.baseCurrency)}
                 </p>
               </div>

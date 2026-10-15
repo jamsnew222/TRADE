@@ -63,6 +63,17 @@ export const saveTradingStyle = (tradingStyle: string): void => {
   }
 };
 
+export const saveProfile = (name: string, avatar: string): UserProgress => {
+  const progress = loadProgress();
+  const updated = {
+    ...progress,
+    profileName: name.trim().slice(0, 24) || undefined,
+    profileAvatar: avatar || undefined,
+  };
+  saveProgress(updated);
+  return updated;
+};
+
 export const saveProgress = (progress: UserProgress): void => {
   if (typeof window !== 'undefined') {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
@@ -202,6 +213,20 @@ export const cancelPremium = (): UserProgress => {
 
 export const getPremiumMultiplier = (progress: UserProgress): number => {
   return checkPremiumStatus(progress) ? 2 : 1;
+};
+
+// Premium perk: +500 XP once per calendar month, granted on app load.
+export const PREMIUM_MONTHLY_XP = 500;
+export const grantMonthlyPremiumBonus = (): UserProgress => {
+  const progress = loadProgress();
+  const month = new Date().toISOString().slice(0, 7); // YYYY-MM
+  if (!checkPremiumStatus(progress) || progress.lastPremiumBonusMonth === month) {
+    return progress;
+  }
+  const totalXP = progress.totalXP + PREMIUM_MONTHLY_XP;
+  const updated = { ...progress, totalXP, level: calculateLevel(totalXP), lastPremiumBonusMonth: month };
+  saveProgress(updated);
+  return updated;
 };
 
 // ---------- Free-tier daily usage limits ----------

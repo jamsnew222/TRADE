@@ -22,6 +22,7 @@ export default function AchievementsModal({ achievements, onClose }: Achievement
           </div>
           <button 
             onClick={onClose}
+            aria-label="Close"
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
             <X className="w-5 h-5 text-gray-600" />

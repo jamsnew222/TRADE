@@ -426,7 +426,8 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
     const progress = loadProgress();
     const streakBonus = getStreakBonus(progress.currentStreak);
     const isPremium = checkPremiumStatus(progress);
-    const premiumBonus = isPremium ? xpEarned : 0;
+    // Premium doubles the whole award (completeLesson multiplies base+streak)
+    const premiumBonus = isPremium ? xpEarned + streakBonus : 0;
     const totalXP = xpEarned + streakBonus + premiumBonus;
 
     return (

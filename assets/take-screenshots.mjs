@@ -35,6 +35,7 @@ const shot = async (name) => { await page.screenshot({ path: join(out, name) });
 async function tryClick(locator, label) {
   try {
     if (await locator.count()) {
+      await locator.first().scrollIntoViewIfNeeded();
       await locator.first().click({ force: true, timeout: 5000 });
       return true;
     }
@@ -107,7 +108,7 @@ try {
   if (await tryClick(page.getByText('Simulator'), 'open simulator')) {
     await page.waitForTimeout(1800);
     await shot('05-simulator.png');
-    await tryClick(page.getByRole('button', { name: /close|done/i }), 'close simulator');
+    await tryClick(page.getByLabel('Close'), 'close simulator');
     await page.waitForTimeout(400);
   }
 } catch (e) { console.log('simulator skipped:', e.message.split('\n')[0]); }
@@ -118,8 +119,19 @@ try {
   if (ok) {
     await page.waitForTimeout(800);
     await shot('06-premium.png');
+    await tryClick(page.getByText(/maybe later/i), 'close premium');
+    await page.waitForTimeout(400);
   }
 } catch (e) { console.log('premium skipped:', e.message.split('\n')[0]); }
+
+// Profile modal — the avatar button in the header
+try {
+  const ok = await tryClick(page.getByLabel('Profile'), 'open profile');
+  if (ok) {
+    await page.waitForTimeout(700);
+    await shot('07-profile.png');
+  }
+} catch (e) { console.log('profile skipped:', e.message.split('\n')[0]); }
 
 await browser.close();
 console.log('done ->', out);

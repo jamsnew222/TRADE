@@ -14,12 +14,15 @@ export interface UserProgress {
   level: number;
   lastActiveDate: string;
   tradingStyle?: TradingStyle;
+  profileName?: string;
+  profileAvatar?: string;
   currentUnit?: number;
   currentLevel?: number;
   streakFreezes?: number;
   totalDaysActive?: number;
   isPremium?: boolean;
   premiumExpiry?: string | null;
+  lastPremiumBonusMonth?: string;
   usageDate?: string;
   dailyLessonsUsed?: number;
   dailyTradesUsed?: number;
