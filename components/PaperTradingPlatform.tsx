@@ -16,6 +16,7 @@ import { useNotification } from '@/lib/useNotification';
 import { loadPaperPortfolio, savePaperPortfolio, resetPaperPortfolio } from '@/lib/simulator-storage';
 import StockRow from './StockRow';
 import { canTrade, consumeTrade, loadProgress, FREE_DAILY_TRADES } from '@/lib/progress';
+import { recordQuestEvent } from '@/lib/quests';
 import { X, TrendingUp, TrendingDown, Search, BarChart3, History, RefreshCw, DollarSign, Building2, RotateCcw } from 'lucide-react';
 
 interface PaperTradingPlatformProps {
@@ -133,6 +134,7 @@ export default function PaperTradingPlatform({ onClose, darkMode }: PaperTrading
     }
 
     consumeTrade();
+    recordQuestEvent('trade', 1);
     setQuantity('');
   };
 

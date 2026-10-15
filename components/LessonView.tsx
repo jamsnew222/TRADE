@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Lesson, FlashcardQuestion } from '@/types';
 import { ArrowRight, Sparkles, Target, ChevronRight, ChevronLeft, Flame, Crown } from 'lucide-react';
 import { loadProgress, getStreakBonus, checkPremiumStatus } from '@/lib/progress';
+import { recordQuestEvent } from '@/lib/quests';
 import { buildQuestions } from '@/lib/lesson-questions';
 import QuizCard from './questions/QuizCard';
 import OrderingCard from './questions/OrderingCard';
@@ -76,7 +77,10 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
   const isLastQuestion = currentQuestion >= totalQuestions - 1;
 
   const handleResult = (correct: boolean) => {
-    if (correct) setCorrectAnswers(prev => prev + 1);
+    if (correct) {
+      setCorrectAnswers(prev => prev + 1);
+      recordQuestEvent('correct', 1);
+    }
   };
 
   const handleNext = () => {

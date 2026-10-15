@@ -19,6 +19,7 @@ import { X, TrendingUp, Wallet, RefreshCw, DollarSign, Building2, RotateCcw } fr
 import StockChart from './StockChart';
 import StockRow from './StockRow';
 import { canTrade, consumeTrade, getRemainingUsage, loadProgress, checkPremiumStatus, FREE_DAILY_TRADES } from '@/lib/progress';
+import { recordQuestEvent } from '@/lib/quests';
 
 interface TradingSimulatorProps {
   onClose: () => void;
@@ -146,6 +147,7 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
     }
 
     setTradeProgress(consumeTrade());
+    recordQuestEvent('trade', 1);
     setTradeAmount('');
   };
 

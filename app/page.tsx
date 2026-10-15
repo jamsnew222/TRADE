@@ -9,6 +9,8 @@ import { initPurchases, purchasePremium, PurchaseResult } from '@/lib/purchases'
 import { checkAchievements, loadAchievements } from '@/lib/achievements';
 import { UserProgress, Lesson, Achievement, TradingStyle } from '@/types';
 import ProgressCard from '@/components/ProgressCard';
+import QuestsCard from '@/components/QuestsCard';
+import { recordQuestEvent } from '@/lib/quests';
 import LessonCard from '@/components/LessonCard';
 import LessonView from '@/components/LessonView';
 import AchievementsModal from '@/components/AchievementsModal';
@@ -35,6 +37,7 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<'grid' | 'path'>('path');
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [questTick, setQuestTick] = useState(0);
 
   useEffect(() => {
     try {
@@ -67,6 +70,9 @@ export default function Home() {
       const totalXP = xpEarned + streakBonus;
 
       const updatedProgress = completeLesson(activeLesson.id, totalXP);
+      recordQuestEvent('lesson', 1);
+      recordQuestEvent('xp', totalXP);
+      setQuestTick(t => t + 1);
       setProgress(updatedProgress);
       const updatedAchievements = checkAchievements(updatedProgress);
       setAchievements(updatedAchievements);
@@ -228,6 +234,8 @@ export default function Home() {
                 </button>
               </div>
             )}
+
+            <QuestsCard darkMode={darkMode} tick={questTick} />
           </div>
         )}
 
