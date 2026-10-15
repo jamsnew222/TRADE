@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Target, Gift, Check } from 'lucide-react';
 import { Quest, getTodayQuests, claimQuest } from '@/lib/quests';
+import { playClaim } from '@/lib/sounds';
 
 interface QuestsCardProps {
   darkMode: boolean;
@@ -25,6 +26,7 @@ export default function QuestsCard({ darkMode, tick = 0 }: QuestsCardProps) {
   const handleClaim = (id: string) => {
     const reward = claimQuest(id);
     if (reward > 0) {
+      playClaim();
       setJustClaimed(reward);
       setQuests(getTodayQuests());
       setTimeout(() => setJustClaimed(null), 2500);

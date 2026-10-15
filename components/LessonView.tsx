@@ -6,6 +6,7 @@ import { ArrowRight, Sparkles, Target, ChevronRight, ChevronLeft, Flame, Crown, 
 import { loadProgress, getStreakBonus, checkPremiumStatus } from '@/lib/progress';
 import { recordQuestEvent } from '@/lib/quests';
 import { buildQuestions } from '@/lib/lesson-questions';
+import { playCorrect, playWrong, playComplete, playFail } from '@/lib/sounds';
 import QuizCard from './questions/QuizCard';
 import OrderingCard from './questions/OrderingCard';
 import WordBankCard from './questions/WordBankCard';
@@ -86,13 +87,16 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
     if (correct) {
       setCorrectAnswers(prev => prev + 1);
       recordQuestEvent('correct', 1);
+      playCorrect();
     } else {
       setLives(prev => Math.max(0, prev - 1));
+      playWrong();
     }
   };
 
   const advance = () => {
     if (isLastQuestion) {
+      playComplete();
       setCurrentStep('complete');
     } else {
       setCurrentQuestion(prev => prev + 1);
@@ -102,6 +106,7 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
   const handleNext = () => {
     // Reaching zero lives shows the result first; failure lands on Next
     if (lives <= 0) {
+      playFail();
       setCurrentStep('failed');
       return;
     }

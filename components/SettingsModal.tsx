@@ -1,6 +1,8 @@
 'use client';
 
-import { Settings as SettingsIcon, X, Sun, Moon, Grid, Map, User, Shield } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Settings as SettingsIcon, X, Sun, Moon, Grid, Map, User, Shield, Volume2, VolumeX } from 'lucide-react';
+import { isSoundEnabled, setSoundEnabled } from '@/lib/sounds';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -25,6 +27,11 @@ export default function SettingsModal({
   tradingStyle,
   tradingStyles
 }: SettingsModalProps) {
+  const [soundOn, setSoundOn] = useState(true);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate persisted sound pref on open
+    setSoundOn(isSoundEnabled());
+  }, [isOpen]);
   if (!isOpen) return null;
 
   return (
@@ -140,6 +147,37 @@ export default function SettingsModal({
                   {tradingStyle ? tradingStyles.find(s => s.id === tradingStyle)?.icon : '⚖️'}
                 </div>
               </button>
+            </div>
+          </div>
+
+          {/* Sound */}
+          <div>
+            <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Sound</h3>
+            <div className={`p-4 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {soundOn ? <Volume2 className="w-5 h-5 text-blue-500" /> : <VolumeX className="w-5 h-5 text-gray-400" />}
+                  <div>
+                    <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>Sound Effects</p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      Answer feedback and reward sounds
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { setSoundEnabled(!soundOn); setSoundOn(!soundOn); }}
+                  className={`relative w-14 h-8 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    soundOn ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}
+                  aria-label="Toggle sound effects"
+                >
+                  <div
+                    className={`absolute top-1 w-6 h-6 rounded-full bg-white transition-transform ${
+                      soundOn ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
           </div>
 
