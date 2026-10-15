@@ -91,7 +91,9 @@ export default function Home() {
     if (activeLesson) {
       const progressData = loadProgress();
       const streakBonus = getStreakBonus(progressData.currentStreak);
-      const totalXP = xpEarned + streakBonus;
+      // LessonView advertises premium 2x XP on the completion screen — award it for real
+      const premiumBonus = checkPremiumStatus(progressData) ? xpEarned : 0;
+      const totalXP = xpEarned + streakBonus + premiumBonus;
 
       const updatedProgress = completeLesson(activeLesson.id, totalXP);
       recordQuestEvent('lesson', 1);
