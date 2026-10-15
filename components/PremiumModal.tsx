@@ -1,19 +1,58 @@
 'use client';
 
 import { useState } from 'react';
-import { Crown, Star, Zap, Shield, Check, X, CreditCard, Gift, TrendingUp, BookOpen, Flame, Award } from 'lucide-react';
+import { Crown, Star, Zap, Shield, Check, X, CreditCard, Gift, TrendingUp, BookOpen, Flame, Award, RotateCcw } from 'lucide-react';
+import { PurchaseResult, restorePurchases } from '@/lib/purchases';
 
 interface PremiumModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubscribe: (plan: 'monthly' | 'yearly') => void;
+  onSubscribe: (plan: 'monthly' | 'yearly') => Promise<PurchaseResult>;
+  onRestored: () => void;
   darkMode: boolean;
 }
 
-export default function PremiumModal({ isOpen, onClose, onSubscribe, darkMode }: PremiumModalProps) {
+export default function PremiumModal({ isOpen, onClose, onSubscribe, onRestored, darkMode }: PremiumModalProps) {
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
+  const [subscribing, setSubscribing] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const handleSubscribe = async () => {
+    if (subscribing) return;
+    setSubscribing(true);
+    setError(null);
+    try {
+      const result = await onSubscribe(selectedPlan);
+      if (!result.success) {
+        if (result.cancelled) {
+          onClose();
+        } else {
+          setError(result.error || 'Purchase failed — please try again');
+        }
+      }
+    } finally {
+      setSubscribing(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    if (restoring) return;
+    setRestoring(true);
+    setError(null);
+    try {
+      const result = await restorePurchases();
+      if (result.success) {
+        onRestored();
+      } else {
+        setError(result.error || 'No subscription found to restore');
+      }
+    } finally {
+      setRestoring(false);
+    }
+  };
 
   const benefits = [
     { icon: Star, title: '2x XP Rewards', description: 'Earn double XP on every lesson' },
@@ -176,16 +215,23 @@ export default function PremiumModal({ isOpen, onClose, onSubscribe, darkMode }:
           </div>
 
           {/* CTA */}
+          {error && (
+            <div className="mb-4 p-3 rounded-xl bg-red-50 border-2 border-red-200 text-red-700 text-sm font-medium text-center">
+              {error}
+            </div>
+          )}
           <div className="flex gap-4">
             <button
-              onClick={() => onSubscribe(selectedPlan)}
-              className="flex-1 bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 hover:from-yellow-500 hover:via-amber-600 hover:to-orange-600 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
+              onClick={handleSubscribe}
+              disabled={subscribing || restoring}
+              className="flex-1 bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 hover:from-yellow-500 hover:via-amber-600 hover:to-orange-600 disabled:opacity-60 text-white py-4 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
             >
               <Crown className="w-5 h-5" />
-              Subscribe Now
+              {subscribing ? 'Processing...' : 'Subscribe Now'}
             </button>
             <button
               onClick={onClose}
+              disabled={subscribing || restoring}
               className={`px-6 py-4 rounded-xl font-medium transition-colors ${
                 darkMode
                   ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
@@ -195,6 +241,18 @@ export default function PremiumModal({ isOpen, onClose, onSubscribe, darkMode }:
               Maybe Later
             </button>
           </div>
+
+          {/* Restore purchases — required by App Store guidelines */}
+          <button
+            onClick={handleRestore}
+            disabled={subscribing || restoring}
+            className={`mt-4 w-full flex items-center justify-center gap-2 text-sm font-medium transition-colors ${
+              darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <RotateCcw className={`w-4 h-4 ${restoring ? 'animate-spin' : ''}`} />
+            {restoring ? 'Restoring...' : 'Restore Purchases'}
+          </button>
 
           {/* Trust Badges */}
           <div className="mt-6 flex items-center justify-center gap-6 text-sm">

@@ -1,6 +1,6 @@
 'use client';
 
-import { Settings as SettingsIcon, X, Sun, Moon, Grid, Map, User } from 'lucide-react';
+import { Settings as SettingsIcon, X, Sun, Moon, Grid, Map, User, Shield } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -150,7 +150,16 @@ export default function SettingsModal({
               <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                 TradeQuest is an interactive trading education app that helps you master trading through gamified lessons, real-time simulators, and personalized learning paths.
               </p>
-              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600 space-y-2">
+                <a
+                  href="/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                >
+                  <Shield className="w-4 h-4" />
+                  Privacy Policy
+                </a>
                 <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
                   Version 0.1.0
                 </p>

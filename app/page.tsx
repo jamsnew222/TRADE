@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { lessons, categories } from '@/data/lessons-padded';
 import { tradingStyles } from '@/data/trading-styles';
 import { learningPath } from '@/data/learning-path';
-import { loadProgress, completeLesson, getRecommendedLessons, saveTradingStyle, getStreakBonus, activatePremium, checkPremiumStatus, canStartLesson, getRemainingUsage, FREE_DAILY_LESSONS } from '@/lib/progress';
+import { loadProgress, completeLesson, getRecommendedLessons, saveTradingStyle, getStreakBonus, checkPremiumStatus, canStartLesson, getRemainingUsage, FREE_DAILY_LESSONS } from '@/lib/progress';
+import { initPurchases, purchasePremium, PurchaseResult } from '@/lib/purchases';
 import { checkAchievements, loadAchievements } from '@/lib/achievements';
 import { UserProgress, Lesson, Achievement, TradingStyle } from '@/types';
 import ProgressCard from '@/components/ProgressCard';
@@ -51,6 +52,9 @@ export default function Home() {
       if (!progressData.tradingStyle) {
         setShowStyleSelector(true);
       }
+
+      // Sync premium entitlement with the store (native builds only; no-op on web)
+      void initPurchases().then(() => setProgress(loadProgress()));
     } catch (error) {
       console.error('Error loading initial data:', error);
     }
@@ -86,9 +90,17 @@ export default function Home() {
     setActiveLesson(lesson);
   };
 
-  const handlePremiumSubscribe = (plan: 'monthly' | 'yearly') => {
-    const updatedProgress = activatePremium(plan);
-    setProgress(updatedProgress);
+  const handlePremiumSubscribe = async (plan: 'monthly' | 'yearly'): Promise<PurchaseResult> => {
+    const result = await purchasePremium(plan);
+    if (result.success) {
+      setProgress(loadProgress());
+      setShowPremiumModal(false);
+    }
+    return result;
+  };
+
+  const handlePremiumRestored = () => {
+    setProgress(loadProgress());
     setShowPremiumModal(false);
   };
 
@@ -358,6 +370,7 @@ export default function Home() {
         isOpen={showPremiumModal}
         onClose={() => setShowPremiumModal(false)}
         onSubscribe={handlePremiumSubscribe}
+        onRestored={handlePremiumRestored}
         darkMode={darkMode}
       />
 

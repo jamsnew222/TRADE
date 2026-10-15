@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#14532d"/>
+    </linearGradient>
+    <linearGradient id="candle" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#22c55e"/>
+      <stop offset="1" stop-color="#86efac"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="220" fill="url(#bg)"/>
+  <g>
+    <!-- candlesticks -->
+    <rect x="300" y="330" width="26" height="150" rx="13" fill="#4ade80" opacity="0.55"/>
+    <rect x="285" y="390" width="56" height="150" rx="16" fill="url(#candle)"/>
+    <rect x="420" y="300" width="26" height="190" rx="13" fill="#4ade80" opacity="0.55"/>
+    <rect x="405" y="360" width="56" height="220" rx="16" fill="url(#candle)"/>
+    <rect x="540" y="380" width="26" height="150" rx="13" fill="#f87171" opacity="0.6"/>
+    <rect x="525" y="430" width="56" height="160" rx="16" fill="#ef4444"/>
+    <rect x="660" y="260" width="26" height="200" rx="13" fill="#4ade80" opacity="0.55"/>
+    <rect x="645" y="320" width="56" height="260" rx="16" fill="url(#candle)"/>
+    <!-- trend arrow -->
+    <path d="M260 640 L430 560 L560 600 L760 430" stroke="#fbbf24" stroke-width="34" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M700 430 h60 v60" stroke="#fbbf24" stroke-width="34" fill="none" stroke-linecap="round" stroke-linejoin="round" transform="translate(0,-16)"/>
+    <!-- base -->
+    <rect x="280" y="700" width="464" height="24" rx="12" fill="#334155" opacity="0.8"/>
+  </g>
+</svg>
