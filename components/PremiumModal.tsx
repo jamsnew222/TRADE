@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Crown, Star, Zap, Shield, Check, X, CreditCard, Gift, TrendingUp, BookOpen, Flame, Award, RotateCcw } from 'lucide-react';
+import { Crown, Star, Zap, Shield, Check, X, CreditCard, Gift, TrendingUp, BookOpen, Flame, Award, RotateCcw, Heart } from 'lucide-react';
 import { PurchaseResult, restorePurchases } from '@/lib/purchases';
 
 interface PremiumModalProps {
@@ -57,6 +57,7 @@ export default function PremiumModal({ isOpen, onClose, onSubscribe, onRestored,
   const benefits = [
     { icon: Star, title: '2x XP Rewards', description: 'Earn double XP on every lesson' },
     { icon: Flame, title: 'Unlimited Streak Freezes', description: 'Never lose your streak again' },
+    { icon: Heart, title: '2 Revives Per Lesson', description: 'Keep going after running out of hearts' },
     { icon: Zap, title: 'Unlimited Daily Usage', description: 'No daily limits on lessons or simulator trades' },
     { icon: BookOpen, title: 'Premium Lessons', description: 'Access exclusive advanced content' },
     { icon: Zap, title: 'Instant Level Up', description: 'Skip waiting to level up' },

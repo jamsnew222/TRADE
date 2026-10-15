@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Lesson, FlashcardQuestion } from '@/types';
-import { ArrowRight, Sparkles, Target, ChevronRight, ChevronLeft, Flame, Crown } from 'lucide-react';
+import { ArrowRight, Sparkles, Target, ChevronRight, ChevronLeft, Flame, Crown, Heart, HeartCrack, RotateCcw } from 'lucide-react';
 import { loadProgress, getStreakBonus, checkPremiumStatus } from '@/lib/progress';
 import { recordQuestEvent } from '@/lib/quests';
 import { buildQuestions } from '@/lib/lesson-questions';
@@ -14,17 +14,23 @@ import FillBlankCard from './questions/FillBlankCard';
 import MatchingCard from './questions/MatchingCard';
 import InteractiveCard from './questions/InteractiveCard';
 
+const MAX_LIVES = 3;
+const PREMIUM_REVIVES = 2;
+
 interface LessonViewProps {
   lesson: Lesson;
   onComplete: (xpEarned: number) => void;
   onBack: () => void;
+  onUpgrade?: () => void;
 }
 
-export default function LessonView({ lesson, onComplete, onBack }: LessonViewProps) {
-  const [currentStep, setCurrentStep] = useState<'intro' | 'learn' | 'exercise' | 'complete'>('intro');
+export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: LessonViewProps) {
+  const [currentStep, setCurrentStep] = useState<'intro' | 'learn' | 'exercise' | 'failed' | 'complete'>('intro');
   const [learnIndex, setLearnIndex] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
+  const [lives, setLives] = useState(MAX_LIVES);
+  const [revivesUsed, setRevivesUsed] = useState(0);
 
   const allQuestions = buildQuestions(lesson);
   const totalQuestions = allQuestions.length;
@@ -80,15 +86,42 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
     if (correct) {
       setCorrectAnswers(prev => prev + 1);
       recordQuestEvent('correct', 1);
+    } else {
+      setLives(prev => Math.max(0, prev - 1));
     }
   };
 
-  const handleNext = () => {
+  const advance = () => {
     if (isLastQuestion) {
       setCurrentStep('complete');
     } else {
       setCurrentQuestion(prev => prev + 1);
     }
+  };
+
+  const handleNext = () => {
+    // Reaching zero lives shows the result first; failure lands on Next
+    if (lives <= 0) {
+      setCurrentStep('failed');
+      return;
+    }
+    advance();
+  };
+
+  const handleRevive = () => {
+    setRevivesUsed(prev => prev + 1);
+    setLives(MAX_LIVES);
+    setCurrentStep('exercise');
+    advance();
+  };
+
+  const handleRestart = () => {
+    setLives(MAX_LIVES);
+    setRevivesUsed(0);
+    setCorrectAnswers(0);
+    setCurrentQuestion(0);
+    setLearnIndex(0);
+    setCurrentStep(learnSlides.length > 0 ? 'learn' : 'exercise');
   };
 
   const handleComplete = () => {
@@ -267,38 +300,120 @@ export default function LessonView({ lesson, onComplete, onBack }: LessonViewPro
       onNext: handleNext,
     };
 
-    switch (question.type) {
-      case 'ordering':
-        return <OrderingCard key={currentQuestion} question={question} {...shared} />;
-      case 'word-bank':
-        return <WordBankCard key={currentQuestion} question={question} {...shared} />;
-      case 'flashcard':
-        return (
-          <FlashcardCard
-            key={currentQuestion}
-            question={question}
-            counterLabel={counterLabel}
-            onBack={onBack}
-            onAssess={(known) => { handleResult(known); handleNext(); }}
-          />
-        );
-      case 'fill-blank':
-        return <FillBlankCard key={currentQuestion} question={question} {...shared} />;
-      case 'matching':
-        return <MatchingCard key={currentQuestion} question={question} {...shared} />;
-      case 'interactive':
-        return (
-          <InteractiveCard
-            key={currentQuestion}
-            question={question}
-            counterLabel={counterLabel}
-            onBack={onBack}
-            onDone={() => { handleResult(true); handleNext(); }}
-          />
-        );
-      default:
-        return <QuizCard key={currentQuestion} question={question} {...shared} />;
-    }
+    const card = (() => {
+      switch (question.type) {
+        case 'ordering':
+          return <OrderingCard key={currentQuestion} question={question} {...shared} />;
+        case 'word-bank':
+          return <WordBankCard key={currentQuestion} question={question} {...shared} />;
+        case 'flashcard':
+          return (
+            <FlashcardCard
+              key={currentQuestion}
+              question={question}
+              counterLabel={counterLabel}
+              onBack={onBack}
+              onAssess={(known) => { handleResult(known); handleNext(); }}
+            />
+          );
+        case 'fill-blank':
+          return <FillBlankCard key={currentQuestion} question={question} {...shared} />;
+        case 'matching':
+          return <MatchingCard key={currentQuestion} question={question} {...shared} />;
+        case 'interactive':
+          return (
+            <InteractiveCard
+              key={currentQuestion}
+              question={question}
+              counterLabel={counterLabel}
+              onBack={onBack}
+              onDone={() => { handleResult(true); handleNext(); }}
+            />
+          );
+        default:
+          return <QuizCard key={currentQuestion} question={question} {...shared} />;
+      }
+    })();
+
+    return (
+      <>
+        {/* Lives bar — Duolingo-style hearts */}
+        <div className="max-w-2xl mx-auto mb-4 flex items-center justify-between px-1">
+          <div className="flex items-center gap-1">
+            {Array.from({ length: MAX_LIVES }).map((_, i) => (
+              <Heart
+                key={i}
+                className={`w-6 h-6 transition-all ${
+                  i < lives ? 'text-red-500 fill-red-500' : 'text-gray-300'
+                } ${i === lives && lives < MAX_LIVES ? 'animate-pulse' : ''}`}
+              />
+            ))}
+          </div>
+          {revivesUsed > 0 && (
+            <span className="text-xs font-medium text-amber-600">
+              {PREMIUM_REVIVES - revivesUsed} revive{PREMIUM_REVIVES - revivesUsed === 1 ? '' : 's'} left
+            </span>
+          )}
+        </div>
+        {card}
+      </>
+    );
+  }
+
+  // Out of lives — free users restart, premium gets a limited "Keep Going"
+  if (currentStep === 'failed') {
+    const progress = loadProgress();
+    const isPremium = checkPremiumStatus(progress);
+    const revivesLeft = isPremium ? PREMIUM_REVIVES - revivesUsed : 0;
+
+    return (
+      <div className="max-w-md mx-auto animate-fade-in text-center">
+        <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-red-200">
+          <div className="inline-flex p-4 bg-red-100 rounded-2xl mb-4">
+            <HeartCrack className="w-12 h-12 text-red-500" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Out of Lives</h1>
+          <p className="text-gray-600 mb-6">
+            You got {correctAnswers} of {totalQuestions} before running out of hearts.
+          </p>
+
+          {revivesLeft > 0 && (
+            <button
+              onClick={handleRevive}
+              className="w-full mb-3 bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all"
+            >
+              <Crown className="w-5 h-5" />
+              Keep Going — {revivesLeft} premium revive{revivesLeft === 1 ? '' : 's'} left
+            </button>
+          )}
+
+          <button
+            onClick={handleRestart}
+            className="w-full mb-3 bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
+          >
+            <RotateCcw className="w-5 h-5" />
+            Restart Lesson
+          </button>
+
+          {!isPremium && onUpgrade && (
+            <button
+              onClick={onUpgrade}
+              className="w-full mb-3 border-2 border-amber-400 text-amber-600 hover:bg-amber-50 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors"
+            >
+              <Crown className="w-5 h-5" />
+              Premium gets {PREMIUM_REVIVES} revives per lesson
+            </button>
+          )}
+
+          <button
+            onClick={onBack}
+            className="w-full text-gray-500 hover:text-gray-700 text-sm font-medium py-2 transition-colors"
+          >
+            Quit to lessons
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (currentStep === 'complete') {

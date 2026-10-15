@@ -129,6 +129,7 @@ export default function Home() {
           lesson={activeLesson} 
           onComplete={handleLessonComplete}
           onBack={() => setActiveLesson(null)}
+          onUpgrade={() => setShowPremiumModal(true)}
         />
       </div>
     );
