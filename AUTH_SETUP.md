@@ -50,9 +50,15 @@ Google sign-in on Android needs your signing keys registered:
 
 2. Firebase console → your **Android app** → **Add fingerprint** → paste both
 3. Download `google-services.json` → put it at `android/app/google-services.json`
+4. Then wire the Google Services Gradle plugin (do this **after** the JSON is
+   in place — the plugin fails the build when the file is missing):
+   - `android/build.gradle` → `dependencies` → add
+     `classpath 'com.google.gms:google-services:4.4.2'`
+   - `android/app/build.gradle` → bottom → add
+     `apply plugin: 'com.google.gms.google-services'`
 
-The Capacitor Firebase plugin is already installed and synced — no other
-native changes needed.
+The Capacitor Firebase plugin is already installed and synced — the
+google-services wiring above is the only native change needed.
 
 ## 5. iOS (Sign in with Apple)
 
