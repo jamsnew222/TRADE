@@ -15,7 +15,8 @@ Learn trading like a game. Bite-sized lessons, real markets, zero risk.
 ```
 TradeQuest turns trading education into a game. Learn how markets actually
 work through short interactive lessons, then practice with real stock prices
-— no account, no deposits, no risk.
+— no deposits, no risk. Sign in once and your progress, streaks, and premium
+follow you across every device.
 
 📚 LEARN FIRST, THEN GET TESTED
 Every lesson teaches the concept before quizzing you: bite-sized study
@@ -59,6 +60,16 @@ trading,stocks,investing,learn,education,market,simulator,paper,finance,quiz
 - Everyone / 4+ — no user-generated content, no real money trading, no ads.
 - Google Play questionnaire: no gambling mechanics (virtual currency cannot be
   purchased or cashed out), no UGC, no social features.
+
+## Play Console — Data safety form (required)
+The app now has accounts, so declare:
+- **Email address** → collected, required, for account management; stored in
+  Firebase; users can delete it in-app (Profile → Delete account)
+- **App activity / app progress** → collected for cloud sync, tied to account
+- Financial info: NO (no real money). Precise location: NO. Contacts/photos: NO.
+- "Is data encrypted in transit?" → YES (HTTPS)
+- "Can users request deletion?" → YES, in-app + via store support channel
+
 
 ## Privacy policy URL
 ```

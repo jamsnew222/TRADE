@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TradeQuest
 
-## Getting Started
+A Duolingo-style trading education app — bite-sized interactive lessons, a
+live-market simulator, streaks, daily quests, and a synced account so progress
+follows you across devices. Built to ship on Google Play and the App Store.
 
-First, run the development server:
+## Stack
+
+- **Next.js (static export)** + React + TypeScript — `output: 'export'`, no
+  server, no API routes
+- **Capacitor** — wraps the export into native Android (`android/`) and iOS
+  (`ios/`) apps
+- **Firebase** — auth (email/password, Google, Apple) + Firestore for
+  cloud-synced progress (`users/{uid}`)
+- **RevenueCat** — premium subscriptions via StoreKit / Play Billing
+- **Finnhub / stooq** — live + simulated market data for the simulator
+- **Vitest** — unit + data-validation tests
+
+## Develop
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # fill in keys — app runs in guest mode without them
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Verify
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run lint        # ESLint flat config, react-hooks rules
+npx tsc --noEmit    # types
+npm test            # Vitest
+npm run build       # static export -> out/ (what Capacitor serves)
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Android
 
-## Learn More
+```bash
+npm run build && npx cap sync android
+cd android && ./gradlew assembleRelease    # signed APK
+./gradlew bundleRelease                    # signed AAB (Play upload format)
+```
 
-To learn more about Next.js, take a look at the following resources:
+Signing uses `android/keystore.properties` + `android/app/release.keystore`
+(both gitignored — **back them up**, they are the app's permanent Play
+identity). Full setup in `android/INSTRUCTIONS.md`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Accounts & cloud sync
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Sign-in is required once Firebase env vars are configured; without them the
+app runs in guest/local mode for development. Progress, achievements, and
+simulator portfolios merge cloud ↔ local on login and upload on every save.
+Console-side setup (providers, Firestore rules, SHA fingerprints, Apple
+capability): **`AUTH_SETUP.md`**.
 
-## Deploy on Vercel
+## Docs
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `AUTH_SETUP.md` — Firebase/Apple/Google console configuration
+- `STORE_LISTING.md` — store copy, data-safety declarations, screenshot checklist
+- `APP_STORE_GUIDE.md`, `android/INSTRUCTIONS.md` — publishing walkthroughs
+- `firestore.rules` — deploy to Firestore (users can only reach their own doc)
+- `assets/` — icon/splash sources, Play feature graphic, `take-screenshots.mjs`
+  (Playwright store-screenshot capture against a running dev server)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Education only
+
+TradeQuest is a learning tool. Simulated and delayed prices are for practice —
+not investment advice.
