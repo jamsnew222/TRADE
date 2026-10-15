@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { StockData, TradingStyle, Currency, Exchange } from '@/types';
+import { useState, useEffect, useRef } from 'react';
+import { TradingStyle, Currency, Exchange } from '@/types';
 import { tradingStyles } from '@/data/trading-styles';
 import {
   convertCurrency,
@@ -10,10 +10,11 @@ import {
   getAvailableExchanges,
   getAvailableCurrencies
 } from '@/lib/realtime-stock-data';
-import { subscribeMarket, getMarketMode, refreshMarketNow, getPriceHistory, isMarketOpen, isSymbolLive, MarketMode } from '@/lib/market-engine';
-import { X, TrendingUp, TrendingDown, Wallet, RefreshCw, DollarSign, Building2 } from 'lucide-react';
+import { refreshMarketNow } from '@/lib/market-engine';
+import { useMarket } from '@/lib/useMarket';
+import { X, TrendingUp, Wallet, RefreshCw, DollarSign, Building2 } from 'lucide-react';
 import StockChart from './StockChart';
-import Sparkline from './Sparkline';
+import StockRow from './StockRow';
 import { canTrade, consumeTrade, getRemainingUsage, loadProgress, checkPremiumStatus, FREE_DAILY_TRADES } from '@/lib/progress';
 
 interface TradingSimulatorProps {
@@ -36,9 +37,13 @@ interface Portfolio {
 export default function TradingSimulator({ onClose, darkMode, tradingStyle }: TradingSimulatorProps) {
   const styleSettings = tradingStyle ? tradingStyles.find(s => s.id === tradingStyle)?.simulatorSettings : undefined;
 
-  const [allStocks, setAllStocks] = useState<StockData[]>([]);
-  const [marketMode, setMarketMode] = useState<MarketMode>('loading');
-  const [selectedStock, setSelectedStock] = useState<StockData | null>(null);
+  const {
+    stocks, marketMode, lastUpdated, priceChanges,
+    selectedStock, setSelectedStock,
+    selectedExchange, setSelectedExchange,
+    selectedCurrency, setSelectedCurrency,
+    isLoading,
+  } = useMarket();
   const [portfolio, setPortfolio] = useState<Portfolio>({
     cash: styleSettings?.defaultPositionSize || 10000,
     baseCurrency: 'USD',
@@ -48,69 +53,11 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
   const [tradeType, setTradeType] = useState<'buy' | 'sell'>('buy');
   const [notification, setNotification] = useState<string | null>(null);
   const [tradeProgress, setTradeProgress] = useState(() => loadProgress());
-  const [selectedExchange, setSelectedExchange] = useState<Exchange>('All');
-  const [selectedCurrency, setSelectedCurrency] = useState<Currency>('All');
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [priceChanges, setPriceChanges] = useState<Record<string, 'up' | 'down' | null>>({});
-  const priceChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const prevPricesRef = useRef<Record<string, number>>({});
   const tradePanelRef = useRef<HTMLDivElement | null>(null);
 
   const availableExchanges = getAvailableExchanges();
   const availableCurrencies = getAvailableCurrencies();
-
-  // Subscribe once — the engine pushes price updates in place.
-  // Filtering is derived below, so changing filters never reloads data.
-  useEffect(() => {
-    const unsubscribe = subscribeMarket((snapshot) => {
-      const prev = prevPricesRef.current;
-      const changes: Record<string, 'up' | 'down'> = {};
-      snapshot.forEach(s => {
-        const old = prev[s.symbol];
-        if (old !== undefined && s.price !== old) {
-          changes[s.symbol] = s.price > old ? 'up' : 'down';
-        }
-        prev[s.symbol] = s.price;
-      });
-
-      if (Object.keys(changes).length > 0) {
-        setPriceChanges(changes);
-        if (priceChangeTimeoutRef.current) {
-          clearTimeout(priceChangeTimeoutRef.current);
-        }
-        priceChangeTimeoutRef.current = setTimeout(() => setPriceChanges({}), 1200);
-      }
-
-      setAllStocks(snapshot);
-      setMarketMode(getMarketMode());
-      setLastUpdated(new Date());
-
-      // Keep the selected stock in sync with the latest prices
-      setSelectedStock(prev => {
-        if (!prev) return snapshot[0] ?? null;
-        return snapshot.find(s => s.symbol === prev.symbol) ?? prev;
-      });
-    });
-
-    return () => {
-      unsubscribe();
-      if (priceChangeTimeoutRef.current) {
-        clearTimeout(priceChangeTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const stocks = useMemo(
-    () => allStocks.filter(stock => {
-      const exchangeMatch = selectedExchange === 'All' || stock.exchange === selectedExchange;
-      const currencyMatch = selectedCurrency === 'All' || stock.currency === selectedCurrency;
-      return exchangeMatch && currencyMatch;
-    }),
-    [allStocks, selectedExchange, selectedCurrency]
-  );
-
-  const isLoading = marketMode === 'loading' && allStocks.length === 0;
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
@@ -401,69 +348,15 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
                   </div>
                 ) : (
                   stocks.map(stock => (
-                    <div
+                    <StockRow
                       key={stock.symbol}
+                      stock={stock}
+                      selected={selectedStock?.symbol === stock.symbol}
+                      darkMode={darkMode}
+                      marketMode={marketMode}
+                      priceChange={priceChanges[stock.symbol]}
                       onClick={() => setSelectedStock(stock)}
-                      className={`w-full p-3 rounded-lg border-2 text-left transition-all cursor-pointer ${
-                        selectedStock?.symbol === stock.symbol
-                          ? 'border-green-500 bg-green-50'
-                          : darkMode
-                            ? 'border-gray-700 bg-gray-700 hover:bg-gray-600'
-                            : 'border-gray-200 bg-white hover:bg-gray-50'
-                      } ${priceChanges[stock.symbol] === 'up' ? 'border-green-300' : ''} ${
-                        priceChanges[stock.symbol] === 'down' ? 'border-red-300' : ''
-                      }`}
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                            {stock.symbol}
-                            <span className={`text-xs ml-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                              {stock.exchange}
-                            </span>
-                            <span className={`ml-1 text-[10px] font-semibold px-1 py-0.5 rounded ${
-                              isMarketOpen(stock.exchange)
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-gray-200 text-gray-500'
-                            }`}>
-                              {isMarketOpen(stock.exchange) ? 'OPEN' : 'CLOSED'}
-                            </span>
-                            {marketMode === 'live' && !isSymbolLive(stock.symbol) && (
-                              <span className="ml-1 text-[10px] font-semibold px-1 py-0.5 rounded bg-amber-100 text-amber-700" title="Simulated price — no real feed for this symbol">
-                                SIM
-                              </span>
-                            )}
-                            {priceChanges[stock.symbol] === 'up' && (
-                              <span className="ml-2 text-green-500">↑</span>
-                            )}
-                            {priceChanges[stock.symbol] === 'down' && (
-                              <span className="ml-2 text-red-500">↓</span>
-                            )}
-                          </p>
-                          <p className={`text-sm truncate ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{stock.name}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Sparkline
-                            data={getPriceHistory(stock.symbol)}
-                            positive={stock.change >= 0}
-                          />
-                          <div className="text-right">
-                            <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                              {formatPrice(stock.price, stock.currency)}
-                            </p>
-                            <div className={`flex items-center justify-end gap-1 text-sm ${
-                              stock.change >= 0 ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                              {stock.change >= 0 ? (
-                                <TrendingUp className="w-3 h-3" />
-                              ) : (
-                                <TrendingDown className="w-3 h-3" />
-                              )}
-                              {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
-                            </div>
-                          </div>
-                        </div>
-                      </div>
                       <div className="flex gap-2 mt-2">
                         <button
                           onClick={(e) => {
@@ -488,7 +381,7 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
                           SELL
                         </button>
                       </div>
-                    </div>
+                    </StockRow>
                   ))
                 )}
               </div>
