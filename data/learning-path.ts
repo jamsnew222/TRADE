@@ -157,11 +157,12 @@ export const learningPath: LearningPath = {
       totalXP: 320,
       levels: createLevelsFromLessons([
         'options-strategies',
+        'options-greeks',
         'forex-trading',
         'crypto-essentials',
         'trading-psychology',
         'position-sizing-risk'
-      ], [2, 4])
+      ], [2, 5])
     },
     // Unit 8: Investing Essentials
     {

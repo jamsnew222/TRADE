@@ -548,5 +548,93 @@ export const advancedLessons: Lesson[] = [
         }
       ]
     }
+  },
+  {
+    id: 'options-greeks',
+    title: 'The Option Greeks',
+    description: 'Delta, theta, vega, and IV — how option prices actually move',
+    type: 'quiz',
+    difficulty: 'advanced',
+    category: 'Options',
+    xpReward: 75,
+    premiumOnly: true,
+    content: {
+      explanation: 'Option prices are driven by five forces, measured by "the Greeks." Delta is sensitivity to the stock: a 0.50 delta call gains ~$0.50 when the stock rises $1, and doubles as a rough probability estimate of expiring in-the-money. Gamma is how fast delta changes — highest near the strike. Theta is time decay — options lose value every day, accelerating into expiration. Vega is sensitivity to implied volatility — rising IV inflates option prices even if the stock is flat. IV itself is the market\'s forecast of how big a move is expected. Buying options fights theta every day; selling options collects it.',
+      quiz: [
+        {
+          id: 'q1',
+          question: 'A call option has a delta of 0.40. If the stock rises $2, the option gains roughly…',
+          options: ['$0.80 per share', '$2.00 per share', '$0.40 per share', '$4.00 per share'],
+          correctAnswer: 0,
+          explanation: 'Delta × stock move = option move: 0.40 × $2 = $0.80.'
+        },
+        {
+          id: 'q2',
+          question: 'Theta measures…',
+          options: [
+            'Time decay — value lost each day, accelerating near expiration',
+            'Sensitivity to volatility',
+            'Sensitivity to interest rates',
+            'The option\'s leverage'
+          ],
+          correctAnswer: 0,
+          explanation: 'Theta is the silent killer of long options — the decay speeds up as expiration approaches.'
+        },
+        {
+          id: 'q3',
+          question: 'Implied volatility (IV) represents…',
+          options: [
+            'The market\'s forecast of how big a move the stock will make',
+            'How many options changed hands today',
+            'The stock\'s historical beta',
+            'The option\'s trading volume'
+          ],
+          correctAnswer: 0,
+          explanation: 'IV is derived from option prices — high IV means big moves are expected (and options cost more).'
+        },
+        {
+          id: 'q4',
+          question: 'You bought calls the day before earnings. The stock rises slightly but IV collapses after the report. Your calls…',
+          options: [
+            'Can still lose money — the "vol crush" can outweigh a small favorable move',
+            'Always profit since the stock rose',
+            'Expire worthless immediately',
+            'Convert to shares automatically'
+          ],
+          correctAnswer: 0,
+          explanation: 'The classic earnings trap — delta gains get eaten by collapsing vega. This is why buying earnings options is dangerous.'
+        }
+      ],
+      trueFalse: [
+        { id: 'tf1', statement: 'A delta of 0.70 roughly implies a ~70% chance of finishing in-the-money.', correctAnswer: true, explanation: 'Delta doubles as a loose probability estimate — a handy intuition shortcut.' },
+        { id: 'tf2', statement: 'Theta decay affects option sellers and buyers identically.', correctAnswer: false, explanation: 'Decay hurts buyers and helps sellers — theta is the seller\'s friend.' },
+        { id: 'tf3', statement: 'Gamma risk is highest for options near the strike and close to expiration.', correctAnswer: true, explanation: 'ATM near-expiry options have the most explosive delta changes — where gamma squeezes live.' }
+      ],
+      matching: {
+        id: 'm1',
+        instruction: 'Match each Greek to what it measures',
+        pairs: [
+          { left: 'Delta', right: 'Sensitivity to the stock price' },
+          { left: 'Gamma', right: 'How fast delta itself changes' },
+          { left: 'Theta', right: 'Time decay per day' },
+          { left: 'Vega', right: 'Sensitivity to implied volatility' }
+        ]
+      },
+      scenario: [
+        {
+          id: 's1',
+          scenario: 'You hold a call with delta 0.30, theta -0.05, vega 0.12. The stock is flat for a week and IV drops from 60% to 40%.',
+          question: 'What happens to your position?',
+          options: [
+            'It bleeds — theta eats ~$0.35/week and falling IV deflates the premium',
+            'It gains — flat stocks always help calls',
+            'Nothing — Greeks only matter at expiration',
+            'Delta rises to compensate'
+          ],
+          correctAnswer: 0,
+          explanation: 'Flat stock + dropping IV is the worst combo for a long option: decay and vol contraction hit simultaneously.'
+        }
+      ]
+    }
   }
 ];
