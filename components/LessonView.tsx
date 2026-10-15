@@ -1,99 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Lesson, QuizQuestion, OrderingQuestion, WordBankQuestion, FlashcardQuestion, FillBlankExercise, MatchingExercise } from '@/types';
+import { Lesson, FlashcardQuestion } from '@/types';
 import { ArrowRight, Sparkles, Target, ChevronRight, ChevronLeft, Flame, Crown } from 'lucide-react';
 import { loadProgress, getStreakBonus, checkPremiumStatus } from '@/lib/progress';
+import { buildQuestions } from '@/lib/lesson-questions';
 import QuizCard from './questions/QuizCard';
 import OrderingCard from './questions/OrderingCard';
 import WordBankCard from './questions/WordBankCard';
 import FlashcardCard from './questions/FlashcardCard';
-import FillBlankCard, { FillBlankCardQuestion } from './questions/FillBlankCard';
-import MatchingCard, { MatchingCardQuestion } from './questions/MatchingCard';
-import InteractiveCard, { InteractiveCardQuestion } from './questions/InteractiveCard';
-
-type AnyQuestion =
-  | (QuizQuestion & { type: 'quiz' | 'multiple-choice' | 'true-false' | 'multiple-select' })
-  | (OrderingQuestion & { type: 'ordering' })
-  | (WordBankQuestion & { type: 'word-bank' })
-  | (FlashcardQuestion & { type: 'flashcard' })
-  | FillBlankCardQuestion
-  | MatchingCardQuestion
-  | InteractiveCardQuestion;
-
-// Normalize every content shape into one question list, dispatched by `type`.
-// trueFalse/multipleSelect/scenario items are adapted to the QuizQuestion shape.
-const buildQuestions = (lesson: Lesson): AnyQuestion[] => {
-  const content = lesson.content;
-  const questions: AnyQuestion[] = [
-    ...(content.quiz || []).map((q): AnyQuestion => ({
-      ...q,
-      type: q.type ?? 'quiz',
-    })),
-    ...(content.multipleChoice || []).map((q): AnyQuestion => ({ ...q, type: 'multiple-choice' })),
-    ...(content.trueFalse || []).map((q): AnyQuestion => ({
-      id: q.id,
-      question: q.statement,
-      options: ['True', 'False'],
-      correctAnswer: q.correctAnswer ? 0 : 1,
-      explanation: q.explanation,
-      type: 'true-false',
-    })),
-    ...(content.multipleSelect || []).map((q): AnyQuestion => ({
-      id: q.id,
-      question: q.question,
-      options: q.options,
-      correctAnswer: -1,
-      correctAnswers: q.correctAnswers,
-      explanation: q.explanation,
-      type: 'multiple-select',
-    })),
-    ...(content.ordering || []).map((q): AnyQuestion => ({ ...q, type: 'ordering' })),
-    ...(content.wordBank || []).map((q): AnyQuestion => ({ ...q, type: 'word-bank' })),
-    ...(content.flashcards || []).map((q): AnyQuestion => ({ ...q, type: 'flashcard' })),
-    ...(content.scenario || []).map((q): AnyQuestion => ({
-      id: q.id,
-      question: q.scenario ? `${q.scenario} — ${q.question}` : q.question,
-      options: q.options,
-      correctAnswer: q.correctAnswer,
-      explanation: q.explanation,
-      type: 'quiz',
-    })),
-    // Timeline events render through the ordering card
-    ...(content.timeline ? [{
-      id: content.timeline.id,
-      instruction: content.timeline.instruction,
-      items: content.timeline.events.map(e => e.description),
-      correctOrder: content.timeline.correctOrder.map(id => content.timeline!.events.findIndex(e => e.id === id)),
-      explanation: content.timeline.explanation,
-      type: 'ordering' as const,
-    }] : []),
-    // Drag-drop items become per-item "which category?" quiz cards
-    ...(content.dragDrop?.items || []).map((item, i): AnyQuestion => ({
-      id: `${content.dragDrop!.id}-${i}`,
-      question: `Which category does "${item.content}" belong to?`,
-      options: content.dragDrop!.categories,
-      correctAnswer: content.dragDrop!.categories.indexOf(item.category),
-      explanation: content.dragDrop!.explanation,
-      type: 'quiz',
-    })),
-  ];
-  if (content.fillBlank) {
-    questions.push({ ...(content.fillBlank as FillBlankExercise), type: 'fill-blank' });
-  }
-  if (content.matching) {
-    questions.push({ ...(content.matching as MatchingExercise), type: 'matching' });
-  }
-  if (content.interactive) {
-    questions.push({
-      type: 'interactive',
-      id: `${lesson.id}-interactive`,
-      scenario: content.interactive.scenario,
-      steps: content.interactive.steps,
-    });
-  }
-  return questions;
-};
+import FillBlankCard from './questions/FillBlankCard';
+import MatchingCard from './questions/MatchingCard';
+import InteractiveCard from './questions/InteractiveCard';
 
 interface LessonViewProps {
   lesson: Lesson;
