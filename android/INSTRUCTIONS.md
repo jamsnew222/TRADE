@@ -1,8 +1,13 @@
 # Android Play Store Submission Instructions
 
 ## Prerequisites
-- Java Development Kit (JDK) 17 or higher
-- Android Studio (optional, but recommended)
+- Java Development Kit (JDK) **21** — Capacitor 8 compiles with `sourceCompatibility 21`; JDK 17 fails with "invalid source release: 21"
+- Android SDK (command-line tools are sufficient; Android Studio optional)
+  - Installed at `%LOCALAPPDATA%\Android\Sdk` on this machine
+  - Required packages: `platform-tools`, `platforms;android-36`, `build-tools;36.0.0`
+  - Accept licenses: `sdkmanager --licenses`
+- `android/local.properties` must contain `sdk.dir=C:\\Users\\<you>\\AppData\\Local\\Android\\Sdk` (gitignored)
+- Set `JAVA_HOME`, `ANDROID_HOME`, `ANDROID_SDK_ROOT` before running gradlew
 - Google Play Developer Account ($25 one-time fee)
 - Capacitor CLI already installed
 
@@ -20,10 +25,11 @@ This will ask you to:
 - Set a key password (store this securely!)
 
 ### 2. Update keystore.properties
-After generating the keystore, update the `keystore.properties` file in the android directory with:
-- Your actual keystore password
-- Your actual key password
-- The keystore file name (should be `release.keystore`)
+A release keystore already exists at `android/app/release.keystore` with credentials
+in `android/keystore.properties` (both gitignored). The file path in
+`keystore.properties` resolves **relative to `android/app/`**, so the keystore
+must live in the `app/` directory. **Back up both files** — the upload key is the
+app's permanent Play Store identity.
 
 Example:
 ```
