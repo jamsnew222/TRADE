@@ -3,7 +3,7 @@
 import { StockData } from '@/types';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import Sparkline from './Sparkline';
-import { formatPrice } from '@/lib/realtime-stock-data';
+import { formatPrice } from '@/lib/currency';
 import { getPriceHistory, isMarketOpen, isSymbolLive, MarketMode } from '@/lib/market-engine';
 
 interface StockRowProps {

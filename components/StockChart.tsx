@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { CandlestickChart, TrendingUp, TrendingDown, Activity } from 'lucide-react';
 import { subscribeMarket, getQuote, isSymbolLive } from '@/lib/market-engine';
-import { formatPrice } from '@/lib/realtime-stock-data';
+import { formatPrice } from '@/lib/currency';
 import { Currency } from '@/types';
 
 interface StockChartProps {

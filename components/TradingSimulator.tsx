@@ -9,7 +9,7 @@ import {
   getCurrencySymbol,
   getAvailableExchanges,
   getAvailableCurrencies
-} from '@/lib/realtime-stock-data';
+} from '@/lib/currency';
 import { refreshMarketNow } from '@/lib/market-engine';
 import { useMarket } from '@/lib/useMarket';
 import { X, TrendingUp, Wallet, RefreshCw, DollarSign, Building2 } from 'lucide-react';
