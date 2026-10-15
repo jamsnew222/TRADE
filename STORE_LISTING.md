@@ -62,10 +62,12 @@ trading,stocks,investing,learn,education,market,simulator,paper,finance,quiz
 
 ## Privacy policy URL
 ```
-<your hosted URL>/privacy
+https://jamsnew222.github.io/TRADE/privacy
 ```
-Host the exported `out/privacy/index.html` — GitHub Pages on this repo works
-(Settings → Pages → deploy from main/out or a gh-pages branch).
+Deployed automatically by `.github/workflows/deploy-pages.yml` — enable once in
+repo Settings → Pages → Source: "GitHub Actions". The workflow builds with
+`PAGES_BASE_PATH=/TRADE` so links resolve under the project path; the Capacitor
+build stays unprefixed.
 
 ## Screenshot checklist (take on a phone/emulator at max res)
 1. Home screen with learning path visible
