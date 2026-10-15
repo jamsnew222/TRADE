@@ -10,7 +10,7 @@ import {
   getAvailableExchanges,
   getAvailableCurrencies
 } from '@/lib/currency';
-import { refreshMarketNow } from '@/lib/market-engine';
+import { refreshMarketNow, isMarketOpen, getSimPriceHistory } from '@/lib/market-engine';
 import { useMarket } from '@/lib/useMarket';
 import { Position, applyBuy, applySell, valuePositions, positionsPL } from '@/lib/portfolio';
 import { useNotification } from '@/lib/useNotification';
@@ -34,13 +34,17 @@ interface Portfolio {
 export default function TradingSimulator({ onClose, darkMode, tradingStyle }: TradingSimulatorProps) {
   const styleSettings = tradingStyle ? tradingStyles.find(s => s.id === tradingStyle)?.simulatorSettings : undefined;
 
+  // 'live' = real prices + real market hours; 'practice' = near-real simulated prices, always open
+  const [tradingMode, setTradingMode] = useState<'live' | 'practice'>('live');
+  const isPractice = tradingMode === 'practice';
+
   const {
-    stocks, marketMode, lastUpdated, priceChanges,
+    stocks, allStocks, marketMode, lastUpdated, priceChanges,
     selectedStock, setSelectedStock,
     selectedExchange, setSelectedExchange,
     selectedCurrency, setSelectedCurrency,
     isLoading,
-  } = useMarket();
+  } = useMarket({ simulated: isPractice, liveOnly: !isPractice });
   const [portfolio, setPortfolio] = useState<Portfolio>({
     cash: styleSettings?.defaultPositionSize || 10000,
     baseCurrency: 'USD',
@@ -76,6 +80,12 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
 
     if (!canTrade(tradeProgress)) {
       showNotification(`Daily free limit of ${FREE_DAILY_TRADES} trades reached — upgrade to Premium for unlimited`);
+      return;
+    }
+
+    // Live mode follows real market hours — no trades while the exchange is closed
+    if (!isPractice && !isMarketOpen(selectedStock.exchange)) {
+      showNotification(`${selectedStock.exchange} is closed — live trading resumes at the opening bell. Switch to Practice to trade anytime.`);
       return;
     }
 
@@ -149,15 +159,20 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {marketMode === 'live' ? (
+            {isPractice ? (
+              <div className="flex items-center gap-1 px-2 py-1 bg-indigo-100 rounded-full" title="Practice mode — simulated prices anchored near real levels, open 24/7">
+                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
+                <span className="text-xs font-medium text-indigo-700">PRACTICE 24/7</span>
+              </div>
+            ) : marketMode === 'live' ? (
               <div className="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full" title="Real market data (may be delayed; shows last real price after market close)">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                 <span className="text-xs font-medium text-green-700">LIVE</span>
               </div>
             ) : marketMode === 'simulated' ? (
-              <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 rounded-full" title="Simulated prices for practice — real feed unreachable; movement continues even when markets are closed">
+              <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 rounded-full" title="Real feed unreachable — live prices unavailable; Practice mode still works">
                 <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-                <span className="text-xs font-medium text-amber-700">SIMULATED</span>
+                <span className="text-xs font-medium text-amber-700">FEED DOWN</span>
               </div>
             ) : null}
             {lastUpdated && (
@@ -183,6 +198,35 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[70vh]">
+          {/* Live vs Practice mode */}
+          <div className={`mb-6 p-1 rounded-xl grid grid-cols-2 gap-1 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+            <button
+              onClick={() => setTradingMode('live')}
+              className={`py-2.5 px-4 rounded-lg font-semibold text-sm transition-all ${
+                !isPractice
+                  ? 'bg-green-500 text-white shadow-lg'
+                  : darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Live Market
+            </button>
+            <button
+              onClick={() => setTradingMode('practice')}
+              className={`py-2.5 px-4 rounded-lg font-semibold text-sm transition-all ${
+                isPractice
+                  ? 'bg-indigo-500 text-white shadow-lg'
+                  : darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Practice 24/7
+            </button>
+          </div>
+          <p className={`text-xs mb-4 -mt-3 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            {isPractice
+              ? 'Simulated prices anchored near real levels — trade any time, day or night.'
+              : 'Real prices and real market hours — trades pause while the exchange is closed.'}
+          </p>
+
           {/* Exchange and Currency Selection */}
           <div className="mb-6 grid grid-cols-2 gap-4">
             <div>
@@ -267,7 +311,9 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
                   </div>
                 ) : stocks.length === 0 ? (
                   <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    No stocks available for this exchange/currency combination
+                    {!isPractice && allStocks.length === 0
+                      ? 'Live feed unavailable right now — switch to Practice to trade simulated prices anytime.'
+                      : 'No stocks available for this exchange/currency combination'}
                   </div>
                 ) : (
                   stocks.map(stock => (
@@ -278,6 +324,7 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
                       darkMode={darkMode}
                       marketMode={marketMode}
                       priceChange={priceChanges[stock.symbol]}
+                      history={isPractice ? getSimPriceHistory(stock.symbol) : undefined}
                       onClick={() => setSelectedStock(stock)}
                     >
                       <div className="flex gap-2 mt-2">
@@ -392,11 +439,19 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
                       </div>
                     </div>
 
+                    {!isPractice && !isMarketOpen(selectedStock.exchange) && (
+                      <div className={`mb-3 p-3 rounded-lg text-sm font-medium ${darkMode ? 'bg-gray-600 text-amber-300' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                        {selectedStock.exchange} is closed — live trading resumes at the opening bell. Switch to Practice to trade anytime.
+                      </div>
+                    )}
                     <button
                       onClick={executeTrade}
-                      className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold transition-colors"
+                      disabled={!isPractice && !isMarketOpen(selectedStock.exchange)}
+                      className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition-colors"
                     >
-                      {tradeType === 'buy' ? 'Buy Shares' : 'Sell Shares'}
+                      {!isPractice && !isMarketOpen(selectedStock.exchange)
+                        ? 'Market Closed'
+                        : tradeType === 'buy' ? 'Buy Shares' : 'Sell Shares'}
                     </button>
                     {!checkPremiumStatus(tradeProgress) && (
                       <p className={`text-xs text-center mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -413,7 +468,7 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
 
               {/* Stock Chart */}
               {selectedStock && (
-                <StockChart symbol={selectedStock.symbol} darkMode={darkMode} />
+                <StockChart symbol={selectedStock.symbol} darkMode={darkMode} simulated={isPractice} />
               )}
             </div>
           </div>
@@ -435,7 +490,7 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
                   </thead>
                   <tbody>
                     {portfolio.holdings.map(holding => {
-                      const stock = stocks.find(s => s.symbol === holding.symbol);
+                      const stock = allStocks.find(s => s.symbol === holding.symbol);
                       if (!stock) return null;
                       const currentPriceInBase = (stock.price * holding.shares); // Simplified for demo
                       const holdingPL = currentPriceInBase - (holding.averageCost * holding.shares);

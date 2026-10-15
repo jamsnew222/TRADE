@@ -2,7 +2,14 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { StockData, Exchange, Currency } from '@/types';
-import { subscribeMarket, getMarketMode, MarketMode } from './market-engine';
+import { subscribeMarket, subscribeSimulated, getMarketMode, isSymbolLive, MarketMode } from './market-engine';
+
+interface UseMarketOptions {
+  /** Use the always-on practice stream (simulated prices anchored to real) */
+  simulated?: boolean;
+  /** Only include symbols that currently have a real quote */
+  liveOnly?: boolean;
+}
 
 /**
  * Shared market subscription for the simulator and paper-trading screens.
@@ -10,7 +17,8 @@ import { subscribeMarket, getMarketMode, MarketMode } from './market-engine';
  * selected stock synced to the latest quote, and derives the filtered list
  * so changing filters never reloads data.
  */
-export function useMarket() {
+export function useMarket(options: UseMarketOptions = {}) {
+  const { simulated = false, liveOnly = false } = options;
   const [allStocks, setAllStocks] = useState<StockData[]>([]);
   const [marketMode, setMarketMode] = useState<MarketMode>('loading');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -22,7 +30,9 @@ export function useMarket() {
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const unsubscribe = subscribeMarket((snapshot) => {
+    const subscribe = simulated ? subscribeSimulated : subscribeMarket;
+    const unsubscribe = subscribe((rawSnapshot) => {
+      const snapshot = liveOnly ? rawSnapshot.filter(s => isSymbolLive(s.symbol)) : rawSnapshot;
       const prev = prevPricesRef.current;
       const changes: Record<string, 'up' | 'down'> = {};
       snapshot.forEach(s => {
@@ -40,13 +50,13 @@ export function useMarket() {
       }
 
       setAllStocks(snapshot);
-      setMarketMode(getMarketMode());
+      setMarketMode(simulated ? 'simulated' : getMarketMode());
       setLastUpdated(new Date());
 
       // Keep the selected stock in sync with the latest prices
       setSelectedStock(prev => {
         if (!prev) return snapshot[0] ?? null;
-        return snapshot.find(s => s.symbol === prev.symbol) ?? prev;
+        return snapshot.find(s => s.symbol === prev.symbol) ?? snapshot[0] ?? prev;
       });
     });
 
@@ -54,7 +64,7 @@ export function useMarket() {
       unsubscribe();
       if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
     };
-  }, []);
+  }, [simulated, liveOnly]);
 
   const stocks = useMemo(
     () => allStocks.filter(stock =>

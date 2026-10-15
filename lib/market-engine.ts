@@ -15,6 +15,12 @@ const liveSymbols = new Set<string>();
 const listeners = new Set<Listener>();
 const simBias = new Map<string, number>();
 
+// Practice-mode parallel stream: every symbol always simulates, anchored to
+// real prices whenever a live quote exists, so practice prices stay realistic.
+const simQuotes = new Map<string, StockData>();
+const simHistory = new Map<string, number[]>();
+const simListeners = new Set<Listener>();
+
 const MAX_HISTORY = 120;
 
 let mode: MarketMode = 'loading';
@@ -40,6 +46,13 @@ function notify() {
     .map(s => quotes.get(s.symbol))
     .filter((q): q is StockData => !!q);
   listeners.forEach(cb => cb(snapshot));
+}
+
+function notifySim() {
+  const snapshot = STOCK_SYMBOLS_LIST
+    .map(s => simQuotes.get(s.symbol))
+    .filter((q): q is StockData => !!q);
+  simListeners.forEach(cb => cb(snapshot));
 }
 
 function setQuote(symbol: string, price: number, dayOpen?: number) {
@@ -72,6 +85,39 @@ function setQuote(symbol: string, price: number, dayOpen?: number) {
     history.splice(0, history.length - MAX_HISTORY);
   }
   priceHistory.set(symbol, history);
+
+  // Keep practice prices anchored to real ones — when a real quote arrives,
+  // the simulated stream re-anchors so it never drifts far from reality
+  const sim = simQuotes.get(symbol);
+  if (sim) {
+    sim.price = price;
+    sim.open = open;
+    sim.change = price - open;
+    sim.changePercent = open > 0 ? ((price - open) / open) * 100 : 0;
+  }
+}
+
+function setSimQuote(symbol: string, price: number) {
+  const existing = simQuotes.get(symbol);
+  if (!existing) return;
+
+  const open = existing.open ?? existing.price;
+  simQuotes.set(symbol, {
+    ...existing,
+    open,
+    price,
+    change: price - open,
+    changePercent: open > 0 ? ((price - open) / open) * 100 : 0,
+    high: Math.max(existing.high ?? price, price),
+    low: Math.min(existing.low ?? price, price),
+  });
+
+  const history = simHistory.get(symbol) ?? [];
+  history.push(price);
+  if (history.length > MAX_HISTORY) {
+    history.splice(0, history.length - MAX_HISTORY);
+  }
+  simHistory.set(symbol, history);
 }
 
 function seed() {
@@ -80,6 +126,7 @@ function seed() {
     // Small spread so stocks don't all start identical, roughly half red/half green
     const price = base * (1 + (Math.random() - 0.5) * 0.008);
     setQuote(info.symbol, price, base);
+    simQuotes.set(info.symbol, { ...quotes.get(info.symbol)! });
     // Persistent per-stock trend bias so some trend up and some trend down
     simBias.set(info.symbol, (Math.random() - 0.5) * 0.0008);
   });
@@ -87,21 +134,35 @@ function seed() {
 
 function tickSimulated() {
   let changed = false;
+  let simChanged = false;
   quotes.forEach((q, symbol) => {
-    if (liveSymbols.has(symbol)) return; // real symbols only move on real data
+    // Live stream: real symbols only move on real data
+    if (!liveSymbols.has(symbol)) {
+      const next = nextSimPrice(symbol, q.price, q.open ?? q.price);
+      setQuote(symbol, next);
+      changed = true;
+    }
 
-    const volatility = 0.0012;
-    const bias = simBias.get(symbol) ?? 0;
-    const shock = (Math.random() - 0.5) * 2;
-    // Gentle mean reversion toward day open keeps prices bounded
-    const dayOpen = q.open ?? q.price;
-    const reversion = dayOpen > 0 ? ((dayOpen - q.price) / dayOpen) * 0.002 : 0;
-    const next = Math.max(0.01, q.price * (1 + bias + reversion + volatility * shock));
-
-    setQuote(symbol, next);
-    changed = true;
+    // Practice stream: every symbol ticks, reverting toward the real price
+    // when one exists so practice stays close to real market levels
+    const sim = simQuotes.get(symbol);
+    if (sim) {
+      const anchor = liveSymbols.has(symbol) ? q.price : (sim.open ?? sim.price);
+      setSimQuote(symbol, nextSimPrice(symbol, sim.price, anchor));
+      simChanged = true;
+    }
   });
   if (changed) notify();
+  if (simChanged) notifySim();
+}
+
+function nextSimPrice(symbol: string, price: number, anchor: number): number {
+  const volatility = 0.0012;
+  const bias = simBias.get(symbol) ?? 0;
+  const shock = (Math.random() - 0.5) * 2;
+  // Gentle mean reversion toward the anchor (real price or day open)
+  const reversion = anchor > 0 ? ((anchor - price) / anchor) * 0.002 : 0;
+  return Math.max(0.01, price * (1 + bias + reversion + volatility * shock));
 }
 
 // ---------- Finnhub (requires user API key, US symbols only) ----------
@@ -332,6 +393,7 @@ async function init() {
     exchangeOpenState.set(s.exchange, isMarketOpen(s.exchange));
   });
   notify();
+  notifySim();
 
   const activated = await tryActivateLive();
   mode = activated ? 'live' : 'simulated';
@@ -366,6 +428,12 @@ export function stopMarketEngine(): void {
   wsNotifyTimer = null;
   ws?.close();
   ws = null;
+  quotes.clear();
+  priceHistory.clear();
+  simQuotes.clear();
+  simHistory.clear();
+  liveSymbols.clear();
+  simBias.clear();
   initialized = false;
   mode = 'loading';
 }
@@ -380,6 +448,24 @@ export function subscribeMarket(listener: Listener): () => void {
   return () => listeners.delete(listener);
 }
 
+/**
+ * Practice-mode stream: simulated prices for every symbol, anchored to real
+ * quotes where they exist and ticking 24/7 regardless of market hours.
+ */
+export function subscribeSimulated(listener: Listener): () => void {
+  simListeners.add(listener);
+  init();
+  const snapshot = STOCK_SYMBOLS_LIST
+    .map(s => simQuotes.get(s.symbol))
+    .filter((q): q is StockData => !!q);
+  if (snapshot.length) listener(snapshot);
+  return () => simListeners.delete(listener);
+}
+
+export function getSimPriceHistory(symbol: string): number[] {
+  return simHistory.get(symbol) ?? [];
+}
+
 export function getMarketMode(): MarketMode {
   return mode;
 }
@@ -390,6 +476,10 @@ export function isSymbolLive(symbol: string): boolean {
 
 export function getQuote(symbol: string): StockData | undefined {
   return quotes.get(symbol);
+}
+
+export function getSimQuote(symbol: string): StockData | undefined {
+  return simQuotes.get(symbol);
 }
 
 // ---------- Market hours ----------

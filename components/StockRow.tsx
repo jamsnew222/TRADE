@@ -13,11 +13,13 @@ interface StockRowProps {
   marketMode: MarketMode;
   priceChange: 'up' | 'down' | null;
   onClick: () => void;
+  /** Sparkline data override (e.g. practice-mode history); defaults to live history */
+  history?: number[];
   /** Optional row-level actions (e.g. BUY/SELL quick buttons) rendered under the row */
   children?: React.ReactNode;
 }
 
-export default function StockRow({ stock, selected, darkMode, marketMode, priceChange, onClick, children }: StockRowProps) {
+export default function StockRow({ stock, selected, darkMode, marketMode, priceChange, onClick, history, children }: StockRowProps) {
   return (
     <div
       onClick={onClick}
@@ -54,7 +56,7 @@ export default function StockRow({ stock, selected, darkMode, marketMode, priceC
           <p className={`text-sm truncate ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{stock.name}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Sparkline data={getPriceHistory(stock.symbol)} positive={stock.change >= 0} />
+          <Sparkline data={history ?? getPriceHistory(stock.symbol)} positive={stock.change >= 0} />
           <div className="text-right">
             <p className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
               {formatPrice(stock.price, stock.currency)}

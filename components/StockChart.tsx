@@ -3,13 +3,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { CandlestickChart, TrendingUp, TrendingDown, Activity } from 'lucide-react';
-import { subscribeMarket, getQuote, isSymbolLive } from '@/lib/market-engine';
+import { subscribeMarket, subscribeSimulated, getQuote, getSimQuote, isSymbolLive } from '@/lib/market-engine';
 import { formatPrice } from '@/lib/currency';
 import { Currency } from '@/types';
 
 interface StockChartProps {
   symbol: string;
   darkMode: boolean;
+  /** Use the always-on practice stream instead of the live one */
+  simulated?: boolean;
 }
 
 interface ChartData {
@@ -41,7 +43,7 @@ function generateHistoricalData(basePrice: number, tf: '1D' | '1W' | '1M'): Char
   return data;
 }
 
-export default function StockChart({ symbol, darkMode }: StockChartProps) {
+export default function StockChart({ symbol, darkMode, simulated = false }: StockChartProps) {
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [live, setLive] = useState(false);
   const [currency, setCurrency] = useState<Currency>('USD');
@@ -52,17 +54,18 @@ export default function StockChart({ symbol, darkMode }: StockChartProps) {
   // No refetching — data flows in from the shared market engine.
   useEffect(() => {
     tickCountRef.current = 0;
-    const initial = getQuote(symbol);
+    const initial = simulated ? getSimQuote(symbol) : getQuote(symbol);
     const base = initial?.price ?? 100;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: seed chart history from the external market engine on symbol/timeframe change, then subscribe for ticks
     setChartData(generateHistoricalData(base, timeframe));
     setCurrency(initial?.currency ?? 'USD');
 
-    const unsubscribe = subscribeMarket(() => {
-      const quote = getQuote(symbol);
+    const subscribe = simulated ? subscribeSimulated : subscribeMarket;
+    const unsubscribe = subscribe(() => {
+      const quote = simulated ? getSimQuote(symbol) : getQuote(symbol);
       if (!quote) return;
 
-      setLive(isSymbolLive(symbol));
+      setLive(simulated ? true : isSymbolLive(symbol));
       setCurrency(quote.currency);
 
       if (timeframe !== '1D') return; // only live-append to the intraday view
@@ -79,7 +82,7 @@ export default function StockChart({ symbol, darkMode }: StockChartProps) {
     });
 
     return unsubscribe;
-  }, [symbol, timeframe]);
+  }, [symbol, timeframe, simulated]);
 
   const isLoading = chartData.length === 0;
   const latestPrice = chartData.length > 0 ? chartData[chartData.length - 1].price : 0;
