@@ -7,6 +7,7 @@ import { loadProgress, getStreakBonus, checkPremiumStatus } from '@/lib/progress
 import { recordQuestEvent } from '@/lib/quests';
 import { buildQuestions } from '@/lib/lesson-questions';
 import { playCorrect, playWrong, playComplete, playFail } from '@/lib/sounds';
+import { hapticCorrect, hapticWrong, hapticComplete } from '@/lib/haptics';
 import QuizCard from './questions/QuizCard';
 import OrderingCard from './questions/OrderingCard';
 import WordBankCard from './questions/WordBankCard';
@@ -88,15 +89,18 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
       setCorrectAnswers(prev => prev + 1);
       recordQuestEvent('correct', 1);
       playCorrect();
+      hapticCorrect();
     } else {
       setLives(prev => Math.max(0, prev - 1));
       playWrong();
+      hapticWrong();
     }
   };
 
   const advance = () => {
     if (isLastQuestion) {
       playComplete();
+      hapticComplete();
       setCurrentStep('complete');
     } else {
       setCurrentQuestion(prev => prev + 1);

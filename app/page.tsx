@@ -8,6 +8,7 @@ import { loadProgress, completeLesson, getRecommendedLessons, saveTradingStyle, 
 import { initPurchases, purchasePremium, linkPurchasesToUser, PurchaseResult } from '@/lib/purchases';
 import { useAuth, authMethods } from '@/lib/auth';
 import { syncOnLogin, enableProgressSync } from '@/lib/progress-sync';
+import { refreshStreakReminder } from '@/lib/notifications';
 import AuthScreen from '@/components/AuthScreen';
 import { checkAchievements, loadAchievements } from '@/lib/achievements';
 import { playClaim } from '@/lib/sounds';
@@ -93,6 +94,9 @@ export default function Home() {
 
       // Premium monthly XP perk
       setProgress(grantMonthlyPremiumBonus());
+
+      // Streak reminder notification (native only; web no-ops)
+      void refreshStreakReminder(progressData);
     } catch (error) {
       console.error('Error loading initial data:', error);
     }
@@ -138,6 +142,8 @@ export default function Home() {
       }
       setAchievements(updatedAchievements);
       setActiveLesson(null);
+      // Activity today cancels tonight's "streak at risk" ping
+      void refreshStreakReminder(updatedProgress);
     }
   };
 
