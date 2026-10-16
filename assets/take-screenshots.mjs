@@ -90,11 +90,10 @@ try {
       }
       await page.waitForTimeout(700);
       await shot('04-lesson-question.png');
-      // Answer the first option to show the checked state
-      if (await tryClick(page.locator('button').filter({ hasText: /./ }).nth(3), 'answer option')) {
-        await page.waitForTimeout(400);
-        await tryClick(page.getByRole('button', { name: /check|submit/i }), 'check answer');
-        await page.waitForTimeout(600);
+      // First question is True/False and submits on click — "True" is correct,
+      // so the result state shows the mascot celebration + speech bubble
+      if (await tryClick(page.getByRole('button', { name: 'True', exact: true }), 'answer True')) {
+        await page.waitForTimeout(1100);
         await shot('04b-lesson-result.png');
       }
     }

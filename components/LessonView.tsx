@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Lesson, FlashcardQuestion } from '@/types';
-import { ArrowRight, Sparkles, Target, ChevronRight, ChevronLeft, Flame, Crown, Heart, HeartCrack, RotateCcw } from 'lucide-react';
+import { ArrowRight, Sparkles, Target, ChevronRight, ChevronLeft, Flame, Crown, Heart, RotateCcw } from 'lucide-react';
 import { loadProgress, getStreakBonus, checkPremiumStatus } from '@/lib/progress';
 import { recordQuestEvent } from '@/lib/quests';
 import { buildQuestions } from '@/lib/lesson-questions';
@@ -15,9 +15,19 @@ import FlashcardCard from './questions/FlashcardCard';
 import FillBlankCard from './questions/FillBlankCard';
 import MatchingCard from './questions/MatchingCard';
 import InteractiveCard from './questions/InteractiveCard';
+import Mascot from './Mascot';
+import Confetti from './Confetti';
 
 const MAX_LIVES = 3;
 const PREMIUM_REVIVES = 2;
+
+const PRAISE = [
+  "Bull's-eye!", 'Charging ahead!', 'Nice trade!', 'Green candles!',
+  'Market mover!', 'On fire!', 'Smart move!',
+];
+const COMFORT = [
+  'Ouch — rough trade.', 'Shake it off!', 'Even bulls have red days.', "Next one's yours.",
+];
 
 interface LessonViewProps {
   lesson: Lesson;
@@ -33,6 +43,9 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [lives, setLives] = useState(MAX_LIVES);
   const [revivesUsed, setRevivesUsed] = useState(0);
+  // Mascot reacts per-question: {q} keys the reaction to the question it came
+  // from, so advancing (incl. flashcard auto-advance) hides it automatically
+  const [lastResult, setLastResult] = useState<{ q: number; correct: boolean } | null>(null);
 
   const allQuestions = buildQuestions(lesson);
   const totalQuestions = allQuestions.length;
@@ -85,6 +98,7 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
   const isLastQuestion = currentQuestion >= totalQuestions - 1;
 
   const handleResult = (correct: boolean) => {
+    setLastResult({ q: currentQuestion, correct });
     if (correct) {
       setCorrectAnswers(prev => prev + 1);
       recordQuestEvent('correct', 1);
@@ -120,11 +134,13 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
   const handleRevive = () => {
     setRevivesUsed(prev => prev + 1);
     setLives(MAX_LIVES);
+    setLastResult(null);
     setCurrentStep('exercise');
     advance();
   };
 
   const handleRestart = () => {
+    setLastResult(null);
     setLives(MAX_LIVES);
     setRevivesUsed(0);
     setCorrectAnswers(0);
@@ -152,21 +168,24 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
 
           <div className="relative z-10">
             <div className="text-center mb-6">
-              <div className="inline-block p-4 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl mb-4 shadow-lg">
-                <span className="text-5xl">
-                  {lesson.type === 'quiz' ? '❓' :
-                   lesson.type === 'matching' ? '🔗' :
-                   lesson.type === 'fill-blank' ? '✏️' :
-                   lesson.type === 'multiple-choice' ? '📝' :
-                   lesson.type === 'true-false' ? '✅' :
-                   lesson.type === 'multiple-select' ? '☑️' :
-                   lesson.type === 'ordering' ? '🔢' :
-                   lesson.type === 'word-bank' ? '📝' :
-                   lesson.type === 'flashcard' ? '🎴' :
-                   lesson.type === 'drag-drop' ? '🎯' :
-                   lesson.type === 'timeline' ? '📅' :
-                   lesson.type === 'scenario' ? '🎬' : '🎮'}
-                </span>
+              <div className="flex items-center justify-center gap-4 mb-4">
+                <div className="inline-block p-4 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl shadow-lg">
+                  <span className="text-5xl">
+                    {lesson.type === 'quiz' ? '❓' :
+                     lesson.type === 'matching' ? '🔗' :
+                     lesson.type === 'fill-blank' ? '✏️' :
+                     lesson.type === 'multiple-choice' ? '📝' :
+                     lesson.type === 'true-false' ? '✅' :
+                     lesson.type === 'multiple-select' ? '☑️' :
+                     lesson.type === 'ordering' ? '🔢' :
+                     lesson.type === 'word-bank' ? '📝' :
+                     lesson.type === 'flashcard' ? '🎴' :
+                     lesson.type === 'drag-drop' ? '🎯' :
+                     lesson.type === 'timeline' ? '📅' :
+                     lesson.type === 'scenario' ? '🎬' : '🎮'}
+                  </span>
+                </div>
+                <Mascot mood="idle" size={88} className="animate-mascot-sway" />
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{lesson.title}</h1>
               <p className="text-gray-600">{lesson.description}</p>
@@ -221,7 +240,10 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-xl p-8 border-2 border-blue-200">
+        <div className="relative bg-gradient-to-br from-white to-blue-50 rounded-3xl shadow-xl p-8 border-2 border-blue-200">
+          <div aria-hidden="true" className="pointer-events-none absolute bottom-3 right-3 hidden sm:block">
+            <Mascot mood="idle" size={54} className="animate-mascot-sway" />
+          </div>
           <div className="text-center mb-2">
             <span className="text-xs font-semibold uppercase tracking-wider text-blue-500">
               Study this — the quiz covers it
@@ -365,6 +387,31 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
           )}
         </div>
         {card}
+
+        {/* Mascot reacts in the corner while the answer's feedback is on screen.
+            Keyed to lastResult.q so it remounts (re-animates) each question and
+            disappears the moment the user advances. */}
+        {lastResult?.q === currentQuestion && (
+          <div aria-hidden="true" className="pointer-events-none fixed bottom-8 left-3 sm:left-6 z-50 flex flex-col items-start">
+            <div className={`ml-3 mb-1 max-w-[200px] animate-bubble-pop rounded-2xl rounded-bl-sm border-2 px-4 py-2 shadow-lg font-bold ${
+              lastResult.correct
+                ? 'border-green-300 bg-white text-green-700'
+                : 'border-red-200 bg-white text-red-600'
+            }`}>
+              {(() => { const lines = lastResult.correct ? PRAISE : COMFORT; return lines[currentQuestion % lines.length]; })()}
+            </div>
+            <div className="relative">
+              {lastResult.correct && <Confetti mode="burst" count={14} />}
+              <div className="animate-mascot-pop">
+                <Mascot
+                  mood={lastResult.correct ? 'happy' : 'sad'}
+                  size={84}
+                  className={lastResult.correct ? 'animate-mascot-hop' : 'animate-mascot-droop'}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </>
     );
   }
@@ -378,8 +425,8 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
     return (
       <div className="max-w-md mx-auto animate-fade-in text-center">
         <div className="bg-white rounded-3xl shadow-xl p-8 border-2 border-red-200">
-          <div className="inline-flex p-4 bg-red-100 rounded-2xl mb-4">
-            <HeartCrack className="w-12 h-12 text-red-500" />
+          <div className="inline-block mb-2 animate-mascot-droop">
+            <Mascot mood="dead" size={104} />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Out of Lives</h1>
           <p className="text-gray-600 mb-6">
@@ -436,12 +483,15 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
 
     return (
       <div className="max-w-2xl mx-auto animate-fade-in">
+        <Confetti mode="rain" count={40} />
         <div className="bg-gradient-to-br from-white to-green-50 rounded-3xl shadow-xl p-8 border-2 border-green-200 text-center relative overflow-hidden">
           <div className="absolute top-0 right-0 w-40 h-40 bg-green-200 rounded-full -translate-y-1/2 translate-x-1/2 opacity-20"></div>
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-yellow-200 rounded-full translate-y-1/2 -translate-x-1/2 opacity-20"></div>
 
           <div className="relative z-10">
-            <div className="text-6xl mb-4 animate-bounce">🎉</div>
+            <div className="mb-2 inline-block animate-mascot-pop">
+              <Mascot mood="party" size={128} className="animate-mascot-hop" />
+            </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Lesson Complete!</h1>
             <p className="text-gray-600 mb-6">Great job completing {lesson.title}</p>
 
