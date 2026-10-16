@@ -19,6 +19,7 @@ import {
   saveProgress,
   completeLesson,
   updateStreak,
+  reconcileStreak,
   getStreakBonus,
   activatePremium,
   cancelPremium,
@@ -174,12 +175,59 @@ describe('streaks', () => {
     expect(p.longestStreak).toBe(8);
   });
 
-  it('resets the streak to 1 after a gap, keeping the longest', () => {
+  it('resets the streak to 1 after a gap when no freezes remain, keeping the longest', () => {
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-    const p = updateStreak(baseProgress({ currentStreak: 10, longestStreak: 10, lastActiveDate: threeDaysAgo.toISOString() }));
+    const p = updateStreak(baseProgress({ currentStreak: 10, longestStreak: 10, streakFreezes: 0, lastActiveDate: threeDaysAgo.toISOString() }));
     expect(p.currentStreak).toBe(1);
     expect(p.longestStreak).toBe(10);
+  });
+
+  it('consumes a freeze to save the streak after one missed day', () => {
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const p = updateStreak(baseProgress({ currentStreak: 5, streakFreezes: 1, lastActiveDate: twoDaysAgo.toISOString() }));
+    expect(p.currentStreak).toBe(6);
+    expect(p.streakFreezes).toBe(0);
+  });
+
+  it('partial freeze coverage still loses the streak', () => {
+    const fourDaysAgo = new Date();
+    fourDaysAgo.setDate(fourDaysAgo.getDate() - 4);
+    const p = updateStreak(baseProgress({ currentStreak: 7, streakFreezes: 1, lastActiveDate: fourDaysAgo.toISOString() }));
+    expect(p.currentStreak).toBe(1);
+    expect(p.streakFreezes).toBe(0); // freeze was consumed covering day 1
+  });
+
+  it('premium streaks survive any gap without consuming freezes', () => {
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const p = updateStreak(baseProgress({ currentStreak: 9, streakFreezes: 1, isPremium: true, lastActiveDate: weekAgo.toISOString() }));
+    expect(p.currentStreak).toBe(10);
+    expect(p.streakFreezes).toBe(1);
+  });
+
+  it('reconcileStreak zeroes a stale streak without marking today active', () => {
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    const p = reconcileStreak(baseProgress({ currentStreak: 4, streakFreezes: 0, lastActiveDate: threeDaysAgo.toISOString() }));
+    expect(p.currentStreak).toBe(0);
+    expect(new Date(p.lastActiveDate).toDateString()).not.toBe(new Date().toDateString());
+  });
+
+  it('reconcileStreak preserves a freeze-covered streak without incrementing', () => {
+    const twoDaysAgo = new Date();
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const p = reconcileStreak(baseProgress({ currentStreak: 4, streakFreezes: 2, lastActiveDate: twoDaysAgo.toISOString() }));
+    expect(p.currentStreak).toBe(4);
+    expect(p.streakFreezes).toBe(1);
+    // lastActive advanced to yesterday — a lesson today then counts normally
+    expect(new Date(p.lastActiveDate).toDateString()).toBe(yesterday().toDateString());
+  });
+
+  it('reconcileStreak leaves a current streak untouched', () => {
+    const p = baseProgress({ currentStreak: 4, lastActiveDate: yesterday().toISOString() });
+    expect(reconcileStreak(p)).toBe(p);
   });
 
   it('returns correct bonus tiers', () => {

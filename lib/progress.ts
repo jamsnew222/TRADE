@@ -92,6 +92,36 @@ export const saveProgress = (progress: UserProgress): void => {
   }
 };
 
+const DAY_MS = 86400000;
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+/**
+ * Consume streak freezes to cover missed days — one freeze per missed day,
+ * Duolingo-style. Each freeze advances lastActiveDate by one day (freezes
+ * count the missed day but are never "today" — they don't create activity).
+ * Premium = unlimited freezes. Returns progress unchanged when nothing needed
+ * covering or no freezes remain.
+ */
+const applyStreakFreezes = (progress: UserProgress): UserProgress => {
+  const lastActive = startOfDay(new Date(progress.lastActiveDate));
+  const today = startOfDay(new Date());
+  // Full calendar days skipped — active yesterday means 0 missed
+  const daysMissed = Math.floor((today.getTime() - lastActive.getTime()) / DAY_MS) - 1;
+  if (daysMissed <= 0) return progress;
+
+  const available = progress.isPremium ? daysMissed : Math.max(0, progress.streakFreezes ?? 0);
+  const covered = Math.min(daysMissed, available);
+  if (covered === 0) return progress;
+
+  return {
+    ...progress,
+    lastActiveDate: new Date(lastActive.getTime() + covered * DAY_MS).toISOString(),
+    streakFreezes: progress.isPremium
+      ? progress.streakFreezes
+      : (progress.streakFreezes ?? 0) - covered,
+  };
+};
+
 export const updateStreak = (progress: UserProgress): UserProgress => {
   const today = new Date().toDateString();
   const lastActive = new Date(progress.lastActiveDate).toDateString();
@@ -101,26 +131,57 @@ export const updateStreak = (progress: UserProgress): UserProgress => {
   if (today === lastActive) {
     // Already active today, no change
     return progress;
-  } else if (yesterday.toDateString() === lastActive) {
-    // Active yesterday, increment streak
-    const newStreak = progress.currentStreak + 1;
-    const newLongestStreak = Math.max(progress.longestStreak || 0, newStreak);
+  }
+
+  // Missed day(s) — freezes cover the gap before the streak is judged
+  const withFreezes = applyStreakFreezes(progress);
+  const effectiveLast = new Date(withFreezes.lastActiveDate).toDateString();
+
+  if (yesterday.toDateString() === effectiveLast) {
+    // Active yesterday (or freezes covered the gap), increment streak
+    const newStreak = withFreezes.currentStreak + 1;
+    const newLongestStreak = Math.max(withFreezes.longestStreak || 0, newStreak);
     return {
-      ...progress,
+      ...withFreezes,
       currentStreak: newStreak,
       longestStreak: newLongestStreak,
       lastActiveDate: new Date().toISOString(),
-      totalDaysActive: (progress.totalDaysActive || 0) + 1
-    };
-  } else {
-    // Streak broken or first time
-    return {
-      ...progress,
-      currentStreak: 1,
-      lastActiveDate: new Date().toISOString(),
-      totalDaysActive: (progress.totalDaysActive || 0) + 1
+      totalDaysActive: (withFreezes.totalDaysActive || 0) + 1
     };
   }
+
+  // Streak broken — freezes couldn't cover the gap
+  return {
+    ...withFreezes,
+    currentStreak: 1,
+    lastActiveDate: new Date().toISOString(),
+    totalDaysActive: (withFreezes.totalDaysActive || 0) + 1
+  };
+};
+
+/**
+ * App-open reconciliation: an honest streak display before any lesson runs.
+ * Consumes freezes to cover the gap (streak survives untouched), or zeroes the
+ * streak — but never marks today active and never increments. Saves only when
+ * something actually changed.
+ */
+export const reconcileStreak = (progress: UserProgress): UserProgress => {
+  const today = new Date().toDateString();
+  const lastActive = new Date(progress.lastActiveDate).toDateString();
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (lastActive === today || lastActive === yesterday.toDateString()) {
+    return progress; // streak is current — nothing to judge
+  }
+
+  const withFreezes = applyStreakFreezes(progress);
+  const survived =
+    new Date(withFreezes.lastActiveDate).toDateString() === yesterday.toDateString();
+  const next = survived ? withFreezes : { ...withFreezes, currentStreak: 0 };
+
+  if (next !== progress) saveProgress(next);
+  return next;
 };
 
 export const getStreakBonus = (streak: number): number => {
@@ -131,47 +192,6 @@ export const getStreakBonus = (streak: number): number => {
   if (streak >= 7) return 15;  // 7 day streak
   if (streak >= 3) return 5; // 3 day streak
   return 0;
-};
-
-export const useStreakFreeze = (progress: UserProgress): UserProgress => {
-  // Premium users have unlimited freezes
-  if (progress.isPremium) {
-    // Reset streak to preserve it instead of breaking
-    const today = new Date().toDateString();
-    const lastActive = new Date(progress.lastActiveDate).toDateString();
-
-    if (today !== lastActive) {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      if (yesterday.toDateString() !== lastActive) {
-        progress.lastActiveDate = new Date().toISOString();
-      }
-    }
-    saveProgress(progress);
-    return progress;
-  }
-
-  if (!progress.streakFreezes || progress.streakFreezes <= 0) {
-    return progress;
-  }
-
-  progress.streakFreezes -= 1;
-  // Reset streak to preserve it instead of breaking
-  const today = new Date().toDateString();
-  const lastActive = new Date(progress.lastActiveDate).toDateString();
-
-  // If missed a day, use a freeze
-  if (today !== lastActive) {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    if (yesterday.toDateString() !== lastActive) {
-      // Missed more than one day, still use freeze but don't reset
-      progress.lastActiveDate = new Date().toISOString();
-    }
-  }
-
-  saveProgress(progress);
-  return progress;
 };
 
 export const activatePremium = (plan: 'monthly' | 'yearly'): UserProgress => {

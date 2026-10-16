@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { lessons, categories } from '@/data/lessons-padded';
 import { tradingStyles } from '@/data/trading-styles';
 import { learningPath } from '@/data/learning-path';
-import { loadProgress, completeLesson, getRecommendedLessons, saveTradingStyle, getStreakBonus, checkPremiumStatus, canStartLesson, getRemainingUsage, grantMonthlyPremiumBonus, FREE_DAILY_LESSONS } from '@/lib/progress';
+import { loadProgress, completeLesson, getRecommendedLessons, saveTradingStyle, getStreakBonus, checkPremiumStatus, canStartLesson, getRemainingUsage, grantMonthlyPremiumBonus, FREE_DAILY_LESSONS, reconcileStreak } from '@/lib/progress';
 import { initPurchases, purchasePremium, linkPurchasesToUser, PurchaseResult } from '@/lib/purchases';
 import { useAuth, authMethods } from '@/lib/auth';
 import { syncOnLogin, enableProgressSync } from '@/lib/progress-sync';
@@ -69,12 +69,21 @@ export default function Home() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [justUnlocked, setJustUnlocked] = useState<Achievement | null>(null);
+  const [freezeNotice, setFreezeNotice] = useState(false);
 
   useEffect(() => {
     try {
       const progressData = loadProgress();
+      // Judge a stale streak on open: freezes cover missed days, else it ends.
+      // Surfacing a consumed freeze explains why the streak survived.
+      const freezesBefore = progressData.streakFreezes ?? 0;
+      const reconciled = reconcileStreak(progressData);
       // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: hydrate persisted localStorage state after mount to avoid SSR/CSR mismatch
-      setProgress(progressData);
+      setProgress(reconciled);
+      if ((reconciled.streakFreezes ?? 0) < freezesBefore) {
+        setFreezeNotice(true);
+        setTimeout(() => setFreezeNotice(false), 5000);
+      }
       setAchievements(loadAchievements());
 
       // Check for system dark mode preference
@@ -96,7 +105,7 @@ export default function Home() {
       setProgress(grantMonthlyPremiumBonus());
 
       // Streak reminder notification (native only; web no-ops)
-      void refreshStreakReminder(progressData);
+      void refreshStreakReminder(reconciled);
     } catch (error) {
       console.error('Error loading initial data:', error);
     }
@@ -475,6 +484,19 @@ export default function Home() {
         onRestored={handlePremiumRestored}
         darkMode={darkMode}
       />
+
+      {/* Streak freeze consumed notice */}
+      {freezeNotice && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] animate-fade-in">
+          <div className={`flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl border-2 ${darkMode ? 'bg-gray-800 border-blue-400' : 'bg-white border-blue-400'}`}>
+            <span className="text-3xl">🧊</span>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-blue-500">Streak Saved</p>
+              <p className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>A streak freeze covered your missed day</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Achievement unlocked toast */}
       {justUnlocked && (
