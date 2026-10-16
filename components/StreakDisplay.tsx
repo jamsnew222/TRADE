@@ -155,18 +155,17 @@ export default function StreakDisplay({ progress, darkMode }: StreakDisplayProps
         </div>
       </div>
 
-      {/* Streak Freeze Button */}
+      {/* Freeze inventory — freezes auto-save the streak when a day is
+          missed; there is no manual "use" */}
       {!isPremium && (progress.streakFreezes ?? 0) > 0 && (
-        <button
-          className={`w-full mt-4 flex items-center justify-center gap-2 p-3 rounded-lg transition-colors ${
-            darkMode
-              ? 'bg-cyan-600 hover:bg-cyan-700 text-white'
-              : 'bg-cyan-500 hover:bg-cyan-600 text-white'
-          }`}
-        >
+        <div className={`w-full mt-4 flex items-center justify-center gap-2 p-3 rounded-lg ${
+          darkMode ? 'bg-cyan-900/40 text-cyan-300' : 'bg-cyan-50 text-cyan-700'
+        }`}>
           <Snowflake className="w-4 h-4" />
-          <span className="font-medium">Use Streak Freeze ({progress.streakFreezes ?? 0} left)</span>
-        </button>
+          <span className="font-medium">
+            {progress.streakFreezes} freeze{(progress.streakFreezes ?? 0) === 1 ? '' : 's'} — auto-saves your streak if you miss a day
+          </span>
+        </div>
       )}
 
       {isPremium && (

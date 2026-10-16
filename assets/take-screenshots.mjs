@@ -103,9 +103,9 @@ try {
   }
 } catch (e) { console.log('lesson flow skipped:', e.message.split('\n')[0]); }
 
-// Simulator (already proven working)
+// Simulator (header button labels are icon-only at phone width — aria-labels)
 try {
-  if (await tryClick(page.getByText('Simulator'), 'open simulator')) {
+  if (await tryClick(page.getByLabel('Simulator'), 'open simulator')) {
     await page.waitForTimeout(1800);
     await shot('05-simulator.png');
     await tryClick(page.getByLabel('Close'), 'close simulator');
@@ -115,7 +115,7 @@ try {
 
 // Premium paywall
 try {
-  const ok = await tryClick(page.getByText(/go premium|upgrade|premium/i), 'open premium');
+  const ok = await tryClick(page.getByLabel(/premium|upgrade/i), 'open premium');
   if (ok) {
     await page.waitForTimeout(800);
     await shot('06-premium.png');

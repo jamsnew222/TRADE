@@ -238,48 +238,54 @@ export default function Home() {
               </div>
               <div>
                 <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>TradeQuest</h1>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Master trading through interactive learning</p>
+                <p className={`hidden sm:block text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Master trading through interactive learning</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            {/* Icon-only on phones; wraps to a second row when needed */}
+            <div className="flex items-center justify-end flex-wrap gap-1.5 sm:gap-3">
               <button
                 onClick={() => setShowPaperTrading(true)}
+                aria-label="Paper Trading"
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                   darkMode ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-500 text-white hover:bg-blue-600'
                 }`}
               >
                 <BarChart3 className="w-4 h-4" />
-                <span className="text-sm font-medium">Paper Trading</span>
+                <span className="hidden md:inline text-sm font-medium">Paper Trading</span>
               </button>
               <button
                 onClick={() => setShowReview(true)}
+                aria-label="Review"
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                   darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 <RotateCcw className="w-4 h-4" />
-                <span className="text-sm font-medium">Review</span>
+                <span className="hidden md:inline text-sm font-medium">Review</span>
               </button>
               <button
                 onClick={() => setShowSimulator(true)}
+                aria-label="Simulator"
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                   darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 <Gamepad2 className="w-4 h-4" />
-                <span className="text-sm font-medium">Simulator</span>
+                <span className="hidden md:inline text-sm font-medium">Simulator</span>
               </button>
               <button
                 onClick={() => setShowAchievements(true)}
+                aria-label="Achievements"
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                   darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 <Trophy className="w-4 h-4" />
-                <span className="text-sm font-medium">Achievements</span>
+                <span className="hidden md:inline text-sm font-medium">Achievements</span>
               </button>
               <button
                 onClick={() => setShowPremiumModal(true)}
+                aria-label={isPremiumUser ? 'Premium' : 'Upgrade to Premium'}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                   isPremiumUser
                     ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white hover:from-yellow-500 hover:to-amber-600'
@@ -289,16 +295,17 @@ export default function Home() {
                 }`}
               >
                 <Crown className="w-4 h-4" />
-                <span className="text-sm font-medium">{isPremiumUser ? 'Premium' : 'Upgrade'}</span>
+                <span className="hidden md:inline text-sm font-medium">{isPremiumUser ? 'Premium' : 'Upgrade'}</span>
               </button>
               <button
                 onClick={() => setShowSettings(true)}
+                aria-label="Settings"
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                   darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 <Settings className="w-4 h-4" />
-                <span className="text-sm font-medium">Settings</span>
+                <span className="hidden md:inline text-sm font-medium">Settings</span>
               </button>
               <button
                 onClick={() => setShowProfile(true)}
