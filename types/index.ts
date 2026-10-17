@@ -26,6 +26,8 @@ export interface UserProgress {
   usageDate?: string;
   dailyLessonsUsed?: number;
   dailyTradesUsed?: number;
+  /** Questions answered wrong, as "lessonId::questionId" — drives mistake practice */
+  missedQuestions?: string[];
 }
 
 export interface Lesson {

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { lessons, categories } from '@/data/lessons-padded';
 import { tradingStyles } from '@/data/trading-styles';
 import { learningPath } from '@/data/learning-path';
-import { loadProgress, completeLesson, getRecommendedLessons, saveTradingStyle, getStreakBonus, checkPremiumStatus, canStartLesson, getRemainingUsage, grantMonthlyPremiumBonus, FREE_DAILY_LESSONS, reconcileStreak } from '@/lib/progress';
+import { loadProgress, completeLesson, getRecommendedLessons, saveTradingStyle, getStreakBonus, checkPremiumStatus, canStartLesson, getRemainingUsage, grantMonthlyPremiumBonus, FREE_DAILY_LESSONS, reconcileStreak, awardPracticeXP } from '@/lib/progress';
 import { initPurchases, purchasePremium, linkPurchasesToUser, PurchaseResult } from '@/lib/purchases';
 import { useAuth, authMethods } from '@/lib/auth';
 import { syncOnLogin, enableProgressSync } from '@/lib/progress-sync';
@@ -28,7 +28,8 @@ import LearningPath from '@/components/LearningPath';
 import PremiumModal from '@/components/PremiumModal';
 import SettingsModal from '@/components/SettingsModal';
 import ProfileModal from '@/components/ProfileModal';
-import { TrendingUp, Trophy, Gamepad2, RotateCcw, BarChart3, Settings, Crown } from 'lucide-react';
+import { TrendingUp, Trophy, Gamepad2, RotateCcw, BarChart3, Settings, Crown, Medal } from 'lucide-react';
+import Leaderboard from '@/components/Leaderboard';
 
 // Merge real progress into the static path data: unlock levels
 // sequentially within a unit, and units once the previous is done.
@@ -55,7 +56,10 @@ export default function Home() {
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
+  // Mistake-practice mode: question ids to replay, or null for a normal lesson
+  const [practiceIds, setPracticeIds] = useState<string[] | null>(null);
   const [showAchievements, setShowAchievements] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [darkMode, setDarkMode] = useState(false);
   const [showSimulator, setShowSimulator] = useState(false);
@@ -129,6 +133,19 @@ export default function Home() {
 
   const handleLessonComplete = (xpEarned: number) => {
     if (activeLesson) {
+      if (practiceIds) {
+        // Practice mode: XP + streak credit, no lesson slot consumed, no
+        // completedLessons change — misses already cleared per-question
+        const updatedProgress = awardPracticeXP(xpEarned);
+        recordQuestEvent('xp', xpEarned);
+        setQuestTick(t => t + 1);
+        setProgress(updatedProgress);
+        setAchievements(checkAchievements(updatedProgress));
+        setActiveLesson(null);
+        setPracticeIds(null);
+        void refreshStreakReminder(updatedProgress);
+        return;
+      }
       const progressData = loadProgress();
       const streakBonus = getStreakBonus(progressData.currentStreak);
       // completeLesson applies the premium 2x multiplier internally — pass
@@ -175,6 +192,14 @@ export default function Home() {
       setShowPremiumModal(true);
       return;
     }
+    setPracticeIds(null);
+    setActiveLesson(lesson);
+  };
+
+  // Mistake practice is review, not a lesson — no daily cap, no premium gate
+  const handlePractice = (lesson: Lesson, questionIds: string[]) => {
+    setShowReview(false);
+    setPracticeIds(questionIds);
     setActiveLesson(lesson);
   };
 
@@ -219,8 +244,9 @@ export default function Home() {
         <LessonView 
           lesson={activeLesson} 
           onComplete={handleLessonComplete}
-          onBack={() => setActiveLesson(null)}
+          onBack={() => { setActiveLesson(null); setPracticeIds(null); }}
           onUpgrade={() => setShowPremiumModal(true)}
+          practiceIds={practiceIds ?? undefined}
         />
       </div>
     );
@@ -284,6 +310,16 @@ export default function Home() {
                 <span className="hidden md:inline text-sm font-medium">Achievements</span>
               </button>
               <button
+                onClick={() => setShowLeaderboard(true)}
+                aria-label="Leaderboard"
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                  darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Medal className="w-4 h-4" />
+                <span className="hidden md:inline text-sm font-medium">Ranks</span>
+              </button>
+              <button
                 onClick={() => setShowPremiumModal(true)}
                 aria-label={isPremiumUser ? 'Premium' : 'Upgrade to Premium'}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
@@ -323,7 +359,7 @@ export default function Home() {
         {/* Progress Section */}
         {progress && (
           <div className="mb-8">
-            <ProgressCard progress={progress} darkMode={darkMode} />
+            <ProgressCard progress={progress} darkMode={darkMode} onProgressChange={setProgress} />
 
             {/* Free plan daily usage */}
             {!isPremiumUser && (
@@ -470,7 +506,18 @@ export default function Home() {
         <ReviewSystem 
           completedLessons={progress.completedLessons}
           lessons={lessons}
+          missedQuestions={progress.missedQuestions ?? []}
           onClose={() => setShowReview(false)}
+          onPractice={handlePractice}
+          darkMode={darkMode}
+        />
+      )}
+
+      {/* Leaderboard — public XP rankings (needs a signed-in user) */}
+      {showLeaderboard && (
+        <Leaderboard
+          currentUid={user?.uid ?? null}
+          onClose={() => setShowLeaderboard(false)}
           darkMode={darkMode}
         />
       )}

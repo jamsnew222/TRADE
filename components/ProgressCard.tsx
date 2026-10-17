@@ -8,9 +8,10 @@ import StreakDisplay from './StreakDisplay';
 interface ProgressCardProps {
   progress: UserProgress;
   darkMode: boolean;
+  onProgressChange?: (progress: UserProgress) => void;
 }
 
-export default function ProgressCard({ progress, darkMode }: ProgressCardProps) {
+export default function ProgressCard({ progress, darkMode, onProgressChange }: ProgressCardProps) {
   const nextLevelXP = Math.pow(progress.level, 2) * 100;
   const currentLevelXP = Math.pow(progress.level - 1, 2) * 100;
   const progressInLevel = progress.totalXP - currentLevelXP;
@@ -20,7 +21,7 @@ export default function ProgressCard({ progress, darkMode }: ProgressCardProps) 
 
   return (
     <div className="space-y-4">
-      <StreakDisplay progress={progress} darkMode={darkMode} />
+      <StreakDisplay progress={progress} darkMode={darkMode} onFreezeBought={onProgressChange} />
 
       <div className={`rounded-2xl shadow-lg p-6 border-2 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-green-500'}`}>
         <div className="flex items-center justify-between mb-4">

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Lesson, FlashcardQuestion } from '@/types';
 import { ArrowRight, Sparkles, Target, ChevronRight, ChevronLeft, Flame, Crown, Heart, RotateCcw } from 'lucide-react';
-import { loadProgress, getStreakBonus, checkPremiumStatus } from '@/lib/progress';
+import { loadProgress, getStreakBonus, checkPremiumStatus, recordMiss, clearMiss } from '@/lib/progress';
 import { recordQuestEvent } from '@/lib/quests';
 import { buildQuestions } from '@/lib/lesson-questions';
 import { playCorrect, playWrong, playComplete, playFail } from '@/lib/sounds';
@@ -34,10 +34,16 @@ interface LessonViewProps {
   onComplete: (xpEarned: number) => void;
   onBack: () => void;
   onUpgrade?: () => void;
+  /** Practice mode: replay only these question ids (mistake review).
+   *  No hearts, no learn phase — straight into the questions. */
+  practiceIds?: string[];
 }
 
-export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: LessonViewProps) {
-  const [currentStep, setCurrentStep] = useState<'intro' | 'learn' | 'exercise' | 'failed' | 'complete'>('intro');
+export default function LessonView({ lesson, onComplete, onBack, onUpgrade, practiceIds }: LessonViewProps) {
+  const isPractice = !!practiceIds?.length;
+  const [currentStep, setCurrentStep] = useState<'intro' | 'learn' | 'exercise' | 'failed' | 'complete'>(
+    isPractice ? 'exercise' : 'intro'
+  );
   const [learnIndex, setLearnIndex] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState(0);
@@ -47,7 +53,9 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
   // from, so advancing (incl. flashcard auto-advance) hides it automatically
   const [lastResult, setLastResult] = useState<{ q: number; correct: boolean } | null>(null);
 
-  const allQuestions = buildQuestions(lesson);
+  const allQuestions = isPractice
+    ? buildQuestions(lesson).filter(q => practiceIds!.includes(q.id))
+    : buildQuestions(lesson);
   const totalQuestions = allQuestions.length;
 
   // Build "learn before you're tested" study slides from the lesson's own content
@@ -99,6 +107,12 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
 
   const handleResult = (correct: boolean) => {
     setLastResult({ q: currentQuestion, correct });
+    const qid = allQuestions[currentQuestion].id;
+    if (correct) {
+      clearMiss(lesson.id, qid); // re-mastery clears the miss from any mode
+    } else {
+      recordMiss(lesson.id, qid);
+    }
     if (correct) {
       setCorrectAnswers(prev => prev + 1);
       recordQuestEvent('correct', 1);
@@ -122,8 +136,9 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
   };
 
   const handleNext = () => {
-    // Reaching zero lives shows the result first; failure lands on Next
-    if (lives <= 0) {
+    // Reaching zero lives shows the result first; failure lands on Next.
+    // Practice mode has no hearts — review should never punish.
+    if (!isPractice && lives <= 0) {
       playFail();
       setCurrentStep('failed');
       return;
@@ -150,7 +165,10 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
   };
 
   const handleComplete = () => {
-    const xpEarned = Math.round(lesson.xpReward * (correctAnswers / Math.max(1, totalQuestions)));
+    // Practice XP is flat per corrected mistake — modest, no lesson reward
+    const xpEarned = isPractice
+      ? 5 * correctAnswers
+      : Math.round(lesson.xpReward * (correctAnswers / Math.max(1, totalQuestions)));
     onComplete(xpEarned);
   };
 
@@ -368,7 +386,15 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
 
     return (
       <>
-        {/* Lives bar — Duolingo-style hearts */}
+        {/* Lives bar — Duolingo-style hearts (practice mode is heart-free) */}
+        {isPractice ? (
+          <div className="max-w-2xl mx-auto mb-4 px-1">
+            <span className="inline-flex items-center gap-2 bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-sm font-semibold">
+              <Target className="w-4 h-4" />
+              Practicing your mistakes — no hearts on the line
+            </span>
+          </div>
+        ) : (
         <div className="max-w-2xl mx-auto mb-4 flex items-center justify-between px-1">
           <div className="flex items-center gap-1">
             {Array.from({ length: MAX_LIVES }).map((_, i) => (
@@ -386,6 +412,7 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
             </span>
           )}
         </div>
+        )}
         {card}
 
         {/* Mascot reacts in the corner while the answer's feedback is on screen.
@@ -473,7 +500,9 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
   }
 
   if (currentStep === 'complete') {
-    const xpEarned = Math.round(lesson.xpReward * (correctAnswers / Math.max(1, totalQuestions || 1)));
+    const xpEarned = isPractice
+      ? 5 * correctAnswers
+      : Math.round(lesson.xpReward * (correctAnswers / Math.max(1, totalQuestions || 1)));
     const progress = loadProgress();
     const streakBonus = getStreakBonus(progress.currentStreak);
     const isPremium = checkPremiumStatus(progress);
@@ -492,8 +521,10 @@ export default function LessonView({ lesson, onComplete, onBack, onUpgrade }: Le
             <div className="mb-2 inline-block animate-mascot-pop">
               <Mascot mood="party" size={128} className="animate-mascot-hop" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Lesson Complete!</h1>
-            <p className="text-gray-600 mb-6">Great job completing {lesson.title}</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{isPractice ? 'Practice Complete!' : 'Lesson Complete!'}</h1>
+            <p className="text-gray-600 mb-6">
+              {isPractice ? 'Misses you re-answered correctly are now cleared' : `Great job completing ${lesson.title}`}
+            </p>
 
             <div className="bg-gradient-to-r from-yellow-50 to-amber-50 rounded-2xl p-6 mb-4 border border-yellow-200">
               <div className="flex items-center justify-center gap-2 text-yellow-600">

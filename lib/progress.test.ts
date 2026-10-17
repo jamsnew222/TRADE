@@ -32,6 +32,10 @@ import {
   getRemainingUsage,
   FREE_DAILY_LESSONS,
   FREE_DAILY_TRADES,
+  recordMiss,
+  clearMiss,
+  getMissedForLesson,
+  awardPracticeXP,
 } from './progress';
 
 const STORAGE_KEY = 'trading-duolingo-progress';
@@ -273,5 +277,56 @@ describe('premium', () => {
   it('getPremiumMultiplier is 2x for premium, 1x otherwise', () => {
     expect(getPremiumMultiplier(baseProgress({ isPremium: true, premiumExpiry: null }))).toBe(2);
     expect(getPremiumMultiplier(baseProgress())).toBe(1);
+  });
+});
+
+describe('mistake tracking', () => {
+  it('recordMiss stores lesson::question keys without duplicates', () => {
+    recordMiss('lesson-a', 'q1');
+    recordMiss('lesson-a', 'q1');
+    recordMiss('lesson-b', 'q2');
+    expect(loadProgress().missedQuestions).toEqual(['lesson-a::q1', 'lesson-b::q2']);
+  });
+
+  it('clearMiss removes only that question', () => {
+    recordMiss('lesson-a', 'q1');
+    recordMiss('lesson-a', 'q2');
+    clearMiss('lesson-a', 'q1');
+    expect(loadProgress().missedQuestions).toEqual(['lesson-a::q2']);
+  });
+
+  it('getMissedForLesson returns bare ids for that lesson only', () => {
+    recordMiss('lesson-a', 'q1');
+    recordMiss('lesson-b', 'q9');
+    expect(getMissedForLesson(loadProgress(), 'lesson-a')).toEqual(['q1']);
+    expect(getMissedForLesson(loadProgress(), 'lesson-c')).toEqual([]);
+  });
+
+  it('awardPracticeXP grants XP + streak without touching lessons or usage', () => {
+    seedProgress({ totalXP: 90, level: 1, dailyLessonsUsed: 2, usageDate: new Date().toDateString() });
+    const p = awardPracticeXP(15);
+    expect(p.totalXP).toBe(105);
+    expect(p.level).toBe(2); // sqrt(105/100)+1
+    expect(p.completedLessons).toEqual([]);
+    expect(p.dailyLessonsUsed).toBe(2); // practice is not a lesson
+  });
+});
+
+describe('buyStreakFreeze', () => {
+  it('spends 100 XP for a freeze without touching level', async () => {
+    const { buyStreakFreeze, STREAK_FREEZE_COST } = await import('./progress');
+    seedProgress({ totalXP: 500, level: 3, streakFreezes: 1 });
+    const p = buyStreakFreeze()!;
+    expect(p.totalXP).toBe(500 - STREAK_FREEZE_COST);
+    expect(p.streakFreezes).toBe(2);
+    expect(p.level).toBe(3); // level reflects earned standing, not spendable XP
+  });
+
+  it('refuses when broke or at the 5-freeze cap', async () => {
+    const { buyStreakFreeze } = await import('./progress');
+    seedProgress({ totalXP: 50, streakFreezes: 1 });
+    expect(buyStreakFreeze()).toBeNull();
+    seedProgress({ totalXP: 1000, streakFreezes: 5 });
+    expect(buyStreakFreeze()).toBeNull();
   });
 });

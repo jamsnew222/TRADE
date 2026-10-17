@@ -1,17 +1,22 @@
 'use client';
 
 import { Lesson } from '@/types';
-import { X, RotateCcw, CheckCircle } from 'lucide-react';
+import { X, RotateCcw, CheckCircle, Target } from 'lucide-react';
 
 interface ReviewSystemProps {
   completedLessons: string[];
   lessons: Lesson[];
+  missedQuestions: string[];
   onClose: () => void;
+  onPractice: (lesson: Lesson, questionIds: string[]) => void;
   darkMode: boolean;
 }
 
-export default function ReviewSystem({ completedLessons, lessons, onClose, darkMode }: ReviewSystemProps) {
+export default function ReviewSystem({ completedLessons, lessons, missedQuestions, onClose, onPractice, darkMode }: ReviewSystemProps) {
   const completedLessonObjects = lessons.filter(lesson => completedLessons.includes(lesson.id));
+  const missedFor = (lessonId: string) =>
+    missedQuestions.filter(m => m.startsWith(`${lessonId}::`)).map(m => m.slice(lessonId.length + 2));
+  const totalMissed = missedQuestions.length;
 
   if (completedLessonObjects.length === 0) {
     return (
@@ -48,7 +53,8 @@ export default function ReviewSystem({ completedLessons, lessons, onClose, darkM
             <div>
               <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Review Lessons</h2>
               <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                {completedLessonObjects.length} completed lessons available for review
+                {completedLessonObjects.length} completed lessons
+                {totalMissed > 0 && ` · ${totalMissed} mistake${totalMissed === 1 ? '' : 's'} to practice`}
               </p>
             </div>
           </div>
@@ -92,11 +98,22 @@ export default function ReviewSystem({ completedLessons, lessons, onClose, darkM
                           </div>
                         )}
 
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between gap-2">
                           <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{lesson.category}</span>
-                          <div className="flex items-center gap-1 text-sm font-medium text-yellow-600">
-                            <span className="text-lg">⭐</span>
-                            {lesson.xpReward} XP
+                          <div className="flex items-center gap-3">
+                            <span className="flex items-center gap-1 text-sm font-medium text-yellow-600">
+                              <span className="text-lg">⭐</span>
+                              {lesson.xpReward} XP
+                            </span>
+                            {missedFor(lesson.id).length > 0 && (
+                              <button
+                                onClick={() => onPractice(lesson, missedFor(lesson.id))}
+                                className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-full text-sm font-semibold transition-colors"
+                              >
+                                <Target className="w-4 h-4" />
+                                Practice {missedFor(lesson.id).length} miss{missedFor(lesson.id).length === 1 ? '' : 'es'}
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>

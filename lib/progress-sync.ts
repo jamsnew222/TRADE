@@ -4,6 +4,7 @@ import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { UserProgress } from '@/types';
 import { getFirestoreDb } from './firebase';
 import { loadProgress, saveProgress, registerProgressUploader } from './progress';
+import { publishLeaderboardEntry, deleteLeaderboardEntry } from './leaderboard';
 import {
   loadSimulatorPortfolio,
   saveSimulatorPortfolio,
@@ -28,6 +29,8 @@ export function mergeProgress(local: UserProgress, cloud: Partial<UserProgress> 
     ...local,
     ...cloud,
     completedLessons: [...done],
+    // Misses union — a question cleared on one device re-misses if still wrong on the other
+    missedQuestions: [...new Set([...(local.missedQuestions ?? []), ...(cloud.missedQuestions ?? [])])],
     totalXP: Math.max(local.totalXP ?? 0, cloud.totalXP ?? 0),
     level: Math.max(local.level ?? 1, cloud.level ?? 1),
     currentStreak: Math.max(local.currentStreak ?? 0, cloud.currentStreak ?? 0),
@@ -115,7 +118,10 @@ export function enableProgressSync(uid: string): () => void {
       console.warn('Progress upload failed:', e)
     );
   };
-  registerProgressUploader(progress => upload({ progress }));
+  registerProgressUploader(progress => {
+    upload({ progress });
+    publishLeaderboardEntry(uid, progress); // public stats ride every save
+  });
   registerPortfolioUploader('sim', p => upload({ simulator: p }));
   registerPortfolioUploader('paper', p => upload({ paper: p }));
   return () => {
@@ -131,4 +137,5 @@ export async function deleteUserDoc(uid: string): Promise<void> {
   const db = getFirestoreDb();
   if (!db) return;
   await deleteDoc(docRef(uid));
+  await deleteLeaderboardEntry(uid); // public row goes too — not just the private doc
 }

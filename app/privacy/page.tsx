@@ -26,6 +26,7 @@ const sections: { title: string; body: string[] }[] = [
     body: [
       'The app stores your learning progress, XP, streaks, daily usage counters, premium status, theme preference, trading style, and simulator portfolio in your device\'s local storage so the app works offline.',
       'When you are signed in, your learning progress (completed lessons, XP, streaks, level, and profile details) is also saved to a cloud database (Cloud Firestore) under your account. This copy is used to restore and sync your progress between devices. It is not shared with other users and is not used for advertising.',
+      'Leaderboard: your display name, chosen avatar, total XP, and current streak are published to a public leaderboard that other signed-in players can view. You can control the name and avatar shown by editing them in your Profile. Deleting your account removes your leaderboard entry.',
     ],
   },
   {

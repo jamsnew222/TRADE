@@ -2,15 +2,20 @@
 
 import { UserProgress } from '@/types';
 import { Flame, Snowflake, Zap, Calendar, TrendingUp, Award, Crown, Infinity } from 'lucide-react';
-import { checkPremiumStatus } from '@/lib/progress';
+import { checkPremiumStatus, buyStreakFreeze, STREAK_FREEZE_COST, MAX_STREAK_FREEZES } from '@/lib/progress';
 
 interface StreakDisplayProps {
   progress: UserProgress;
   darkMode: boolean;
+  /** Called after a freeze purchase so the parent can refresh progress state */
+  onFreezeBought?: (progress: UserProgress) => void;
 }
 
-export default function StreakDisplay({ progress, darkMode }: StreakDisplayProps) {
+export default function StreakDisplay({ progress, darkMode, onFreezeBought }: StreakDisplayProps) {
   const isPremium = checkPremiumStatus(progress);
+  const freezes = progress.streakFreezes ?? 0;
+  const canAfford = progress.totalXP >= STREAK_FREEZE_COST;
+  const atCap = freezes >= MAX_STREAK_FREEZES;
 
   const getStreakBonus = (streak: number): { xp: number; label: string } => {
     if (streak >= 30) return { xp: 50, label: '30-Day Master' };
@@ -157,15 +162,33 @@ export default function StreakDisplay({ progress, darkMode }: StreakDisplayProps
 
       {/* Freeze inventory — freezes auto-save the streak when a day is
           missed; there is no manual "use" */}
-      {!isPremium && (progress.streakFreezes ?? 0) > 0 && (
+      {!isPremium && freezes > 0 && (
         <div className={`w-full mt-4 flex items-center justify-center gap-2 p-3 rounded-lg ${
           darkMode ? 'bg-cyan-900/40 text-cyan-300' : 'bg-cyan-50 text-cyan-700'
         }`}>
           <Snowflake className="w-4 h-4" />
           <span className="font-medium">
-            {progress.streakFreezes} freeze{(progress.streakFreezes ?? 0) === 1 ? '' : 's'} — auto-saves your streak if you miss a day
+            {freezes} freeze{freezes === 1 ? '' : 's'} — auto-saves your streak if you miss a day
           </span>
         </div>
+      )}
+
+      {/* XP economy — spend XP on freezes (Duolingo's gem shop) */}
+      {!isPremium && onFreezeBought && (
+        <button
+          onClick={() => { const updated = buyStreakFreeze(); if (updated) onFreezeBought(updated); }}
+          disabled={!canAfford || atCap}
+          className={`w-full mt-3 flex items-center justify-center gap-2 p-3 rounded-lg font-semibold transition-colors ${
+            !canAfford || atCap
+              ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+              : 'bg-cyan-500 hover:bg-cyan-600 text-white'
+          }`}
+        >
+          <Snowflake className="w-4 h-4" />
+          {atCap
+            ? `Max ${MAX_STREAK_FREEZES} freezes held`
+            : `Buy a streak freeze — ${STREAK_FREEZE_COST} XP`}
+        </button>
       )}
 
       {isPremium && (

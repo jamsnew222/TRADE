@@ -23,7 +23,8 @@ export const loadProgress = (): UserProgress => {
       streakFreezes: 3,
       totalDaysActive: 0,
       isPremium: false,
-      premiumExpiry: null
+      premiumExpiry: null,
+      missedQuestions: []
     };
   }
 
@@ -37,7 +38,8 @@ export const loadProgress = (): UserProgress => {
       streakFreezes: parsed.streakFreezes || 3,
       totalDaysActive: parsed.totalDaysActive || 0,
       isPremium: parsed.isPremium || false,
-      premiumExpiry: parsed.premiumExpiry ?? null
+      premiumExpiry: parsed.premiumExpiry ?? null,
+      missedQuestions: parsed.missedQuestions || []
     };
   }
 
@@ -51,8 +53,48 @@ export const loadProgress = (): UserProgress => {
     streakFreezes: 3,
     totalDaysActive: 0,
     isPremium: false,
-    premiumExpiry: null
+    premiumExpiry: null,
+    missedQuestions: []
   };
+};
+
+// ---------- Mistake tracking (review mode) ----------
+
+const missKey = (lessonId: string, questionId: string) => `${lessonId}::${questionId}`;
+
+export const recordMiss = (lessonId: string, questionId: string): void => {
+  if (typeof window === 'undefined') return;
+  const progress = loadProgress();
+  const key = missKey(lessonId, questionId);
+  const missed = progress.missedQuestions || [];
+  if (missed.includes(key)) return;
+  saveProgress({ ...progress, missedQuestions: [...missed, key] });
+};
+
+// Answering a previously-missed question correctly — in any mode — clears it
+export const clearMiss = (lessonId: string, questionId: string): void => {
+  if (typeof window === 'undefined') return;
+  const progress = loadProgress();
+  const key = missKey(lessonId, questionId);
+  const missed = progress.missedQuestions || [];
+  if (!missed.includes(key)) return;
+  saveProgress({ ...progress, missedQuestions: missed.filter(m => m !== key) });
+};
+
+export const getMissedForLesson = (progress: UserProgress, lessonId: string): string[] =>
+  (progress.missedQuestions || [])
+    .filter(m => m.startsWith(`${lessonId}::`))
+    .map(m => m.slice(lessonId.length + 2));
+
+/** XP for finishing a mistake-practice round — counts toward XP/level and the
+ *  daily streak, but is NOT a lesson: no completedLessons entry, no daily slot */
+export const awardPracticeXP = (xp: number): UserProgress => {
+  const progress = loadProgress();
+  const totalXP = progress.totalXP + xp;
+  const updated = { ...progress, totalXP, level: calculateLevel(totalXP) };
+  const withStreak = updateStreak(updated);
+  saveProgress(withStreak);
+  return withStreak;
 };
 
 export const saveTradingStyle = (tradingStyle: string): void => {
@@ -257,6 +299,28 @@ export const grantMonthlyPremiumBonus = (): UserProgress => {
   }
   const totalXP = progress.totalXP + PREMIUM_MONTHLY_XP;
   const updated = { ...progress, totalXP, level: calculateLevel(totalXP), lastPremiumBonusMonth: month };
+  saveProgress(updated);
+  return updated;
+};
+
+// ---------- XP economy ----------
+
+export const STREAK_FREEZE_COST = 100;
+export const MAX_STREAK_FREEZES = 5;
+
+/** Spend XP on a streak freeze (Duolingo's gem economy — gives XP a purpose
+ *  beyond the number). Level is deliberately untouched: it reflects earned
+ *  standing, not the spendable balance. Returns null when unaffordable/maxed. */
+export const buyStreakFreeze = (): UserProgress | null => {
+  const progress = loadProgress();
+  if (checkPremiumStatus(progress)) return progress; // premium freezes are unlimited
+  if ((progress.streakFreezes ?? 0) >= MAX_STREAK_FREEZES) return null;
+  if (progress.totalXP < STREAK_FREEZE_COST) return null;
+  const updated = {
+    ...progress,
+    totalXP: progress.totalXP - STREAK_FREEZE_COST,
+    streakFreezes: (progress.streakFreezes ?? 0) + 1,
+  };
   saveProgress(updated);
   return updated;
 };
