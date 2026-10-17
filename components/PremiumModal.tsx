@@ -75,7 +75,7 @@ export default function PremiumModal({ isOpen, onClose, onSubscribe, onRestored,
           <div className="relative z-10">
             <div className="flex items-center justify-center gap-3 mb-4">
               <Crown className="w-12 h-12 text-white" />
-              <h1 className="text-4xl font-bold text-white">TradeQuest Premium</h1>
+              <h1 className="text-4xl font-bold text-white">TradeCub Premium</h1>
             </div>
             <p className="text-white/90 text-lg">Unlock your full trading potential</p>
           </div>

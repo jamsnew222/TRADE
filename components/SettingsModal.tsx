@@ -184,10 +184,10 @@ export default function SettingsModal({
 
           {/* About */}
           <div>
-            <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>About TradeQuest</h3>
+            <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>About TradeCub</h3>
             <div className={`p-4 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
               <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                TradeQuest is an interactive trading education app that helps you master trading through gamified lessons, real-time simulators, and personalized learning paths.
+                TradeCub is an interactive trading education app that helps you master trading through gamified lessons, real-time simulators, and personalized learning paths.
               </p>
               <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600 space-y-2">
                 <a

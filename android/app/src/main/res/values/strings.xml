@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">TradeQuest</string>
-    <string name="title_activity_main">TradeQuest</string>
-    <string name="package_name">com.tradequest.app</string>
-    <string name="custom_url_scheme">com.tradequest.app</string>
+    <string name="app_name">TradeCub</string>
+    <string name="title_activity_main">TradeCub</string>
+    <string name="package_name">com.tradecub.app</string>
+    <string name="custom_url_scheme">com.tradecub.app</string>
 </resources>

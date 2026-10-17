@@ -2,15 +2,15 @@ import Link from 'next/link';
 import { Shield } from 'lucide-react';
 
 export const metadata = {
-  title: 'Privacy Policy — TradeQuest',
-  description: 'How TradeQuest handles your data',
+  title: 'Privacy Policy — TradeCub',
+  description: 'How TradeCub handles your data',
 };
 
 const sections: { title: string; body: string[] }[] = [
   {
     title: 'Overview',
     body: [
-      'TradeQuest is a trading education app. To keep your progress safe across devices, the app asks you to sign in with an email address, Google, or Apple. Your learning progress, XP, streaks, and profile are then saved to your account in the cloud so they follow you wherever you sign in.',
+      'TradeCub is a trading education app. To keep your progress safe across devices, the app asks you to sign in with an email address, Google, or Apple. Your learning progress, XP, streaks, and profile are then saved to your account in the cloud so they follow you wherever you sign in.',
       'This policy explains what data the app touches, what third parties it contacts, and what choices you have.'
     ],
   },
@@ -45,7 +45,7 @@ const sections: { title: string; body: string[] }[] = [
   {
     title: 'Advertising and analytics',
     body: [
-      'TradeQuest contains no advertisements and no advertising SDKs. The app does not use analytics trackers and does not build a profile of you.',
+      'TradeCub contains no advertisements and no advertising SDKs. The app does not use analytics trackers and does not build a profile of you.',
     ],
   },
   {
@@ -90,7 +90,7 @@ export default function PrivacyPage() {
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Privacy Policy</h1>
         </div>
-        <p className="text-gray-500 mb-10">TradeQuest — effective {new Date().toISOString().slice(0, 10)}</p>
+        <p className="text-gray-500 mb-10">TradeCub — effective {new Date().toISOString().slice(0, 10)}</p>
 
         <div className="space-y-6">
           {sections.map((s) => (
@@ -104,7 +104,7 @@ export default function PrivacyPage() {
         </div>
 
         <Link href="/" className="mt-10 inline-block text-green-600 font-semibold hover:underline">
-          ← Back to TradeQuest
+          ← Back to TradeCub
         </Link>
       </div>
     </div>

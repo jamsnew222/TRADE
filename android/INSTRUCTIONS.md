@@ -62,8 +62,8 @@ The AAB (Android App Bundle) will be located at: `android/app/build/outputs/bund
 - Go to Google Play Console (https://play.google.com/console)
 - Create a new app
 - Fill in:
-  - App name: "TradeQuest"
-  - Package name: `com.tradequest.app`
+  - App name: "TradeCub"
+  - Package name: `com.tradecub.app`
   - App icon (512x512)
   - Feature graphic (1024x500)
   - Screenshots (phone and tablet, various sizes)

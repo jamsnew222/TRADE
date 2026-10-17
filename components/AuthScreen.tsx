@@ -42,7 +42,7 @@ export default function AuthScreen() {
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
             <TrendingUp className="w-9 h-9 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">TradeQuest</h1>
+          <h1 className="text-3xl font-bold text-gray-900">TradeCub</h1>
           <p className="text-gray-600 mt-1">Sign in to save your progress and streaks</p>
         </div>
 

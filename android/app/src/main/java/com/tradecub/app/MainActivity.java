@@ -1,4 +1,4 @@
-package com.tradequest.app;
+package com.tradecub.app;
 
 import com.getcapacitor.BridgeActivity;
 

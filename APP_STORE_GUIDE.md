@@ -1,8 +1,8 @@
-# TradeQuest App Store Submission Guide
+# TradeCub App Store Submission Guide
 
 ## What's Been Done
 
-I've configured your TradeQuest app for submission to both the Apple App Store and Google Play Store. Here's what has been completed:
+I've configured your TradeCub app for submission to both the Apple App Store and Google Play Store. Here's what has been completed:
 
 ### 1. Next.js Build Configuration
 - Updated `next.config.ts` to use static export (`output: 'export'`)
@@ -52,7 +52,7 @@ I've configured your TradeQuest app for submission to both the Apple App Store a
 
 4. **Create Play Store Listing**
    - Go to https://play.google.com/console
-   - Create a new app with package name `com.tradequest.app`
+   - Create a new app with package name `com.tradecub.app`
    - Upload the AAB file from `android/app/build/outputs/bundle/release/`
    - Complete the store listing (icons, screenshots, description, etc.)
    - Submit for review
@@ -71,7 +71,7 @@ I've configured your TradeQuest app for submission to both the Apple App Store a
 
 2. **Configure Signing**
    - Add your Apple Developer team
-   - Set up bundle identifier: `com.tradequest.app`
+   - Set up bundle identifier: `com.tradecub.app`
    - Configure code signing
 
 3. **Build and Archive**

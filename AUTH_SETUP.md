@@ -1,4 +1,4 @@
-# TradeQuest — Authentication Setup
+# TradeCub — Authentication Setup
 
 Sign-in (email/password, Google, Apple) and cloud progress sync run on
 **Firebase** — the app is a static export with no server, so Firebase is the

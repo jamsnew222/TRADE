@@ -9,7 +9,7 @@ interface MascotProps {
 }
 
 /**
- * Quest the bull — TradeQuest's mascot. Pure SVG, styled per mood:
+ * Quest the bull — TradeCub's mascot. Pure SVG, styled per mood:
  * idle (teacher), happy (correct!), party (lesson complete), sad (wrong),
  * dead (out of lives). Animate via the animate-mascot-* classes in globals.
  */

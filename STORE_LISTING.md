@@ -1,9 +1,9 @@
-# TradeQuest — Store Listing Copy
+# TradeCub — Store Listing Copy
 
 Ready-to-paste text for Google Play Console and App Store Connect.
 
 ## App name
-**TradeQuest** — Learn Trading
+**TradeCub** — Learn Trading
 
 ## Short description (Google Play, 80 chars max)
 ```
@@ -13,7 +13,7 @@ Learn trading like a game. Bite-sized lessons, real markets, zero risk.
 ## Full description
 
 ```
-TradeQuest turns trading education into a game. Learn how markets actually
+TradeCub turns trading education into a game. Learn how markets actually
 work through short interactive lessons, then practice with real stock prices
 — no deposits, no risk. Sign in once and your progress, streaks, and premium
 follow you across every device.
@@ -43,7 +43,7 @@ your knowledge grows.
 exclusive badges, and monthly bonus XP. Free tier includes 5 lessons and 25
 trades every day — forever, no ads.
 
-EDUCATION ONLY: TradeQuest is a learning tool. Simulated and delayed prices
+EDUCATION ONLY: TradeCub is a learning tool. Simulated and delayed prices
 are for practice, not investment advice.
 ```
 

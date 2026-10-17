@@ -263,7 +263,7 @@ export default function Home() {
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>TradeQuest</h1>
+                <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>TradeCub</h1>
                 <p className={`hidden sm:block text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Master trading through interactive learning</p>
               </div>
             </div>

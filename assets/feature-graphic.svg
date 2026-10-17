@@ -33,7 +33,7 @@
   <path d="M 760 240 L 705 232 M 760 240 L 752 185" fill="none" stroke="#22d3ee" stroke-width="14" stroke-linecap="round" opacity="0.95"/>
 
   <!-- wordmark -->
-  <text x="80" y="180" font-family="Arial, Helvetica, sans-serif" font-size="96" font-weight="bold" fill="#ffffff" letter-spacing="-2">TradeQuest</text>
+  <text x="80" y="180" font-family="Arial, Helvetica, sans-serif" font-size="96" font-weight="bold" fill="#ffffff" letter-spacing="-2">TradeCub</text>
   <text x="84" y="240" font-family="Arial, Helvetica, sans-serif" font-size="34" fill="#86efac">Learn to trade. Level by level.</text>
   <text x="84" y="460" font-family="Arial, Helvetica, sans-serif" font-size="24" fill="#94a3b8">Gamified lessons · Real market simulator · Streaks &amp; quests</text>
 </svg>

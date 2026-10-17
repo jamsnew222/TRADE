@@ -1,4 +1,4 @@
-# TradeQuest
+# TradeCub
 
 A Duolingo-style trading education app — bite-sized interactive lessons, a
 live-market simulator, streaks, daily quests, and a synced account so progress
@@ -64,5 +64,5 @@ capability): **`AUTH_SETUP.md`**.
 
 ## Education only
 
-TradeQuest is a learning tool. Simulated and delayed prices are for practice —
+TradeCub is a learning tool. Simulated and delayed prices are for practice —
 not investment advice.

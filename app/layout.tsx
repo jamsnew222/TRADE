@@ -14,13 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TradeQuest - Learn Stock Trading",
+  title: "TradeCub - Learn Stock Trading",
   description: "Master stock trading through interactive lessons, gamified learning, and paper trading practice",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "TradeQuest",
+    title: "TradeCub",
   },
 };
 

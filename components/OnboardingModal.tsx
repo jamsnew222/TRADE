@@ -29,7 +29,7 @@ const slides: Slide[] = [
   {
     icon: TrendingUp,
     iconBg: 'bg-gradient-to-br from-green-500 to-emerald-600',
-    title: 'Welcome to TradeQuest',
+    title: 'Welcome to TradeCub',
     body: 'Learn to trade like a game. Short lessons, real market practice, zero risk.',
     points: [
       { icon: GraduationCap, text: 'Bite-sized lessons teach you before you\'re tested' },

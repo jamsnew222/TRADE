@@ -16,7 +16,7 @@ cd ios/App && open App.xcodeproj
 ```
 
 ## 2. Firebase on iOS (required for sign-in + cloud save)
-1. In the Firebase console, register an **iOS app** with bundle id `com.tradequest.app`
+1. In the Firebase console, register an **iOS app** with bundle id `com.tradecub.app`
 2. Download `GoogleService-Info.plist` → drag it into Xcode under `App/App/` (check "Copy items if needed", target: **App**)
 3. In `AppDelegate.swift`, add `import FirebaseCore` and `FirebaseApp.configure()` inside `application(_:didFinishLaunchingWithOptions:)` — the `@capacitor-firebase/authentication` pod is already pulled by `cap sync`; verify `Podfile.lock` lists `CapacitorFirebaseAuthentication`
 4. Re-enable the same providers used on web (Email/Password, Google, Apple)
@@ -29,8 +29,8 @@ Sign in with Apple — we do, so the capability is mandatory:
   and key (see `../AUTH_SETUP.md` for the exact console path)
 
 ## 4. Signing & app metadata
-- **Signing & Capabilities**: select your team, "Automatically manage signing", bundle id `com.tradequest.app`
-- **General**: Display Name `TradeQuest`, Version `1.0`, Build `1` (increment per upload)
+- **Signing & Capabilities**: select your team, "Automatically manage signing", bundle id `com.tradecub.app`
+- **General**: Display Name `TradeCub`, Version `1.0`, Build `1` (increment per upload)
 - `Info.plist` needs no extra keys — local notifications and haptics work via
   Capacitor at runtime; we don't request tracking/ATT, contacts, or location
 

@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// TradeQuest — Cloud Firestore security rules.
+// TradeCub — Cloud Firestore security rules.
 // Deploy: firebase deploy --only firestore:rules
 // or paste into Firebase console -> Firestore -> Rules.
 //

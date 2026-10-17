@@ -1,6 +1,6 @@
 {
-  "name": "TradeQuest - Learn Trading",
-  "short_name": "TradeQuest",
+  "name": "TradeCub - Learn Trading",
+  "short_name": "TradeCub",
   "description": "Learn stock trading through interactive lessons and gamified learning",
   "start_url": "/",
   "display": "standalone",
