@@ -53,6 +53,28 @@ await page.addInitScript((progress) => {
 
 await page.goto(BASE, { waitUntil: 'domcontentloaded' });
 await page.waitForTimeout(2500);
+
+// If Firebase env vars are set the app gates on sign-in — capture the auth
+// screen, then log in with the QA account (created on first run, reused after).
+if (await page.getByRole('button', { name: /log in|create account/i }).count()) {
+  await shot('00-auth.png');
+  const QA = { email: 'screenshots@tradecub.dev', pass: 'Screenshot-QA-2026!' };
+  const fillForm = async () => {
+    await page.locator('input[type=email]').fill(QA.email);
+    await page.locator('input[type=password]').fill(QA.pass);
+  };
+  await fillForm();
+  await page.getByRole('button', { name: 'Log In' }).click();
+  await page.waitForTimeout(4000);
+  // Still on auth? The QA account doesn't exist yet — flip to sign-up
+  if (await page.getByRole('button', { name: /log in|create account/i }).count()) {
+    await page.getByRole('button', { name: 'Sign up' }).click();
+    await page.waitForTimeout(400);
+    await fillForm();
+    await page.getByRole('button', { name: 'Create Account' }).click();
+    await page.waitForTimeout(4000);
+  }
+}
 await shot('01-home-grid.png');
 
 // Learning path is the default view — scroll to the units and capture

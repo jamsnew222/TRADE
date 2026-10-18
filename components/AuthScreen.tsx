@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { TrendingUp, Mail, Loader2 } from 'lucide-react';
 import { authMethods } from '@/lib/auth';
+import Mascot from './Mascot';
 
 export default function AuthScreen() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
@@ -39,8 +40,11 @@ export default function AuthScreen() {
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <TrendingUp className="w-9 h-9 text-white" />
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <TrendingUp className="w-9 h-9 text-white" />
+            </div>
+            <Mascot mood="happy" size={84} className="animate-mascot-sway" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">TradeCub</h1>
           <p className="text-gray-600 mt-1">Sign in to save your progress and streaks</p>
