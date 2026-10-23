@@ -90,10 +90,11 @@ export default function Home() {
       }
       setAchievements(loadAchievements());
 
-      // Check for system dark mode preference
-      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        setDarkMode(true);
-      }
+      // Dark mode: an explicit saved choice wins; otherwise follow the system
+      const savedDark = localStorage.getItem('tradequest-dark-mode');
+      setDarkMode(savedDark !== null
+        ? savedDark === '1'
+        : window.matchMedia('(prefers-color-scheme: dark)').matches);
 
       // First launch: onboarding carousel, then style selector
       if (!hasSeenOnboarding()) {
@@ -602,7 +603,10 @@ export default function Home() {
         isOpen={showSettings}
         onClose={() => setShowSettings(false)}
         darkMode={darkMode}
-        onDarkModeToggle={() => setDarkMode(!darkMode)}
+        onDarkModeToggle={() => setDarkMode(d => {
+          localStorage.setItem('tradequest-dark-mode', d ? '0' : '1');
+          return !d;
+        })}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onStyleSelectorOpen={() => setShowStyleSelector(true)}
