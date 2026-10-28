@@ -36,7 +36,7 @@ I've configured your TradeCub app for submission to both the Apple App Store and
 1. **Generate a Keystore**
    ```bash
    cd android
-   keytool -genkey -v -keystore release.keystore -alias tradequest -keyalg RSA -keysize 2048 -validity 10000
+   keytool -genkey -v -keystore release.keystore -alias tradecub -keyalg RSA -keysize 2048 -validity 10000
    ```
 
 2. **Update keystore.properties**
@@ -117,7 +117,7 @@ You'll need to create:
 ## Quick Reference
 
 - **Android Build:** `cd android && gradlew.bat bundleRelease`
-- **Android Keystore:** `keytool -genkey -v -keystore release.keystore -alias tradequest -keyalg RSA -keysize 2048 -validity 10000`
+- **Android Keystore:** `keytool -genkey -v -keystore release.keystore -alias tradecub -keyalg RSA -keysize 2048 -validity 10000`
 - **iOS:** Open `ios/App/App.xcodeproj` in Xcode on a Mac
 
 ## Troubleshooting

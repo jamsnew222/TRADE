@@ -553,6 +553,10 @@ export default function TradingSimulator({ onClose, darkMode, tradingStyle }: Tr
               </div>
             </div>
           )}
+
+          <p className={`mt-6 text-center text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+            Paper trading for education only — no real money is involved. Nothing here is financial advice.
+          </p>
         </div>
 
         {/* Notification */}

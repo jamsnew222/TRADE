@@ -41,10 +41,11 @@ Everything else is a console/account step — none of it needs new code.
 
 - [ ] Copy `android/app/release.keystore` + `android/keystore.properties`
       somewhere off this machine — losing it means the app can never be updated
-- [ ] ⚠️ The keystore password was shared in chat — treat it as compromised.
-      Rotate the keystore before the real Play Store upload
-      (`keytool -genkeypair` new keystore → update `keystore.properties` →
-      re-register the new SHA-1/SHA-256 in Firebase)
+- [x] Keystore rotated 2026-10-27 (old password was exposed; old key kept as
+      `release-old.keystore`). Register the NEW SHA-1/SHA-256 in Firebase —
+      the old fingerprints are stale:
+      - SHA-1: `38:18:F8:F4:1B:C4:AE:B1:A3:AA:A6:6E:72:7E:FD:29:E1:AF:12:44`
+      - SHA-256: `93:9F:6C:3B:80:5A:F4:DD:1A:A2:E3:0A:FF:AD:D3:F2:01:99:FC:7A:24:DC:87:01:89:F6:68:8A:0D:C1:F8:FF`
 
 ### 4. Accounts (when ready to ship)
 

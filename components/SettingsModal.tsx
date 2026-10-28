@@ -189,6 +189,9 @@ export default function SettingsModal({
               <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                 TradeCub is an interactive trading education app that helps you master trading through gamified lessons, real-time simulators, and personalized learning paths.
               </p>
+              <p className={`mt-2 text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                TradeCub is for education only. Lessons and simulated trading are not financial advice — always do your own research or consult a licensed advisor before investing.
+              </p>
               <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600 space-y-2">
                 <a
                   href="/privacy"

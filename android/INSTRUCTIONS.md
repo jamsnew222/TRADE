@@ -16,7 +16,7 @@
 ### 1. Generate a Keystore File
 Run this command in the android directory:
 ```bash
-keytool -genkey -v -keystore release.keystore -alias tradequest -keyalg RSA -keysize 2048 -validity 10000
+keytool -genkey -v -keystore release.keystore -alias tradecub -keyalg RSA -keysize 2048 -validity 10000
 ```
 
 This will ask you to:

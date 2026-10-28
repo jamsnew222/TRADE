@@ -45,7 +45,7 @@ Google sign-in on Android needs your signing keys registered:
 1. Get SHA-1 + SHA-256 of `android/app/release.keystore`:
 
    ```bash
-   keytool -list -v -keystore android/app/release.keystore -alias tradequest
+   keytool -list -v -keystore android/app/release.keystore -alias tradecub
    ```
 
 2. Firebase console → your **Android app** → **Add fingerprint** → paste both
