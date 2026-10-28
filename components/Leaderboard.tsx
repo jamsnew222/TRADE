@@ -14,7 +14,7 @@ interface LeaderboardProps {
 const MEDALS = ['🥇', '🥈', '🥉'];
 
 export default function Leaderboard({ currentUid, onClose, darkMode }: LeaderboardProps) {
-  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null);
   const [loading, setLoading] = useState(!!currentUid);
 
   useEffect(() => {
@@ -64,6 +64,16 @@ export default function Leaderboard({ currentUid, onClose, darkMode }: Leaderboa
           ) : loading ? (
             <div className="flex justify-center py-12">
               <div className="w-10 h-10 rounded-full border-4 border-yellow-500 border-t-transparent animate-spin" />
+            </div>
+          ) : entries === null ? (
+            <div className="text-center py-8">
+              <Crown className={`w-12 h-12 mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`} />
+              <p className={`mb-2 font-semibold ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                Rankings unavailable
+              </p>
+              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                Couldn&apos;t reach the leaderboard — check your connection and try again.
+              </p>
             </div>
           ) : entries.length === 0 ? (
             <div className="text-center py-8">

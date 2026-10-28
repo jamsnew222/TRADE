@@ -42,9 +42,11 @@ export async function deleteLeaderboardEntry(uid: string): Promise<void> {
   await deleteDoc(doc(db, 'leaderboard', uid)).catch(() => {});
 }
 
-export async function fetchLeaderboard(max = 50): Promise<LeaderboardEntry[]> {
+/** Returns the ranked list, or null when the fetch actually failed —
+ *  callers can tell "empty board" apart from "service unreachable". */
+export async function fetchLeaderboard(max = 50): Promise<LeaderboardEntry[] | null> {
   const db = getFirestoreDb();
-  if (!db) return [];
+  if (!db) return null;
   try {
     const q = query(
       collection(db, 'leaderboard'),
@@ -55,6 +57,6 @@ export async function fetchLeaderboard(max = 50): Promise<LeaderboardEntry[]> {
     return snap.docs.map(d => d.data() as LeaderboardEntry);
   } catch (e) {
     console.warn('Leaderboard fetch failed:', e);
-    return [];
+    return null;
   }
 }
