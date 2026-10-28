@@ -29,6 +29,8 @@ Everything else is a console/account step — none of it needs new code.
 - [ ] Android app registered (Project settings → Add app → Android):
       package `com.tradecub.app` + the SHA-1/SHA-256 fingerprints
 - [ ] `google-services.json` → `android/app/google-services.json`
+      (needed for **Google sign-in on Android**; email sign-in already works
+      via the web-SDK fallback — verified on emulator)
 
 ### 2. GitHub Pages (1 click, free)
 
@@ -56,6 +58,8 @@ Everything else is a console/account step — none of it needs new code.
 
 ### 5. Ship Android
 
+- [x] Emulator smoke test — app installs, signs in (email), renders
+      (AVD `tradecub_test`, driver: `node assets/emu-drive.mjs`)
 - [ ] `cd android && gradlew.bat bundleRelease` — produces
       `android/app/build/outputs/bundle/release/app-release.aab`
 - [ ] Play Console → create app `com.tradecub.app` → upload AAB

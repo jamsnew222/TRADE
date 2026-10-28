@@ -29,6 +29,7 @@ export default function AuthScreen() {
         : msg.includes('weak-password') ? 'Password needs at least 6 characters'
         : msg.includes('invalid-email') ? 'That email address looks invalid'
         : msg.includes('popup-closed') || msg.includes('canceled') ? 'Sign-in was cancelled'
+        : /not implemented|unavailable/i.test(msg) ? 'Google sign-in isn\'t available in this build — use email'
         : msg
       );
     } finally {

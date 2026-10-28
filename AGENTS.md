@@ -14,6 +14,13 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - `npm test` (Vitest: progress, question normalization, portfolio math)
 - `npm run build` produces `out/` for Capacitor (output: 'export' - no API routes)
 - Dev server: `npm run dev` at http://localhost:3000
+- Android builds need JDK 21 (android/variables.gradle targets sourceCompatibility 21)
+- Emulator smoke test: AVD `tradecub_test` exists (SDK at %LOCALAPPDATA%/Android/Sdk).
+  Boot emulator → gradlew installDebug → adb forward tcp:9222
+  localabstract:webview_devtools_remote_<pid> → `node assets/emu-drive.mjs`
+  signs in via raw CDP; `emu-full-log.mjs` captures WebView console/network
+- public/sw.js: HTML is network-first — never revert to cache-first for
+  documents (stale shell + dead chunks = permanent spinner for returning users)
 
 ## Notes
 - Finnhub key lives in .env.local (gitignored) as NEXT_PUBLIC_FINNHUB_API_KEY - client-side by necessity (static export); regenerate via finnhub.io if ever leaked

@@ -46,14 +46,27 @@ export function useAuth(): AuthState {
 // The web SDK keeps a separate auth state, so each successful native sign-in
 // is bridged into the web layer via signInWithCredential — the web auth state
 // is what the web Firestore SDK uses for security rules.
+//
+// The native plugin can't register without google-services.json (Android) /
+// GoogleService-Info.plist (iOS). Email/password doesn't actually need the
+// native SDK — the web SDK works standalone in the WebView — so it falls back
+// when the plugin is missing. Google/Apple genuinely require the native flow.
+
+const isPluginMissing = (e: unknown) =>
+  /not implemented|unavailable/i.test((e as { message?: string })?.message ?? '');
 
 async function signInEmail(email: string, password: string) {
   const auth = getFirebaseAuth();
   if (!auth) throw new Error('Auth is not configured');
-  if (Capacitor.isNativePlatform()) {
+  if (!Capacitor.isNativePlatform()) {
+    await signInWithEmailAndPassword(auth, email, password);
+    return;
+  }
+  try {
     await FirebaseAuthentication.signInWithEmailAndPassword({ email, password });
     await signInWithCredential(auth, EmailAuthProvider.credential(email, password));
-  } else {
+  } catch (e) {
+    if (!isPluginMissing(e)) throw e;
     await signInWithEmailAndPassword(auth, email, password);
   }
 }
@@ -61,10 +74,15 @@ async function signInEmail(email: string, password: string) {
 async function signUpEmail(email: string, password: string) {
   const auth = getFirebaseAuth();
   if (!auth) throw new Error('Auth is not configured');
-  if (Capacitor.isNativePlatform()) {
+  if (!Capacitor.isNativePlatform()) {
+    await createUserWithEmailAndPassword(auth, email, password);
+    return;
+  }
+  try {
     await FirebaseAuthentication.createUserWithEmailAndPassword({ email, password });
     await signInWithCredential(auth, EmailAuthProvider.credential(email, password));
-  } else {
+  } catch (e) {
+    if (!isPluginMissing(e)) throw e;
     await createUserWithEmailAndPassword(auth, email, password);
   }
 }
@@ -110,7 +128,7 @@ async function resetPassword(email: string) {
 async function signOut() {
   const auth = getFirebaseAuth();
   if (Capacitor.isNativePlatform()) {
-    await FirebaseAuthentication.signOut();
+    await FirebaseAuthentication.signOut().catch(() => {});
   }
   if (auth) await fbSignOut(auth);
 }
