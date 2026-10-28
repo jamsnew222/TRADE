@@ -7,7 +7,7 @@ import { learningPath } from '@/data/learning-path';
 import { loadProgress, completeLesson, getRecommendedLessons, saveTradingStyle, getStreakBonus, checkPremiumStatus, canStartLesson, getRemainingUsage, grantMonthlyPremiumBonus, FREE_DAILY_LESSONS, reconcileStreak, awardPracticeXP } from '@/lib/progress';
 import { initPurchases, purchasePremium, linkPurchasesToUser, PurchaseResult } from '@/lib/purchases';
 import { useAuth, authMethods } from '@/lib/auth';
-import { syncOnLogin, enableProgressSync } from '@/lib/progress-sync';
+import { syncOnLogin, enableProgressSync, subscribeSyncStatus, SyncStatus } from '@/lib/progress-sync';
 import { refreshStreakReminder } from '@/lib/notifications';
 import AuthScreen from '@/components/AuthScreen';
 import { checkAchievements, loadAchievements } from '@/lib/achievements';
@@ -53,6 +53,8 @@ function buildPathUnits(completedLessonIds: string[]): Unit[] {
 
 export default function Home() {
   const { user, loading: authLoading, required: authRequired } = useAuth();
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
+  useEffect(() => subscribeSyncStatus(setSyncStatus), []);
   const [progress, setProgress] = useState<UserProgress | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
@@ -346,10 +348,19 @@ export default function Home() {
               </button>
               <button
                 onClick={() => setShowProfile(true)}
-                className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-lg shadow hover:scale-105 transition-transform"
+                className="relative w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-lg shadow hover:scale-105 transition-transform"
                 aria-label="Profile"
               >
                 {progress?.profileAvatar ?? '📈'}
+                {user && syncStatus !== 'idle' && (
+                  <span
+                    title={syncStatus === 'synced' ? 'Progress saved to your account' : 'Cloud sync problem — progress is saved locally only'}
+                    aria-label={syncStatus === 'synced' ? 'Progress synced to cloud' : 'Cloud sync error'}
+                    className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ring-2 ${darkMode ? 'ring-gray-800' : 'ring-white'} ${
+                      syncStatus === 'synced' ? 'bg-green-500' : 'bg-red-500'
+                    }`}
+                  />
+                )}
               </button>
             </div>
           </div>

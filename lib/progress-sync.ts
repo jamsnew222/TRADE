@@ -21,6 +21,22 @@ import {
 
 const docRef = (uid: string) => doc(getFirestoreDb()!, 'users', uid);
 
+/** Cloud-sync health — 'idle' until the first write attempt, then flips to
+ *  'synced' or 'error'. The header badge subscribes so a broken backend is
+ *  visible instead of failing silently to console.warn. */
+export type SyncStatus = 'idle' | 'synced' | 'error';
+let syncStatus: SyncStatus = 'idle';
+const listeners = new Set<(s: SyncStatus) => void>();
+const setSyncStatus = (s: SyncStatus) => {
+  syncStatus = s;
+  listeners.forEach(l => l(s));
+};
+export function subscribeSyncStatus(cb: (s: SyncStatus) => void): () => void {
+  listeners.add(cb);
+  cb(syncStatus);
+  return () => { listeners.delete(cb); };
+}
+
 /** Merge two progress snapshots — union what's accumulated, max what's counted. */
 export function mergeProgress(local: UserProgress, cloud: Partial<UserProgress> | undefined): UserProgress {
   if (!cloud) return local;
@@ -101,9 +117,11 @@ export async function syncOnLogin(uid: string): Promise<UserProgress> {
       savePaperPortfolio(data.paper);
     }
 
+    setSyncStatus('synced');
     return merged;
   } catch (e) {
     console.warn('Cloud sync failed, continuing with local progress:', e);
+    setSyncStatus('error');
     return local;
   }
 }
@@ -114,9 +132,12 @@ export function enableProgressSync(uid: string): () => void {
   const upload = (fields: Record<string, unknown>) => {
     const db = getFirestoreDb();
     if (!db) return;
-    void setDoc(docRef(uid), fields, { merge: true }).catch(e =>
-      console.warn('Progress upload failed:', e)
-    );
+    void setDoc(docRef(uid), fields, { merge: true })
+      .then(() => setSyncStatus('synced'))
+      .catch(e => {
+        console.warn('Progress upload failed:', e);
+        setSyncStatus('error');
+      });
   };
   registerProgressUploader(progress => {
     upload({ progress });
