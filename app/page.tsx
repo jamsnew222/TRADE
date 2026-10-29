@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 import { lessons, categories } from '@/data/lessons-padded';
 import { tradingStyles } from '@/data/trading-styles';
 import { learningPath } from '@/data/learning-path';
@@ -76,6 +78,32 @@ export default function Home() {
   const [showProfile, setShowProfile] = useState(false);
   const [justUnlocked, setJustUnlocked] = useState<Achievement | null>(null);
   const [freezeNotice, setFreezeNotice] = useState(false);
+
+  // Android hardware back: close the top overlay first, then views, then
+  // minimize (never hard-exit mid-lesson). Ref pattern so the listener is
+  // registered once but always sees the latest modal state.
+  const backAction = useRef<() => void>(() => {});
+  useEffect(() => {
+    backAction.current = () => {
+      if (showSettings) return setShowSettings(false);
+      if (showProfile) return setShowProfile(false);
+      if (showPremiumModal) return setShowPremiumModal(false);
+      if (showLeaderboard) return setShowLeaderboard(false);
+      if (showAchievements) return setShowAchievements(false);
+      if (showReview) return setShowReview(false);
+      if (showStyleSelector) return setShowStyleSelector(false);
+      if (showOnboarding) return setShowOnboarding(false);
+      if (activeLesson) { setActiveLesson(null); return setPracticeIds(null); }
+      if (showPaperTrading) return setShowPaperTrading(false);
+      if (showSimulator) return setShowSimulator(false);
+      void App.minimizeApp();
+    };
+  });
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const h = App.addListener('backButton', () => backAction.current());
+    return () => { void h.then(l => l.remove()); };
+  }, []);
 
   useEffect(() => {
     try {
