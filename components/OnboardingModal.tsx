@@ -66,7 +66,7 @@ export default function OnboardingModal({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className={`${s.iconBg} p-10 text-center transition-colors`}>
           <div className="inline-flex bg-white/20 rounded-2xl p-4 mb-4">
             <Icon className="w-14 h-14 text-white" />

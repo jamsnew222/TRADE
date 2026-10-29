@@ -36,7 +36,7 @@ export default function SettingsModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className={`rounded-2xl shadow-2xl max-w-md w-full ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+      <div className={`rounded-2xl shadow-2xl max-w-md w-full max-h-[85vh] overflow-hidden flex flex-col ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
         {/* Header */}
         <div className={`p-6 border-b flex items-center justify-between ${darkMode ? 'border-gray-700' : ''}`}>
           <div className="flex items-center gap-3">
@@ -54,8 +54,8 @@ export default function SettingsModal({
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
+        {/* Content — scrolls; header and footer stay pinned */}
+        <div className="p-6 space-y-6 overflow-y-auto flex-1">
           {/* Appearance */}
           <div>
             <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>Appearance</h3>
