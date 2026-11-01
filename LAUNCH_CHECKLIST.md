@@ -56,12 +56,16 @@ Everything else is a console/account step — none of it needs new code.
 - [ ] RevenueCat project — free tier — revenuecat.com → keys into
       `NEXT_PUBLIC_REVENUECAT_*_KEY` in `.env.local` (real IAP)
 
-### 5. Ship Android
+### 5. Ship Android — walkthrough: `PLAY_SUBMISSION.md`
 
 - [x] Emulator smoke test — app installs, signs in (email), renders
       (AVD `tradecub_test`, driver: `node assets/emu-drive.mjs`)
-- [ ] `cd android && gradlew.bat bundleRelease` — produces
-      `android/app/build/outputs/bundle/release/app-release.aab`
+- [x] Signed `app-release.aab` built (includes all current fixes)
+- [ ] Play Console app created → AAB uploaded → listing filled
+      (assets: `assets/play-icon-512.png`, `assets/feature-graphic.png`,
+      `assets/screenshots/`)
+- [ ] Closed testing: ~12 opted-in testers for 14 days (Play requirement
+      for new personal accounts) → then promote to Production
 - [ ] Play Console → create app `com.tradecub.app` → upload AAB
 - [ ] Store listing: copy from `STORE_LISTING.md`, images from
       `assets/screenshots/` + `assets/feature-graphic.png`
