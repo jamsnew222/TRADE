@@ -16,16 +16,15 @@ Everything else is a console/account step — none of it needs new code.
 
 ## Your steps — in order
 
-### 1. Firebase (~15 min, free) — status: mostly done
+### 1. Firebase (~15 min, free) — status: done except google-services.json
 
 - [x] Project created + web config pasted into `.env.local`
 - [x] Providers enabled (email, Google, Apple)
-- [ ] **Firestore Database** created — sidebar → Databases & Storage →
-      Firestore Database → Create → production mode
-- [ ] **`firestore.rules` pasted** — Firestore → Rules tab → paste repo file
-      → Publish
-- [ ] **Verify sync**: sign up at http://localhost:3000, finish a lesson,
-      check Firestore Data tab for `users/{your-uid}`
+- [x] **Firestore Database** created (production mode)
+- [x] **`firestore.rules` deployed** — via `npx firebase-tools deploy`
+      (firebase.json added to repo for this)
+- [x] **Verified end-to-end** — `node assets/verify-firestore.mjs`:
+      auth + users/{uid} write/read + leaderboard write/read all pass
 - [ ] Android app registered (Project settings → Add app → Android):
       package `com.tradecub.app` + the SHA-1/SHA-256 fingerprints
 - [ ] `google-services.json` → `android/app/google-services.json`
