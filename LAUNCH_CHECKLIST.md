@@ -25,11 +25,15 @@ Everything else is a console/account step — none of it needs new code.
       (firebase.json added to repo for this)
 - [x] **Verified end-to-end** — `node assets/verify-firestore.mjs`:
       auth + users/{uid} write/read + leaderboard write/read all pass
-- [ ] Android app registered (Project settings → Add app → Android):
-      package `com.tradecub.app` + the SHA-1/SHA-256 fingerprints
-- [ ] `google-services.json` → `android/app/google-services.json`
-      (needed for **Google sign-in on Android**; email sign-in already works
-      via the web-SDK fallback — verified on emulator)
+- [x] Android app registered (Project settings → Add app → Android):
+      package `com.tradecub.app`. Fingerprints needed on that app —
+      release SHA-1 + SHA-256 (below) **and** the debug SHA-1
+      `8E:F6:46:01:0F:CC:B3:F3:CF:7A:7D:74:DB:68:14:91:DD:A7:CB:E2`
+      (debug builds sign with the debug keystore — without it Google
+      sign-in works in release but not in dev)
+- [x] `google-services.json` placed at `android/app/` (gitignored — copy
+      to the Mac manually for iOS builds). Native Google sign-in flow
+      verified launching on the emulator.
 
 ### 2. GitHub Pages (1 click, free)
 
