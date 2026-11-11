@@ -73,7 +73,7 @@ The app now has accounts, so declare:
 
 ## Privacy policy URL
 ```
-https://jamsnew222.github.io/TRADE/privacy
+https://tradequest-7db99.web.app/privacy
 ```
 Deployed automatically by `.github/workflows/deploy-pages.yml` — enable once in
 repo Settings → Pages → Source: "GitHub Actions". The workflow builds with

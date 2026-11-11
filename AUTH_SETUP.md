@@ -71,8 +71,9 @@ google-services wiring above is the only native change needed.
 ## 6. Web / authorized domains
 
 Firebase console → Authentication → **Settings** → Authorized domains →
-add any domain hosting the app (e.g. `jamsnew222.github.io` if the Pages
-site should allow sign-in). `localhost` is allowed by default.
+add any domain hosting the app. `localhost` and the Firebase Hosting
+domains (`tradequest-7db99.web.app` / `.firebaseapp.com`) are allowed
+by default — the live web app is at `https://tradequest-7db99.web.app`.
 
 ## How it works in code
 

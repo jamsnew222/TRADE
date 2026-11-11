@@ -35,12 +35,14 @@ Everything else is a console/account step — none of it needs new code.
       to the Mac manually for iOS builds). Native Google sign-in flow
       verified launching on the emulator.
 
-### 2. GitHub Pages (1 click, free)
+### 2. Public privacy URL — DONE via Firebase Hosting
 
-- [ ] Repo Settings → Pages → Source: **GitHub Actions**
-- [ ] Privacy URL goes live: `https://jamsnew222.github.io/TRADE/privacy`
-- [ ] Add `jamsnew222.github.io` to Firebase → Authentication → Settings →
-      Authorized domains
+- [x] App deployed to Firebase Hosting — `npx firebase-tools deploy --only hosting`
+      (hosting config in `firebase.json`, serves `out/`)
+- [x] Privacy URL live: `https://tradequest-7db99.web.app/privacy`
+- [x] `*.web.app` is pre-authorized for Firebase auth — no domain step needed
+- Note: GitHub Pages needed a public repo, so Firebase Hosting replaced it.
+  Redeploy after app changes: `npm run build && npx firebase-tools deploy --only hosting`
 
 ### 3. Keystore backup (2 min)
 

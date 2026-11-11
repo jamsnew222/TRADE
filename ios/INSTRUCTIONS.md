@@ -52,7 +52,7 @@ it must keep working. Don't remove it.
 ## 8. App Store Connect listing (see `../STORE_LISTING.md` for copy)
 - Screenshots: 6.7" and 6.5" required (iPhone 15 Pro Max / 11 Pro Max simulator) —
   `assets/take-screenshots.mjs` images are a starting point but retake on-device for review
-- Privacy policy URL: `https://jamsnew222.github.io/TRADE/privacy` (once GitHub Pages is enabled)
+- Privacy policy URL: `https://tradequest-7db99.web.app/privacy` (live on Firebase Hosting)
 - Age rating: 4+ (financial education, no real trading)
 - Review notes for Apple: "Trading *education* app — all trades are simulated,
   no real money. Accounts support email/Google/Apple sign-in; deletion is in

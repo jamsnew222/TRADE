@@ -8,7 +8,7 @@ it's ~45 min of clicking plus the mandatory closed-testing wait.
 - [ ] Play Console account paid ($25)
 - [ ] `google-services.json` in `android/app/` (Google sign-in)
 - [ ] Firestore database live + rules published
-- [ ] Privacy policy live at `https://jamsnew222.github.io/TRADE/privacy`
+- [x] Privacy policy live at `https://tradequest-7db99.web.app/privacy`
       (Settings → Pages → GitHub Actions)
 - [ ] Fresh AAB: `cd android && gradlew.bat bundleRelease`
       → `android/app/build/outputs/bundle/release/app-release.aab`
@@ -34,7 +34,7 @@ it's ~45 min of clicking plus the mandatory closed-testing wait.
 | Category | Education |
 | Tags | education, finance |
 | Email | your support email |
-| Privacy policy URL | `https://jamsnew222.github.io/TRADE/privacy` |
+| Privacy policy URL | `https://tradequest-7db99.web.app/privacy` |
 
 Ads: **No** — there are no ad SDKs; Play gives a "No ads" badge.
 
